@@ -1,4 +1,4 @@
-# Elfred
+# Alfred
 
 Alfred is a GitHub application designed to help developers improve their pull requests by providing feedback and suggestions.
 
