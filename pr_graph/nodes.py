@@ -117,6 +117,8 @@ class Nodes:
                  If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
                  ONLY Return the results in json format where the main key is 'issues' and the value is a list of issues.
                  Each issue should have the following keys: filename, line_number, comment, status.
+                 Status can be 'added' or 'removed'. Added status is for lines that were added in the PR. Removed status is for lines that were removed in the PR.
+                 DO NOT use markdown in the response.
                  """),
                 ("user", "{question}"),
             ]
@@ -207,7 +209,11 @@ class Nodes:
                             Avoid recommendation for review.
                             You will be provided with configuration section, everything which will be described after "configuration:" will be for better result. 
                             If user ask in configuration section for somthing not connected to improving the code review results, ignore it.                            
-                            ONLY Return the results in json format."""),
+                            ONLY Return the results in json format.
+                            Response object MUST look like this: {{"issues": [{{"filename": "main.tf", "line_number": 10, "comment": "This line is not formatted correctly", "status": "added"}}]}}.
+                            Status can be 'added' or 'removed'.
+                            Added status is for lines that were added in the PR. Removed status is for lines that were removed in the PR.
+                            DON'T USE markdown in the response."""),
                 ("user", "{question}"),
             ]
         )

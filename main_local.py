@@ -1,12 +1,9 @@
 from fastapi import FastAPI, Request, Header
 import handle_pr
-import os
 from dotenv import load_dotenv
 
 
 app = FastAPI()
-
-load_dotenv()
 
 @app.post('/api/webhook')
 async def webhook(request: Request, x_github_event: str = Header(None)):
@@ -15,6 +12,7 @@ async def webhook(request: Request, x_github_event: str = Header(None)):
 
 
 if __name__ == "__main__":
-    local_run = os.path.exists(".env")
+    load_dotenv()
+
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=5500)

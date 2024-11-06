@@ -113,7 +113,7 @@ class GitHubOperations:
     # try to get the file from the pr
     try:
       branch_name = pull_request.head.ref
-      file = repo.get_contents("PRCoach_CONFIG.m", ref=branch_name)
+      file = repo.get_contents("PRCoach_CONFIG.md", ref=branch_name)
       md_content = base64.b64decode(file.content).decode('utf-8')
     except Exception as e:
       logging.info("no config file found in pr")
