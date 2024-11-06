@@ -1,15 +1,13 @@
 import os
-import logging
 from fastapi.responses import JSONResponse
 
 import init
 from crew import PRCoachCrew
 from pr_graph.graph import WorkFlow
 from utils.config_file_pr import GitHubOperations
-from main import LOGGER_NAME
+from utils.logging_config import get_default_logger
 
-
-logger = logging.getLogger(LOGGER_NAME)
+logger = get_default_logger()
 
 
 def handle_github_event(payload, x_github_event, local_run):

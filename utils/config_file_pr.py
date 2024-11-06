@@ -3,7 +3,6 @@ import os
 import re
 from typing import Union, Dict
 
-import logging
 import requests
 from dotenv import load_dotenv
 from github import Github, GithubIntegration
@@ -11,9 +10,9 @@ from github import GithubException
 from github.Repository import Repository
 
 from utils.github_config import init_github
-from main import LOGGER_NAME
+from utils.logging_config import get_default_logger
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = get_default_logger()
 
 load_dotenv()
 

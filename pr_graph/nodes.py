@@ -1,5 +1,4 @@
 import json
-import logging
 import re
 from typing import Dict
 
@@ -9,9 +8,9 @@ from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 
 from pr_graph.state import FileChange, GitHubPRState, Comment
 from utils.github_config import init_github
-from main import LOGGER_NAME
+from utils.logging_config import get_default_logger
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = get_default_logger()
 
 
 

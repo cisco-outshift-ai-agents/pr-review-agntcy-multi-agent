@@ -1,10 +1,8 @@
-import logging
-from utils.logging_config import setup_console_logging
 import functions_framework
 import handle_pr
+from utils.logging_config import get_default_logger
 
-LOGGER_NAME = "alfred"
-logger = setup_console_logging(name=LOGGER_NAME, log_level=logging.DEBUG)
+logger = get_default_logger()
 
 @functions_framework.http
 def handle_event(request):

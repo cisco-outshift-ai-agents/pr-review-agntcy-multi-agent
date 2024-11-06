@@ -1,7 +1,8 @@
 import logging
 
 # Constants for log levels
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+DEFAULT_LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+DEFAULT_LOGGER_NAME = "alfred"
 
 def setup_logging(name: str = "", log_level: int = logging.INFO, log_type: str = "console", log_file: str = ""):
     """
@@ -23,7 +24,7 @@ def setup_logging(name: str = "", log_level: int = logging.INFO, log_type: str =
     logger.handlers.clear()
     
     # Common formatter
-    formatter = logging.Formatter(LOG_FORMAT)
+    formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
 
     if log_type == "file":
         file_handler = logging.FileHandler(log_file)
@@ -73,3 +74,12 @@ def setup_file_logging(name: str = "", log_level: int = logging.INFO, log_file: 
     - logger (logging.Logger): Configured logger instance.
     """
     return setup_logging(name=name, log_level=log_level, log_type="file", log_file=log_file)
+
+def get_default_logger():
+    logger = logging.getLogger(DEFAULT_LOGGER_NAME)
+
+    # Alfred logger is not initialized yet
+    if len(logger.handlers) == 0:
+      logger = setup_console_logging(name=DEFAULT_LOGGER_NAME, log_level=logging.DEBUG)
+
+    return logger

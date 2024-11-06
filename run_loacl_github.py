@@ -1,13 +1,10 @@
 import os
-import logging
 from utils.logging_config import setup_console_logging, setup_file_logging
 from fastapi import FastAPI, Request, Header
 import handle_pr
-from main import LOGGER_NAME
+from utils.logging_config import get_default_logger
 
-
-# logger = setup_file_logging(name=LOGGER_NAME, log_level=logging.DEBUG, log_file="app.log")
-logger = logging.getLogger(LOGGER_NAME)
+logger = get_default_logger()
 
 
 app = FastAPI()
