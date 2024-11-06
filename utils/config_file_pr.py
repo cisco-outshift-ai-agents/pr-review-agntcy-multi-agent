@@ -1,9 +1,9 @@
 import base64
-import logging
 import os
 import re
 from typing import Union, Dict
 
+import logging
 import requests
 from dotenv import load_dotenv
 from github import Github, GithubIntegration
@@ -11,9 +11,11 @@ from github import GithubException
 from github.Repository import Repository
 
 from utils.github_config import init_github
+from main import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 load_dotenv()
-# setup_logging()
 
 class GitHubOperations:
   def __init__(self, installation_id: str):
@@ -32,13 +34,13 @@ class GitHubOperations:
     try:
       base_ref = repo.get_git_ref(f"heads/{base_branch}")
       repo.create_git_ref(ref=f"refs/heads/{branch_name}", sha=base_ref.object.sha)
-      logging.info(f'Branch {branch_name} created successfully.')
+      logger.info(f'Branch {branch_name} created successfully.')
       return True
     except GithubException as e:
       if 'Reference already exists' in e.data.get('message'):
-        logging.info(f'Branch already exist')
+        logger.info(f'Branch already exist')
         return True
-      logging.error(f'Failed to create branch: {e.data}')
+      logger.error(f'Failed to create branch: {e.data}')
       return False
 
   def __file_exists(self, repo: Repository,  branch_name: str, file_path: str) -> (bool, str):
@@ -55,15 +57,15 @@ class GitHubOperations:
     try:
       file_exists, file_contents = self.__file_exists(repo, branch_name, file_path)
       if file_exists:
-        logging.info(f'File {file_path} already exists in branch {branch_name}.')
+        logger.info(f'File {file_path} already exists in branch {branch_name}.')
         repo.update_file(path=file_path, message=commit_message, content=file_content, branch=branch_name, sha=file_contents.sha)
         return True
 
       repo.create_file(path=file_path, message=commit_message, content=file_content, branch=branch_name)
-      logging.info(f'File {file_path} created successfully.')
+      logger.info(f'File {file_path} created successfully.')
       return True
     except GithubException as e:
-      logging.info(f'Failed to create file: {e.data}')
+      logger.info(f'Failed to create file: {e.data}')
       return False
 
   def __create_pull_request(self, repo: Repository, branch_name: str, pr_title: str, pr_body: str, base_branch: str = 'master') -> bool:
@@ -71,13 +73,13 @@ class GitHubOperations:
       pulls = repo.get_pulls(state='open')
       pr_exists = any(pr.head.ref == branch_name for pr in pulls)
       if pr_exists:
-        logging.info('Pull request already exists.')
+        logger.info('Pull request already exists.')
         return True
       repo.create_pull(title=pr_title, body=pr_body, head=branch_name, base=base_branch)
-      logging.info('Pull request created successfully.')
+      logger.info('Pull request created successfully.')
       return True
     except GithubException as e:
-      logging.error(f'Failed to create pull request: {e.data}')
+      logger.error(f'Failed to create pull request: {e.data}')
       return False
 
 
@@ -101,7 +103,7 @@ class GitHubOperations:
   def retrieve_md_content_from_pr(self, pr_number, repo_name) -> Dict[str, str]:
     success, result = self.__parse_md_content_from_pr(repo_name, pr_number, self.github)
     if not success:
-      logging.error(f"Missing or invalid PR coach configuration: {result}")
+      logger.error(f"Missing or invalid PR coach configuration: {result}")
       return None
     return result
 
@@ -116,7 +118,7 @@ class GitHubOperations:
       file = repo.get_contents("PRCoach_CONFIG.m", ref=branch_name)
       md_content = base64.b64decode(file.content).decode('utf-8')
     except Exception as e:
-      logging.info("no config file found in pr")
+      logger.info("no config file found in pr")
     if not md_content:
       # if not found try to fetch from the main branch
       default_branch = repo.default_branch

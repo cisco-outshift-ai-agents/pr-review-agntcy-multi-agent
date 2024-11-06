@@ -9,9 +9,11 @@ from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 
 from pr_graph.state import FileChange, GitHubPRState, Comment
 from utils.github_config import init_github
-from utils.logging_config import setup_logging
+from main import LOGGER_NAME
 
-setup_logging()
+logger = logging.getLogger(LOGGER_NAME)
+
+
 
 class Nodes:
     def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: ChatAnthropicVertex,
@@ -24,7 +26,7 @@ class Nodes:
         self.user_config = user_config
 
     def fetch_pr(self, state: GitHubPRState):
-        logging.info('in fetch_pr')
+        logger.info('in fetch_pr')
         repo = self.github.get_repo(self.repo_name)
         pull_request = repo.get_pull(self.pr_number)
         files = pull_request.get_files()
@@ -83,7 +85,7 @@ class Nodes:
                             current_change = None
                         start_line_removed += 1
                         start_line_added += 1
-        logging.info(f"""
+        logger.info(f"""
         fetch pr finished. 
         changes: {json.dumps(changes, indent=4)},
         title: {title},
@@ -97,7 +99,7 @@ class Nodes:
 
     def security_reviewer(self, state: GitHubPRState):
         """Security reviewer."""
-        logging.info('in security reviewer')
+        logger.info('in security reviewer')
         prompt = ChatPromptTemplate.from_messages(
             [
                 ("system",
@@ -131,7 +133,7 @@ class Nodes:
         result = chain.invoke({"question": f"""
         Focus on finding security issues on the following changes :\n{diff}.\nConfiguration: {user_input}
 """})
-        logging.info(f'in security reviewer results: {result.content}')
+        logger.info(f'in security reviewer results: {result.content}')
         data = json.loads(result.content)
         comments = []
         for issue in data["issues"]:
@@ -142,7 +144,7 @@ class Nodes:
                 status=issue["status"]
             )
             comments.append(comment)
-        logging.info(f"""
+        logger.info(f"""
         security reviewer finished. 
         comments: {json.dumps(comments, indent=4)}
         """)
@@ -151,7 +153,7 @@ class Nodes:
 
     def title_description_reviewer(self, state: GitHubPRState):
         """Title reviewer."""
-        logging.info('in title reviewer')
+        logger.info('in title reviewer')
         user_input = ""
         if self.user_config and self.user_config["PR Title and Description"]:
             user_input = self.user_config["PR Title and Description"]
@@ -180,7 +182,7 @@ class Nodes:
     """})
         comments = [Comment(filename='', line_number=0, comment=f"{result.content}", status='')]
         # comments.append(Comment(filename='', line_number=0, comment=f"Suggested PR title:\n{data["title"]}", status=''))
-        logging.info(f"""
+        logger.info(f"""
         title and description reviewer finished. 
         comments: {json.dumps(comments, indent=4)}
         """)
@@ -189,7 +191,7 @@ class Nodes:
 
     def code_reviewer(self, state: GitHubPRState):
         """Code reviewer."""
-        logging.info('in code reviewer')
+        logger.info('in code reviewer')
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -219,7 +221,7 @@ class Nodes:
         result = chain.invoke({"question": f"""
                 Review the following code changes:\n{diff}.\nConfiguration: {user_input}
         """})
-        logging.info(f'in code reviewer results: {result.content}')
+        logger.info(f'in code reviewer results: {result.content}')
         data = json.loads(result.content)
         comments = []
         for issue in data["issues"]:
@@ -230,7 +232,7 @@ class Nodes:
                 status=issue["status"]
             )
             comments.append(comment)
-        logging.info(f"""
+        logger.info(f"""
         code reviewer finished. 
         comments: {json.dumps(comments, indent=4)}
         """)
@@ -243,10 +245,10 @@ class Nodes:
             pull_request = repo.get_pull(self.pr_number)
             files = pull_request.get_files()
         except UnknownObjectException as error:
-            logging.error(f"repo: {self.repo_name} with pr: {self.pr_number} not found")
+            logger.error(f"repo: {self.repo_name} with pr: {self.pr_number} not found")
             return state
         except Exception as error:
-            logging.error(
+            logger.error(
                 f"General error while fetching repo: {self.repo_name} with pr: {self.pr_number}. error: {error}")
             return state
         latest_commit = list(pull_request.get_commits())[-1].commit
