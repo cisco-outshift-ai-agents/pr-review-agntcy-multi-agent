@@ -1,9 +1,9 @@
 import logging
-from utils.logging_config import setup_console_logging, setup_file_logging
+from utils.logging_config import setup_console_logging
 import functions_framework
 import handle_pr
 
-LOGGER_NAME = "prcoach"
+LOGGER_NAME = "alfred"
 logger = setup_console_logging(name=LOGGER_NAME, log_level=logging.DEBUG)
 
 @functions_framework.http
