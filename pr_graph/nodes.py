@@ -1,11 +1,12 @@
 import json
 import logging
 import re
-from typing import Dict
+from typing import Dict, Union
 
 from github import UnknownObjectException
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
+from langchain_openai import AzureChatOpenAI
 
 from pr_graph.state import FileChange, GitHubPRState, Comment
 from utils.github_config import init_github
@@ -14,7 +15,7 @@ from utils.logging_config import setup_logging
 setup_logging()
 
 class Nodes:
-    def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: ChatAnthropicVertex,
+    def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: Union[ChatAnthropicVertex, AzureChatOpenAI],
                  user_config: Dict):
         self.installation_id = installation_id
         self.repo_name = repo_name
