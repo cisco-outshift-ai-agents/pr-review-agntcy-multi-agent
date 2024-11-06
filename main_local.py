@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Request, Header
 import handle_pr
 import os
+from dotenv import load_dotenv
 
 
 app = FastAPI()
 
+load_dotenv()
 
 @app.post('/api/webhook')
 async def webhook(request: Request, x_github_event: str = Header(None)):
