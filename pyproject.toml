@@ -15,7 +15,6 @@ PyGithub = "1.59.1"
 langgraph = "0.2.34"
 langchain_google_vertexai="1.0.10"
 functions-framework = "^3.8.1"
-google-cloud-logging = "^3.11.2"
 anthropic="0.35.0"
 
 
