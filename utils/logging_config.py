@@ -4,7 +4,7 @@ import logging
 DEFAULT_LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 DEFAULT_LOGGER_NAME = "alfred"
 
-def setup_logging(name: str = "", log_level: int = logging.INFO, log_type: str = "console", log_file: str = ""):
+def setup_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO, log_type: str = "console", log_file: str = ""):
     """
     Set up logging based on the log_type parameter.
 
@@ -16,6 +16,7 @@ def setup_logging(name: str = "", log_level: int = logging.INFO, log_type: str =
     - logger (logging.Logger): Configured logger instance.
     """
     # Create a logger
+    global logger
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     logger.propagate = False
@@ -50,7 +51,7 @@ def setup_logging(name: str = "", log_level: int = logging.INFO, log_type: str =
 
     return logger
 
-def setup_console_logging(name: str = "", log_level: int = logging.INFO):
+def setup_console_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO):
     """
     Set up console logging.
 
@@ -62,7 +63,7 @@ def setup_console_logging(name: str = "", log_level: int = logging.INFO):
     """
     return setup_logging(name=name, log_level=log_level, log_type="console")
 
-def setup_file_logging(name: str = "", log_level: int = logging.INFO, log_file: str = "app.log"):
+def setup_file_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO, log_file: str = "app.log"):
     """
     Set up file logging.
 
@@ -75,11 +76,5 @@ def setup_file_logging(name: str = "", log_level: int = logging.INFO, log_file: 
     """
     return setup_logging(name=name, log_level=log_level, log_type="file", log_file=log_file)
 
-def get_default_logger():
-    logger = logging.getLogger(DEFAULT_LOGGER_NAME)
-
-    # Alfred logger is not initialized yet
-    if len(logger.handlers) == 0:
-      logger = setup_console_logging(name=DEFAULT_LOGGER_NAME, log_level=logging.DEBUG)
-
-    return logger
+# Initialize the default logger
+logger = setup_console_logging()
