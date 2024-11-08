@@ -13,9 +13,9 @@ crewai_tools = "0.12.0"
 gitpython = "3.1.38"
 PyGithub = "1.59.1"
 langgraph = "0.2.34"
-langchain_google_vertexai = "1.0.10"
+langchain_google_vertexai="1.0.10"
 functions-framework = "^3.8.1"
-anthropic = "0.35.0"
+anthropic="0.35.0"
 
 
 [build-system]

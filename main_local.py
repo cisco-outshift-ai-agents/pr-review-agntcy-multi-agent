@@ -1,14 +1,10 @@
-import os
-from utils.logging_config import setup_console_logging, setup_file_logging
 from fastapi import FastAPI, Request, Header
 import handle_pr
+from dotenv import load_dotenv
 from utils.logging_config import get_default_logger
 
 logger = get_default_logger()
-
-
 app = FastAPI()
-
 
 @app.post('/api/webhook')
 async def webhook(request: Request, x_github_event: str = Header(None)):
@@ -18,6 +14,7 @@ async def webhook(request: Request, x_github_event: str = Header(None)):
 
 
 if __name__ == "__main__":
-    local_run = os.path.exists(".env")
+    load_dotenv()
+
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5555)
+    uvicorn.run(app, host="0.0.0.0", port=5500)
