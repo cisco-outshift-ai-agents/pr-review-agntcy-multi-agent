@@ -1,6 +1,12 @@
+from http import HTTPStatus
+from http.client import BAD_REQUEST
+import json
 import os
+from typing import Any
+from fastapi import HTTPException
+from fastapi.datastructures import Headers
 from fastapi.responses import JSONResponse
-
+from auth import valid_github_signature
 import init
 from crew import PRCoachCrew
 from pr_graph.graph import WorkFlow
@@ -10,22 +16,22 @@ from utils.logging_config import get_default_logger
 logger = get_default_logger()
 
 
-def handle_github_event(payload, x_github_event, local_run):
+def handle_github_event(payload: dict[str, Any], github_event: str, local_run: bool = True):
     try:
-        logger.info(f"Header: {x_github_event}")
+        logger.info(f"Header: {github_event}")
         logger.info(f"Payload: {payload}")
-        if x_github_event == "pull_request" and payload['pull_request']['head']['ref'] != 'pr_coach_config':
+        if github_event == "pull_request" and payload['pull_request']['head']['ref'] != 'pr_coach_config':
             action = payload.get('action')
             if action in ['opened', 'synchronize']:
                 handle_pull_request(payload, local_run)
-        elif x_github_event == "installation" and payload.get('action') == 'created':
+        elif github_event == "installation" and payload.get('action') == 'created':
             handle_installation(payload, local_run, 'repositories')
-        elif x_github_event == "installation_repositories" and payload.get('action') == 'added':
+        elif github_event == "installation_repositories" and payload.get('action') == 'added':
             handle_installation(payload, local_run, 'repositories_added')
         return JSONResponse(content={'status': 'ok'})
     except Exception as e:
         logger.error(f"Error processing webhook: {str(e)}")
-        return JSONResponse(content={'status': 'error', 'detail': str(e)}, status_code=500)
+        return JSONResponse(content={'status': 'server error'}, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def handle_pull_request(payload, local_run):
