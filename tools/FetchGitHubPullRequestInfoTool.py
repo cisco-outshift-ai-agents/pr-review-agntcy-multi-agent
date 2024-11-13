@@ -28,20 +28,18 @@ class FetchGitHubPullRequestInfoOutput(BaseModel):
 
 class FetchGitHubPullRequestInfoTool(BaseTool):
     name: str = "Fetches GitHub pull request information"
-    description: str = (
-        "Fetches GitHub pull request information for a specified App installation_id, pr_number, and repo_name."
-    )
+    description: str = "Fetches GitHub pull request information for a specified App installation_id, pr_number, and repo_name."
     args_schema: Type[BaseModel] = FetchGitHubPullRequestInfoInput
     return_schema: Type[BaseModel] = FetchGitHubPullRequestInfoOutput
 
     def _run(
-            self,
-            installation_id: str,
-            pr_number: int,
-            repo_name: str,
+        self,
+        installation_id: str,
+        pr_number: int,
+        repo_name: str,
     ) -> FetchGitHubPullRequestInfoOutput:
-        app_id = os.getenv('GITHUB_APP_ID')
-        with open(os.getenv("GITHUB_APP_PRIVATE_KEY"), 'r') as key_file:
+        app_id = os.getenv("GITHUB_APP_ID")
+        with open(os.getenv("GITHUB_APP_PRIVATE_KEY"), "r") as key_file:
             github_private_key = key_file.read()
 
         git_integration = GithubIntegration(app_id, github_private_key)
@@ -51,5 +49,4 @@ class FetchGitHubPullRequestInfoTool(BaseTool):
         pull_request = repo.get_pull(pr_number)
         files = pull_request.get_files()
         file_change_infos = [FileChangeInfo(file_name=file.filename, changes=file.patch) for file in files]
-        return FetchGitHubPullRequestInfoOutput(title=pull_request.title, description=pull_request.body,
-                                                changes=file_change_infos)
+        return FetchGitHubPullRequestInfoOutput(title=pull_request.title, description=pull_request.body, changes=file_change_infos)

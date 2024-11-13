@@ -25,16 +25,27 @@ class PRCoachCrew:
         description_reviewer = self.agents.description_reviewer()
         github_commenter_agent = self.agents.github_commenter_agent()
 
-        fetch_pull_request_info_task = self.tasks.fetch_pull_request_info_task(agent=github_agent, installation_id=installation_id, pr_number=pr_number, repo_name=repo_name)
+        fetch_pull_request_info_task = self.tasks.fetch_pull_request_info_task(
+            agent=github_agent, installation_id=installation_id, pr_number=pr_number, repo_name=repo_name
+        )
         code_review_task = self.tasks.code_review_task(code_reviewer, [fetch_pull_request_info_task])
         security_analysis_task = self.tasks.security_analysis_task(security_reviewer, [fetch_pull_request_info_task])
         title_review_task = self.tasks.title_review_task(title_reviewer, [fetch_pull_request_info_task])
         description_review_task = self.tasks.description_review_task(description_reviewer, [fetch_pull_request_info_task])
-        commenter_task = self.tasks.commenter_task(agent=github_commenter_agent, installation_id=installation_id, pr_number=pr_number, repo_name=repo_name, context=[code_review_task])
+        commenter_task = self.tasks.commenter_task(
+            agent=github_commenter_agent, installation_id=installation_id, pr_number=pr_number, repo_name=repo_name, context=[code_review_task]
+        )
 
         crew = Crew(
             agents=[github_agent, code_reviewer, github_commenter_agent, security_reviewer, title_reviewer, description_reviewer],
-            tasks=[fetch_pull_request_info_task, code_review_task, commenter_task, security_analysis_task, title_review_task, description_review_task],
+            tasks=[
+                fetch_pull_request_info_task,
+                code_review_task,
+                commenter_task,
+                security_analysis_task,
+                title_review_task,
+                description_review_task,
+            ],
             verbose=True,
             process=Process.hierarchical,
             manager_llm=self.llm,

@@ -4,7 +4,7 @@ from crew import PRCoachCrew
 
 installation_id = 55689337
 pr_number = 18
-repo_name = 'bensagi/klar'
+repo_name = "bensagi/klar"
 
 # installation_id:str = '55482007'
 # pr_number = 1

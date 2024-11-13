@@ -16,12 +16,12 @@ def download_file_from_gcs(bucket_name, gcs_blob_name, local_path):
 
 
 def initialize_environment(local_run):
-    bucket_name = 'pr-coach'
-    env_file_in_gcs = 'env'
-    private_key_in_gcs = 'private-key.pem'
-    tmp_for_gcs = '/tmp/'
-    env_local_path = '.env'
-    private_key_local_path = 'private-key.pem'
+    bucket_name = "pr-coach"
+    env_file_in_gcs = "env"
+    private_key_in_gcs = "private-key.pem"
+    tmp_for_gcs = "/tmp/"
+    env_local_path = ".env"
+    private_key_local_path = "private-key.pem"
 
     # Check if .env file exists
     if not local_run:
