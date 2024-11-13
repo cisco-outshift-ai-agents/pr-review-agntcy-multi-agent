@@ -1,13 +1,11 @@
 from http import HTTPStatus
 from dotenv import load_dotenv
-load_dotenv()
-
 from fastapi import FastAPI, HTTPException, Request
 import handle_pr
 from auth import fastapi_validate_github_signature
-from utils.logging_config import get_default_logger
+from utils.logging_config import logger as log
 
-logger = get_default_logger()
+load_dotenv()
 app = FastAPI()
 
 @app.post('/api/webhook')

@@ -5,9 +5,7 @@ from http import HTTPStatus
 import os
 from typing import Any, Awaitable, Callable
 from fastapi import HTTPException, Request
-from utils.logging_config import get_default_logger
-
-logger = get_default_logger()
+from utils.logging_config import logger as log
 
 def fastapi_validate_github_signature(handler: Callable[[Request], Awaitable[Any]]):
     """Wraps a fastapi handler to verify GitHub signature header
@@ -21,12 +19,12 @@ def fastapi_validate_github_signature(handler: Callable[[Request], Awaitable[Any
     async def wrapper(request: Request, *args, **kwargs):
         signature_header = request.headers.get("x-hub-signature-256")
         if not signature_header:
-            logger.debug("Missing signature header")
+            log.debug("Missing signature header")
             raise HTTPException(status_code=HTTPStatus.FORBIDDEN)
 
         gh_secret = os.getenv("GITHUB_WEBHOOK_SECRET")
         if not gh_secret:
-            logger.error("GITHUB_WEBHOOK_SECRET is not set")
+            log.error("GITHUB_WEBHOOK_SECRET is not set")
             raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
         payload = await request.body()
