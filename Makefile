@@ -1,5 +1,10 @@
 # Variables
 VENV_DIR = venv
+
+ifeq ($(shell test -d .venv && echo 1 || echo 0), 1)
+     VENV_DIR = .venv
+endif
+
 PYTHON = $(VENV_DIR)/bin/python
 PIP = $(VENV_DIR)/bin/pip
 POETRY = $(VENV_DIR)/bin/poetry
