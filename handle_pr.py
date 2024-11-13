@@ -3,7 +3,6 @@ import os
 from typing import Any
 from fastapi.responses import JSONResponse
 import init
-from crew import PRCoachCrew
 from pr_graph.graph import WorkFlow
 from utils.config_file_pr import GitHubOperations
 from utils.logging_config import logger as log
@@ -38,10 +37,6 @@ def handle_pull_request(payload, local_run):
         if agency_provider is None or agency_provider == "graph":
             graph = WorkFlow(installation_id, repo_name, pr_number)
             print(graph.run())
-        else:
-            crew = PRCoachCrew()
-            run = crew.run(installation_id, pr_number, repo_name)
-            print(run)
     except Exception as e:
         log.error("Error handling pull request", e)
         raise
