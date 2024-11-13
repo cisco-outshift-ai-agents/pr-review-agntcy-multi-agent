@@ -16,9 +16,9 @@ from utils.logging_config import logger as log
 
 def handle_github_event(payload: dict[str, Any], github_event: str, local_run: bool = True):
     try:
-        log.info(f"Header: {x_github_event}")
+        log.info(f"Header: {github_event}")
         log.info(f"Payload: {payload}")
-        if x_github_event == "pull_request" and payload['pull_request']['head']['ref'] != 'pr_coach_config':
+        if github_event == "pull_request" and payload['pull_request']['head']['ref'] != 'pr_coach_config':
             action = payload.get('action')
             if action in ['opened', 'synchronize']:
                 handle_pull_request(payload, local_run)
