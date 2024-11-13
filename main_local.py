@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 import handle_pr
 from auth import fastapi_validate_github_signature
-from utils.logging_config import logger as log
 
 load_dotenv()
 app = FastAPI()

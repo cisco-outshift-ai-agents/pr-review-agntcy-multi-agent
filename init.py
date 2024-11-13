@@ -1,5 +1,3 @@
-import os
-
 from google.cloud import storage
 from dotenv import load_dotenv
 

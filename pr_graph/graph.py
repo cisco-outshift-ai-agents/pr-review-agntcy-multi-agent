@@ -1,13 +1,7 @@
 import os
-from typing import Union
-
-from google.cloud import aiplatform
 from langgraph.graph import StateGraph
-
 from pr_graph.nodes import Nodes
-from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 from langchain_openai import AzureChatOpenAI
-
 from pr_graph.state import GitHubPRState
 from utils.config_file_pr import GitHubOperations
 

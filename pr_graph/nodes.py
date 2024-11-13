@@ -1,11 +1,9 @@
 import json
 import re
-from typing import Dict, Union
-
+from typing import Dict
 from github import UnknownObjectException
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
-
 from pr_graph.state import FileChange, GitHubPRState, Comment
 from utils.github_config import init_github
 from utils.logging_config import logger as log

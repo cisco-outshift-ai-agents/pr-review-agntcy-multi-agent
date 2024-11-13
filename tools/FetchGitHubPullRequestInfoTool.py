@@ -1,10 +1,8 @@
 import os
 from typing import List, Type, Optional
-
 from crewai_tools.tools.base_tool import BaseTool
 from github import Github, GithubIntegration
 from pydantic.v1 import BaseModel, Field
-from dotenv import load_dotenv
 
 
 class FetchGitHubPullRequestInfoInput(BaseModel):

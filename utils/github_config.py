@@ -1,5 +1,4 @@
 import os
-
 import github.Auth
 from github import Github, GithubIntegration
 

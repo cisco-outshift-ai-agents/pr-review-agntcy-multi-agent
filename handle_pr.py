@@ -1,12 +1,7 @@
 from http import HTTPStatus
-from http.client import BAD_REQUEST
-import json
 import os
 from typing import Any
-from fastapi import HTTPException
-from fastapi.datastructures import Headers
 from fastapi.responses import JSONResponse
-from auth import valid_github_signature
 import init
 from crew import PRCoachCrew
 from pr_graph.graph import WorkFlow

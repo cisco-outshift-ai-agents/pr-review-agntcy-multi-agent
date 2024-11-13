@@ -1,7 +1,6 @@
 import os
 from typing import Any
 from github import Github, GithubIntegration, UnknownObjectException
-
 from typing import Type
 from crewai_tools.tools.base_tool import BaseTool
 from pydantic.v1 import BaseModel, Field

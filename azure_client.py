@@ -2,7 +2,6 @@ import base64
 import os
 import requests
 from langchain_openai import AzureChatOpenAI
-from dotenv import load_dotenv
 
 
 class AzureClient:
