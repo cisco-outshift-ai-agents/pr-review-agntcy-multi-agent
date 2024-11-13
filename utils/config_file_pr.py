@@ -35,7 +35,7 @@ class GitHubOperations:
       return True
     except GithubException as e:
       if 'Reference already exists' in e.data.get('message'):
-        log.info(f'Branch already exist')
+        log.info('Branch already exist')
         return True
       log.error(f'Failed to create branch: {e.data}')
       return False
