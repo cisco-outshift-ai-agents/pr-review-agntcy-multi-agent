@@ -112,7 +112,7 @@ class GitHubOperations:
             branch_name = pull_request.head.ref
             file = repo.get_contents("PRCoach_CONFIG.md", ref=branch_name)
             md_content = base64.b64decode(file.content).decode("utf-8")
-        except Exception as e:
+        except Exception:
             log.info("no config file found in pr")
         if not md_content:
             # if not found try to fetch from the main branch

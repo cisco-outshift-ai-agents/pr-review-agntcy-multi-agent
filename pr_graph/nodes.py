@@ -145,7 +145,7 @@ class Nodes:
             [
                 (
                     "system",
-                    f"""
+                    """
                               You are code specialist with phenomenal verbal abilities.
                               You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.
                               You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
@@ -239,7 +239,7 @@ class Nodes:
             repo = self.github.get_repo(self.repo_name)
             pull_request = repo.get_pull(self.pr_number)
             files = pull_request.get_files()
-        except UnknownObjectException as error:
+        except UnknownObjectException:
             log.error(f"repo: {self.repo_name} with pr: {self.pr_number} not found")
             return state
         except Exception as error:

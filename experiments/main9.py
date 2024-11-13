@@ -1,7 +1,6 @@
 def parse_diff(diff_text):
     lines = diff_text.split("\n")
     changes = []
-    current_line_number = None
     added_line_number = None
     removed_line_number = None
     last_change_type = None

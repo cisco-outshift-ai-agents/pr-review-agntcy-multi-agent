@@ -46,7 +46,7 @@ class CommentOnGitHubPullRequestInfoTool(BaseTool):
             repo = github.get_repo(repo_name)
             pull_request = repo.get_pull(pr_number)
             files = pull_request.get_files()
-        except UnknownObjectException as error:
+        except UnknownObjectException:
             return CommentOnGitHubPullRequestOutput(
                 result="Failure. got 404 from GitHub API, installation_id or pr_number or repo_name are incorrect"
             )
