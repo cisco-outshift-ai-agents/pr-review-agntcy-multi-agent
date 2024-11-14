@@ -21,7 +21,17 @@ install:
 # no root because we don't want to install alfred as a project
 	$(POETRY) install --no-root
 
+	$(PIP) install ruff
+
 # Run unit tests
 .PHONY: test
 test:
 	$(PYTEST)
+
+.PHONY: lint
+lint:
+	$(VENV_DIR)/bin/ruff check
+
+.PHONY: format
+format:
+	$(VENV_DIR)/bin/ruff format
