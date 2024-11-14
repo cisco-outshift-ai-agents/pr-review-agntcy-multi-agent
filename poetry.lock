@@ -469,13 +469,13 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "functions-framework"
-version = "3.8.1"
+version = "3.8.2"
 description = "An open source FaaS (Function as a service) framework for writing portable Python functions -- brought to you by the Google Cloud Functions team."
 optional = false
 python-versions = "<4,>=3.5"
 files = [
-    {file = "functions_framework-3.8.1-py3-none-any.whl", hash = "sha256:fc5a09b55753838d438d473bdf8407182b47b7717404af093a4ea4250b54b326"},
-    {file = "functions_framework-3.8.1.tar.gz", hash = "sha256:f976d59701f9a6bbb2fd192bf5407f691c274bbeb0dc5b7e07d76a3400fac1e7"},
+    {file = "functions_framework-3.8.2-py3-none-any.whl", hash = "sha256:ecbe8e4566efca9ed1718f210ac92d47fc47ec3a448d2bca3b4bb5888bceca08"},
+    {file = "functions_framework-3.8.2.tar.gz", hash = "sha256:109bcdca01244067052a605536b44d042903b3805d093cd32e343ba5affffc90"},
 ]
 
 [package.dependencies]
@@ -1203,29 +1203,29 @@ tiktoken = ">=0.7,<1"
 
 [[package]]
 name = "langgraph"
-version = "0.2.46"
+version = "0.2.48"
 description = "Building stateful, multi-actor applications with LLMs"
 optional = false
 python-versions = "<4.0,>=3.9.0"
 files = [
-    {file = "langgraph-0.2.46-py3-none-any.whl", hash = "sha256:7ca4031bc8f06cb3697ccee21ca80464588656391d3888090b6790dd89bffad1"},
-    {file = "langgraph-0.2.46.tar.gz", hash = "sha256:f1a39ba0d9b3df3b807b14015e682bc2b445ceb760d113e75ab34209a7eaadef"},
+    {file = "langgraph-0.2.48-py3-none-any.whl", hash = "sha256:919d0a2b5cbdedbf4d668da60c2467b81129190b7b6e6892ca1fe40caedd3678"},
+    {file = "langgraph-0.2.48.tar.gz", hash = "sha256:ab8e5d0c2d7ee68bc45054073637afa8519f42da8b4a09f1b0fb97bb096c74ac"},
 ]
 
 [package.dependencies]
 langchain-core = ">=0.2.43,<0.3.0 || >0.3.0,<0.3.1 || >0.3.1,<0.3.2 || >0.3.2,<0.3.3 || >0.3.3,<0.3.4 || >0.3.4,<0.3.5 || >0.3.5,<0.3.6 || >0.3.6,<0.3.7 || >0.3.7,<0.3.8 || >0.3.8,<0.3.9 || >0.3.9,<0.3.10 || >0.3.10,<0.3.11 || >0.3.11,<0.3.12 || >0.3.12,<0.3.13 || >0.3.13,<0.3.14 || >0.3.14,<0.4.0"
-langgraph-checkpoint = ">=2.0.0,<3.0.0"
+langgraph-checkpoint = ">=2.0.4,<3.0.0"
 langgraph-sdk = ">=0.1.32,<0.2.0"
 
 [[package]]
 name = "langgraph-checkpoint"
-version = "2.0.3"
+version = "2.0.4"
 description = "Library with base interfaces for LangGraph checkpoint savers."
 optional = false
 python-versions = "<4.0.0,>=3.9.0"
 files = [
-    {file = "langgraph_checkpoint-2.0.3-py3-none-any.whl", hash = "sha256:70da073793e0750f4b9dfe5fbbe49b267c494987aaa8f2d04be23bfd0d8a6fd7"},
-    {file = "langgraph_checkpoint-2.0.3.tar.gz", hash = "sha256:d7aabbc78eeb5466301be2ede5e0b0b8e5dc97647fcbe79801f1326f85fc0344"},
+    {file = "langgraph_checkpoint-2.0.4-py3-none-any.whl", hash = "sha256:0039b937d5de951145acc196e7cf64e2e38cc9475c75040855cbf9edcc69ff89"},
+    {file = "langgraph_checkpoint-2.0.4.tar.gz", hash = "sha256:17a20857090f805629a062986da739f003030e90388292e01614adcfb323d502"},
 ]
 
 [package.dependencies]
@@ -1234,13 +1234,13 @@ msgpack = ">=1.1.0,<2.0.0"
 
 [[package]]
 name = "langgraph-sdk"
-version = "0.1.35"
+version = "0.1.36"
 description = "SDK for interacting with LangGraph API"
 optional = false
 python-versions = "<4.0.0,>=3.9.0"
 files = [
-    {file = "langgraph_sdk-0.1.35-py3-none-any.whl", hash = "sha256:b137c324fbce96afe39cc6a189c61fc042164068f0f6f02ac8de864d8ece6e05"},
-    {file = "langgraph_sdk-0.1.35.tar.gz", hash = "sha256:414cfbc172b883446197763f3645d86bbc6a5b8ce9693c1df3fb6ce7d854a994"},
+    {file = "langgraph_sdk-0.1.36-py3-none-any.whl", hash = "sha256:b11e1f0bc67631134d09d50c812dc73f9eb30394764ae1144d7d2a786a715355"},
+    {file = "langgraph_sdk-0.1.36.tar.gz", hash = "sha256:2a2c651b7851ba15aeaab7e4e3ea7fd8357ef1cb0b592f264916fa990cdda6e7"},
 ]
 
 [package.dependencies]
