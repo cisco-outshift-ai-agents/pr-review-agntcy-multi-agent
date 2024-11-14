@@ -2,12 +2,11 @@ from http import HTTPStatus
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import HTTPException, Request
 import pytest
-
 from auth import create_signature, fastapi_validate_github_signature, valid_github_signature
 
 
 @pytest.mark.parametrize(
- "payload, signature, secret, expected",
+    "payload, signature, secret, expected",
     [
         # Valid
         (b"testpayload", create_signature(b"testpayload", "testsecret"), "testsecret", True),
@@ -17,10 +16,11 @@ from auth import create_signature, fastapi_validate_github_signature, valid_gith
         (b"", create_signature(b"testpayload", "testsecret"), "testsecret", False),
         # Secret empty
         (b"testpayload", create_signature(b"testpayload", "testsecret"), "", False),
-    ]
+    ],
 )
 def test_valid_github_signature(payload: bytes, signature: str, secret: str, expected: bool):
     assert valid_github_signature(payload, signature, secret) == expected
+
 
 @patch("auth.os.getenv")
 @patch("auth.valid_github_signature")
@@ -35,15 +35,15 @@ def test_valid_github_signature(payload: bytes, signature: str, secret: str, exp
         ("testsignature", None, None, HTTPStatus.INTERNAL_SERVER_ERROR),
         # Invalid signature
         ("testsignature", "testsecret", False, HTTPStatus.FORBIDDEN),
-    ]
+    ],
 )
 @pytest.mark.asyncio
 async def test_fastapi_validate_github_signature(
-    mock_valid_github_signature: MagicMock, 
-    mock_getenv: MagicMock, 
-    signature_header: str | None, 
-    gh_secret: str | None, 
-    valid_signature: bool, 
+    mock_valid_github_signature: MagicMock,
+    mock_getenv: MagicMock,
+    signature_header: str | None,
+    gh_secret: str | None,
+    valid_signature: bool,
     expected_status: int,
 ) -> None:
     mock_request = MagicMock(spec=Request)

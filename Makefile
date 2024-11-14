@@ -1,5 +1,10 @@
 # Variables
 VENV_DIR = venv
+
+ifeq ($(shell test -d .venv && echo 1 || echo 0), 1)
+     VENV_DIR = .venv
+endif
+
 PYTHON = $(VENV_DIR)/bin/python
 PIP = $(VENV_DIR)/bin/pip
 POETRY = $(VENV_DIR)/bin/poetry
@@ -21,7 +26,17 @@ install:
 # no root because we don't want to install alfred as a project
 	$(POETRY) install --no-root
 
+	$(PIP) install ruff
+
 # Run unit tests
 .PHONY: test
 test:
 	$(PYTEST)
+
+.PHONY: lint
+lint:
+	$(VENV_DIR)/bin/ruff check
+
+.PHONY: format
+format:
+	$(VENV_DIR)/bin/ruff format

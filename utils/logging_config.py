@@ -1,8 +1,9 @@
 import logging
 
 # Constants for log levels
-DEFAULT_LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 DEFAULT_LOGGER_NAME = "alfred"
+
 
 def setup_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO, log_type: str = "console", log_file: str = ""):
     """
@@ -51,6 +52,7 @@ def setup_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO
 
     return logger
 
+
 def setup_console_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO):
     """
     Set up console logging.
@@ -62,6 +64,7 @@ def setup_console_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logg
     - logger (logging.Logger): Configured logger instance.
     """
     return setup_logging(name=name, log_level=log_level, log_type="console")
+
 
 def setup_file_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO, log_file: str = "app.log"):
     """
@@ -75,6 +78,7 @@ def setup_file_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging
     - logger (logging.Logger): Configured logger instance.
     """
     return setup_logging(name=name, log_level=log_level, log_type="file", log_file=log_file)
+
 
 # Initialize the default logger
 logger = setup_console_logging()

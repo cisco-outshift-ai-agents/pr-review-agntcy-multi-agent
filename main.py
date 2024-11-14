@@ -1,6 +1,3 @@
-import functions_framework
-import handle_pr
-from utils.logging_config import logger as log
 
 # TODO: rewrite this to support lambda func
 # @functions_framework.http

@@ -4,18 +4,21 @@ version = "0.1.0"
 description = ""
 authors = ["rmedvedo <rmedvedo@cisco.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.12.5,<=3.12.6"
-crewai = "0.55.2"
-langchain_ollama = "0.1.3"
-crewai_tools = "0.12.0"
-gitpython = "3.1.38"
-PyGithub = "1.59.1"
-langgraph = "0.2.34"
-langchain_google_vertexai = "1.0.10"
+langchain-ollama = "^0.2.0"
+gitpython = "^3.1.43"
+pygithub = "^2.5.0"
+langgraph = "^0.2.46"
+langchain-google-vertexai = "^2.0.7"
 functions-framework = "^3.8.1"
-anthropic = "0.35.0"
+anthropic = "^0.39.0"
+python-dotenv = "^1.0.1"
+fastapi = "^0.115.5"
+uvicorn = "^0.32.0"
+langchain-openai = "^0.2.8"
 
 
 [tool.poetry.group.dev.dependencies]
