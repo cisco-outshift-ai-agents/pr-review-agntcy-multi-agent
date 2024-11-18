@@ -23,8 +23,8 @@ venv:
 .PHONY: install
 install:
 	$(PIP) install poetry
-# no root because we don't want to install alfred as a project
-	$(POETRY) install --no-root
+
+	$(POETRY) install
 
 	$(PIP) install ruff
 
