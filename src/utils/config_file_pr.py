@@ -127,9 +127,6 @@ class GitHubOperations:
         if not md_content:
             return False, "No MD file found in the pull request."
 
-        if not self.__validate_md_structure(md_content):
-            return False, "The MD file structure is invalid."
-
         try:
             md_content_reader = io.StringIO(md_content)
             config = Config(md_content_reader, MarkdownParser())

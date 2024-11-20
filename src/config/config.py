@@ -1,5 +1,5 @@
 from typing import IO
-from parser_mixin import ParserMixin, ParseContentError
+from config.parser_mixin import ParserMixin, ParseContentError
 
 
 class Config:
