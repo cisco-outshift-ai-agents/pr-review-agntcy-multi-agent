@@ -135,12 +135,3 @@ class GitHubOperations:
             return False, f"Error parsing markdown content: {e.content}"
 
         return True, structured_content
-
-
-# if __name__ == "__main__":
-#     installation_id: str = "55482007"
-#     repo_name = "bensagi/terraform-aws-eks"
-#     git_ops = GitHubOperations(installation_id)
-#     git_ops.add_pr_coach_config_file_pr(repo_name)
-
-#     print(git_ops.retrieve_md_content_from_pr(10, repo_name))
