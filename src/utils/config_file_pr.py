@@ -8,9 +8,7 @@ from github import GithubException
 from github.Repository import Repository
 from utils.github_config import init_github
 from utils.logging_config import logger as log
-from config.config import Config
-from config.md_parser import MarkdownParser
-from config.parser_mixin import ParseContentError
+from config import Config, MarkdownParser, ParseContentError
 
 
 load_dotenv()

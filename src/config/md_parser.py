@@ -1,4 +1,4 @@
-from config.parser_mixin import ParserMixin, ParseContentError
+from .parser_mixin import ParserMixin, ParseContentError
 import re
 
 
