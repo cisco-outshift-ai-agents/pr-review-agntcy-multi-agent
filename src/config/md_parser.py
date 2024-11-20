@@ -34,6 +34,8 @@ class MarkdownParser(ParserMixin):
         except Exception as e:
             raise ParseContentError(f"Error parsing markdown content. {e}", content)
 
+    # Validate the structure of the markdown content.
+    # TODO: Implement the validation logic into the config.Config class instead of the parser.
     def __validate_md_structure(self, content: str) -> bool:
         expected_structure = [
             r"^# PRCoach Configuration File\s*$",

@@ -20,12 +20,3 @@ class Config:
 
     def data(self) -> dict[str, str]:
         return self.data
-
-
-if __name__ == "__main__":
-    # Example usage
-    from md_parser import MarkdownParser
-
-    with open("PRCoach_CONFIG.md", "r", encoding="utf-8") as file:
-        config = Config(file, MarkdownParser())
-        print(config.data["Code Review"])
