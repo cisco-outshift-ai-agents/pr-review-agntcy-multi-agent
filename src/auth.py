@@ -1,3 +1,4 @@
+from ast import Dict
 from functools import wraps
 import hashlib
 import hmac
@@ -5,6 +6,8 @@ from http import HTTPStatus
 import os
 from typing import Any, Awaitable, Callable
 from fastapi import HTTPException, Request
+from utils.constants import GITHUB_SIGNATURE_HEADER
+from utils.lambda_helpers import lambdaResponse
 from utils.logging_config import logger as log
 
 
@@ -33,6 +36,36 @@ def fastapi_validate_github_signature(handler: Callable[[Request], Awaitable[Any
         if not valid_github_signature(payload, signature_header, gh_secret):
             raise HTTPException(status_code=HTTPStatus.FORBIDDEN)
         return await handler(request, *args, **kwargs)
+
+    return wrapper
+
+
+def lambda_validate_github_signature(handler: Callable[[dict[str, Any], Any], dict[str, Any]]):
+    """Wraps an AWS lambda handler to verify GitHub signature header
+
+    Raise 500 if env var is missing, 403 if signature is invalid
+
+    Args:
+        handler: async fastapi handler
+    """
+
+    @wraps(handler)
+    def wrapper(event: dict[str, Any], context: Any, *args, **kwargs):
+        headers: dict[str, Any] = event.get("headers", {})
+        signature_header = headers.get(GITHUB_SIGNATURE_HEADER)
+        if not signature_header:
+            log.debug("Missing signature header")
+            return lambdaResponse("Missing signature header", HTTPStatus.FORBIDDEN)
+
+        gh_secret = os.getenv("GITHUB_WEBHOOK_SECRET")
+        if not gh_secret:
+            log.error("GITHUB_WEBHOOK_SECRET is not set")
+            return lambdaResponse("", HTTPStatus.INTERNAL_SERVER_ERROR)
+
+        payload: str = event.get("body", "")
+        if not valid_github_signature(payload.encode(), signature_header, gh_secret):
+            return lambdaResponse("", HTTPStatus.FORBIDDEN)
+        return handler(event, context, *args, **kwargs)
 
     return wrapper
 

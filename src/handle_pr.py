@@ -2,7 +2,6 @@ from http import HTTPStatus
 import os
 from typing import Any
 from fastapi.responses import JSONResponse
-import init
 from pr_graph.graph import WorkFlow
 from utils.config_file_pr import GitHubOperations
 from utils.logging_config import logger as log
@@ -10,8 +9,7 @@ from utils.logging_config import logger as log
 
 def handle_github_event(payload: dict[str, Any], github_event: str, local_run: bool = True):
     try:
-        log.info(f"Header: {github_event}")
-        log.info(f"Payload: {payload}")
+        log.debug(f"Header: {github_event}")
         if github_event == "pull_request" and payload["pull_request"]["head"]["ref"] != "pr_coach_config":
             action = payload.get("action")
             if action in ["opened", "synchronize"]:
@@ -28,7 +26,6 @@ def handle_github_event(payload: dict[str, Any], github_event: str, local_run: b
 
 def handle_pull_request(payload, local_run):
     try:
-        init.initialize_environment(local_run)
         pr_number = payload["pull_request"]["number"]
         repo_name = payload["repository"]["full_name"]
         installation_id = payload["installation"]["id"]
@@ -44,7 +41,6 @@ def handle_pull_request(payload, local_run):
 
 def handle_installation(payload, local_run, repositories_key):
     try:
-        init.initialize_environment(local_run)
         installation_id = payload["installation"]["id"]
         git_ops = GitHubOperations(installation_id)
         for repo in payload[repositories_key]:

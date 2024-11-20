@@ -1,4 +1,5 @@
 import logging
+import os
 
 # Constants for log levels
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -21,6 +22,7 @@ def setup_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     logger.propagate = False
+    level_name = logging.getLevelName(log_level)
 
     # Clear any existing handlers (useful for reconfiguration)
     logger.handlers.clear()
@@ -33,14 +35,14 @@ def setup_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO
         file_handler.setLevel(log_level)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
-        logger.info(f"Configured File Logging to '{log_file}'")
+        logger.info(f"Configured File Logging to '{log_file}', level: {level_name}")
 
     elif log_type == "console":
         console_handler = logging.StreamHandler()
         console_handler.setLevel(log_level)
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
-        logger.info("Configured Console Logging")
+        logger.info(f"Configured Console Logging, level: {level_name}")
 
     else:
         logger.warning(f"Unknown log_type '{log_type}'; defaulting to console logging")
@@ -48,7 +50,7 @@ def setup_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging.INFO
         console_handler.setLevel(log_level)
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
-        logger.info("Configured Console Logging")
+        logger.info(f"Configured Console Logging, level: {level_name}")
 
     return logger
 
@@ -80,5 +82,12 @@ def setup_file_logging(name: str = DEFAULT_LOGGER_NAME, log_level: int = logging
     return setup_logging(name=name, log_level=log_level, log_type="file", log_file=log_file)
 
 
+def setup_default_logging():
+    log_level_str = os.getenv("LOG_LEVEL", "INFO")
+    log_level = logging.getLevelName(log_level_str)
+
+    return setup_console_logging(log_level=log_level)
+
+
 # Initialize the default logger
-logger = setup_console_logging()
+logger = setup_default_logging()

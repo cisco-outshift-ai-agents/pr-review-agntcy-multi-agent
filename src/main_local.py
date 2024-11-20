@@ -1,17 +1,19 @@
-from http import HTTPStatus
 from dotenv import load_dotenv
+from http import HTTPStatus
+from utils.constants import GITHUB_EVENT_HEADER
 from fastapi import FastAPI, HTTPException, Request
 import handle_pr
 from auth import fastapi_validate_github_signature
 
 load_dotenv()
+
 app = FastAPI()
 
 
 @app.post("/api/webhook")
 @fastapi_validate_github_signature
 async def webhook(request: Request):
-    x_github_event = request.headers.get("x-github-event")
+    x_github_event = request.headers.get(GITHUB_EVENT_HEADER)
     if not x_github_event:
         raise HTTPException(HTTPStatus.BAD_REQUEST, "missing x-github-event header")
 

@@ -1,0 +1,29 @@
+# sam template for local lambda runtime
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  Alfred:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageUri: alfred:local
+      Architectures:
+        - x86_64
+      Timeout: 120
+      Environment:
+        Variables:
+          GITHUB_APP_ID: ""
+          GITHUB_APP_PRIVATE_KEY: ""
+          GITHUB_WEBHOOK_SECRET: ""
+          AZURE_OPENAI_ENDPOINT: ""
+          AZURE_OPENAI_DEPLOYMENT: ""
+          AZURE_OPENAI_API_KEY: ""
+          AZURE_OPENAI_API_VERSION: ""
+          LOG_LEVEL: ""
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /alfred
+            Method: post

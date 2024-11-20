@@ -1,10 +1,9 @@
 import base64
-import os
 import re
 from typing import Union, Dict
 import requests
 from dotenv import load_dotenv
-from github import Github, GithubIntegration
+from github import Github
 from github import GithubException
 from github.Repository import Repository
 from utils.github_config import init_github
@@ -16,14 +15,6 @@ load_dotenv()
 class GitHubOperations:
     def __init__(self, installation_id: str):
         self.github = init_github(installation_id)
-
-    def __init_token(self, installation_id: str) -> Github:
-        with open(os.getenv("GITHUB_APP_PRIVATE_KEY"), "r") as key_file:
-            PRIVATE_KEY = key_file.read()
-        app_id = os.getenv("GITHUB_APP_ID")
-        git_integration = GithubIntegration(app_id, PRIVATE_KEY)
-        github_token = git_integration.get_access_token(installation_id).token
-        return Github(github_token)
 
     def __create_branch(self, repo: Repository, branch_name: str, base_branch: str = "master") -> bool:
         try:
