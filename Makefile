@@ -23,8 +23,8 @@ venv:
 .PHONY: install
 install:
 	$(PIP) install poetry
-# no root because we don't want to install alfred as a project
-	$(POETRY) install --no-root
+
+	$(POETRY) install
 
 	$(PIP) install ruff
 
@@ -40,3 +40,17 @@ lint:
 .PHONY: format
 format:
 	$(VENV_DIR)/bin/ruff format
+
+.PHONY: setup
+setup:
+	brew update && brew install pyenv && \
+	pyenv install 3.12.6
+
+	~/.pyenv/versions/3.12.6/bin/python3 -m venv .venv && \
+	source .venv/bin/activate
+
+	pip install -U pip setuptools; \
+	pip install poetry && \
+	poetry install
+
+	npm install --global smee-client
