@@ -8,7 +8,7 @@ from github import GithubException
 from github.Repository import Repository
 from utils.github_config import init_github
 from utils.logging_config import logger as log
-from config import Config, MarkdownParser, ParseContentError
+from config import AgentConfig, MarkdownParser, ParseContentError
 
 
 load_dotenv()
@@ -127,7 +127,7 @@ class GitHubOperations:
 
         try:
             md_content_reader = io.StringIO(md_content)
-            config = Config(md_content_reader, MarkdownParser())
+            config = AgentConfig(md_content_reader, MarkdownParser())
             structured_content = config.data
         except ParseContentError as e:
             return False, f"Error parsing markdown content: {e.content}"

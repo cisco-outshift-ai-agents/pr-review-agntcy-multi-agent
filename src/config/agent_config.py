@@ -2,9 +2,9 @@ from typing import IO
 from .parser_mixin import ParserMixin, ParseContentError
 
 
-class Config:
+class AgentConfig:
     """
-    Config class to read and parse configuration using the provided reader and parser. Parser must implement the
+    AgentConfig class to read and parse the agent prompt configuration using the provided reader and parser. Parser must implement the
     ParserMixin interface which defines the parse_content method.
     """
 
