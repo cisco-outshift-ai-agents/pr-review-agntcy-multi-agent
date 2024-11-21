@@ -64,7 +64,7 @@ start-smee-for-lambda:
 # Build and start the lambda image locally using sam
 start-lambda: build-lambda-image
 # sam doesn't support volumes currently so we pass in the contents of the key file as env var
-	GITHUB_APP_PRIVATE_KEY=$$(cat private-key.pem) sam local start-api --skip-pull-image --env-vars lambda-env.json
+	GITHUB_APP_PRIVATE_KEY=$$(base64 -i private-key.pem) sam local start-api --skip-pull-image --env-vars lambda-env.json
 
 # Build the lambda image
 .PHONY: build-lambda-image
