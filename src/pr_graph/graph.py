@@ -28,9 +28,11 @@ class WorkFlow:
         workflow.add_node("title_description_reviewer", self.nodes.title_description_reviewer)
 
         workflow.set_entry_point("code_reviewer")
+        workflow.set_entry_point("security_reviewer")
+        workflow.set_entry_point("title_description_reviewer")
 
-        workflow.add_edge("code_reviewer", "security_reviewer")
-        workflow.add_edge("security_reviewer", "title_description_reviewer")
+        workflow.add_edge("code_reviewer", "commenter")
+        workflow.add_edge("security_reviewer", "commenter")
         workflow.add_edge("title_description_reviewer", "commenter")
 
         init_state: GitHubPRState = {**self.nodes.fetch_pr()}

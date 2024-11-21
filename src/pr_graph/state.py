@@ -3,7 +3,7 @@ from typing import List
 from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing_extensions import TypedDict
-from operator import concat
+from operator import concat, add
 
 
 class FileChange(TypedDict):
@@ -24,6 +24,6 @@ class GitHubPRState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     changes: Annotated[List[FileChange], concat]
     comments: Annotated[List[Comment], concat]
-    sender: str
-    title: str
-    description: str
+    sender: Annotated[List[str], add]
+    title: Annotated[List[str], add]
+    description: Annotated[List[str], add]

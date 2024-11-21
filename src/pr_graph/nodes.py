@@ -25,8 +25,10 @@ class Nodes:
         repo = self.github.get_repo(self.repo_name)
         pull_request = repo.get_pull(self.pr_number)
         files = pull_request.get_files()
-        title = pull_request.title
-        description = pull_request.body
+        title = []
+        title.append(pull_request.title)
+        description = []
+        description.append(pull_request.body)
         changes = []
         for file in files:
             filename = file.filename
