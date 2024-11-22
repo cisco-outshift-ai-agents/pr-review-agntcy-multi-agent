@@ -1,16 +1,22 @@
 import base64
 import re
 from typing import Union, Dict
+
 import requests
 from dotenv import load_dotenv
 from github import Github
 from github import GithubException
+from github.PaginatedList import PaginatedList
+from github.PullRequestComment import PullRequestComment
 from github.Repository import Repository
+
 from utils.github_config import init_github
 from utils.logging_config import logger as log
 
-load_dotenv()
+# TODO: We use this package for alfred specific github actions. But some operations are happening outside of the class.
+#  That's why self is not used in some functions. We should refactor this class to use self in all functions.
 
+load_dotenv()
 
 class GitHubOperations:
     def __init__(self, installation_id: str):
@@ -202,6 +208,18 @@ class GitHubOperations:
 
         return True
 
+    def list_comments_from_pr(self, repo_full_name: str, pr_number: int) -> PaginatedList[PullRequestComment]:
+        repo = self.github.get_repo(repo_full_name)
+        pull_request = repo.get_pull(pr_number)
+        return pull_request.get_review_comments()
+
+    def reply_on_pr_comment(self, repo_full_name: str, pr_number: int, comment_id: int, comment: str) -> None:
+        repo = self.github.get_repo(repo_full_name)
+        pull_request = repo.get_pull(pr_number)
+        pull_request.create_review_comment_reply(
+            comment_id,
+            body=comment,
+        )
 
 if __name__ == "__main__":
     installation_id: str = "55482007"
