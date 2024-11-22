@@ -4,13 +4,14 @@ from typing import Any
 from fastapi.responses import JSONResponse
 from pr_graph.graph import WorkFlow
 from utils.config_file_pr import GitHubOperations
+from utils.constants import ALFRED_CONFIG_BRANCH
 from utils.logging_config import logger as log
 
 
 def handle_github_event(payload: dict[str, Any], github_event: str, local_run: bool = True):
     try:
         log.debug(f"Header: {github_event}")
-        if github_event == "pull_request" and payload["pull_request"]["head"]["ref"] != "pr_coach_config":
+        if github_event == "pull_request" and payload["pull_request"]["head"]["ref"] != ALFRED_CONFIG_BRANCH:
             action = payload.get("action")
             if action in ["opened", "synchronize"]:
                 handle_pull_request(payload, local_run)
@@ -45,7 +46,7 @@ def handle_installation(payload, local_run, repositories_key):
         git_ops = GitHubOperations(installation_id)
         for repo in payload[repositories_key]:
             repo_name = repo["full_name"]
-            git_ops.add_pr_coach_config_file_pr(repo_name)
+            git_ops.add_alfred_config_file_pr(repo_name)
     except Exception as e:
         log.error(f"Error handling installation: {str(e)}")
         raise

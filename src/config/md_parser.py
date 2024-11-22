@@ -38,7 +38,7 @@ class MarkdownParser(ParserMixin):
     # TODO: Implement the validation logic into the config.Config class instead of the parser.
     def __validate_md_structure(self, content: str) -> bool:
         expected_structure = [
-            r"^# PRCoach Configuration File\s*$",
+            r"^# Alfred Configuration File\s*$",
             r"^## Overview\s*$",
             r"^## PR Title and Description\s*$",
             r"^## PR Summary of Changes\s*$",

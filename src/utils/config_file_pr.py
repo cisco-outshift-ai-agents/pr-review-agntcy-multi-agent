@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from github import Github
 from github import GithubException
 from github.Repository import Repository
+from utils.constants import ALFRED_CONFIG_BRANCH, ALFRED_CONFIG_FILE
 from utils.github_config import init_github
 from utils.logging_config import logger as log
 from config import AgentConfig, MarkdownParser, ParseContentError
@@ -18,16 +19,16 @@ class GitHubOperations:
     def __init__(self, installation_id: str):
         self.github = init_github(installation_id)
 
-    def add_pr_coach_config_file_pr(
+    def add_alfred_config_file_pr(
         self,
         repo_name: str,
-        branch_name: str = "pr_coach_config",
-        file_path: str = "PRCoach_CONFIG.md",
-        commit_message: str = "Add PR coach config file",
-        pr_title: str = "PR coach config file",
-        pr_body: str = "This pull request adds PR coach default config file.",
+        branch_name: str = ALFRED_CONFIG_BRANCH,
+        file_path: str = ALFRED_CONFIG_FILE,
+        commit_message: str = "Add Alfred config file",
+        pr_title: str = "Alfred config file",
+        pr_body: str = "This pull request adds Alfred's default config file.",
     ) -> None:
-        with open("./PRCoach_CONFIG.md", "r") as file:
+        with open(f"./{ALFRED_CONFIG_FILE}", "r") as file:
             file_content = file.read()
             repo = self.github.get_repo(repo_name)
             base_branch = repo.default_branch
@@ -38,7 +39,7 @@ class GitHubOperations:
     def retrieve_md_content_from_pr(self, pr_number, repo_name) -> Dict[str, str]:
         success, result = self.__parse_md_content_from_pr(repo_name, pr_number, self.github)
         if not success:
-            log.error(f"Missing or invalid PR coach configuration: {result}")
+            log.error(f"Missing or invalid Alfred configuration: {result}")
             return None
         return result
 
@@ -101,7 +102,7 @@ class GitHubOperations:
         # try to get the file from the pr
         try:
             branch_name = pull_request.head.ref
-            file = repo.get_contents("PRCoach_CONFIG.md", ref=branch_name)
+            file = repo.get_contents(ALFRED_CONFIG_FILE, ref=branch_name)
             md_content = base64.b64decode(file.content).decode("utf-8")
         except Exception:
             log.info("no config file found in pr")
@@ -116,7 +117,7 @@ class GitHubOperations:
             # Get the tree of the latest commit on the default branch
             tree = repo.get_git_tree(commit_sha, recursive=False).tree
             md_content = ""
-            files = [file for file in tree if file.path == "PRCoach_CONFIG.md"]
+            files = [file for file in tree if file.path == ALFRED_CONFIG_FILE]
 
             if len(files) == 1:
                 file = requests.get(files[0].raw_data.get("url"))
