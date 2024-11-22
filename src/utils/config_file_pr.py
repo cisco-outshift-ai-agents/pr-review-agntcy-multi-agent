@@ -1,6 +1,5 @@
-import io
 import base64
-import re
+import io
 from typing import Union, Dict, Tuple
 
 import requests
@@ -11,10 +10,9 @@ from github.PaginatedList import PaginatedList
 from github.PullRequestComment import PullRequestComment
 from github.Repository import Repository
 
+from config import AgentConfig, MarkdownParser, ParseContentError
 from utils.github_config import init_github
 from utils.logging_config import logger as log
-from config import AgentConfig, MarkdownParser, ParseContentError
-
 
 # TODO: We use this package for alfred specific github actions. But some operations are happening outside of the class.
 #  That's why self is not used in some functions. We should refactor this class to use self in all functions.
@@ -49,6 +47,19 @@ class GitHubOperations:
             log.error(f"Missing or invalid PR coach configuration: {result}")
             return None
         return result
+
+    def list_comments_from_pr(self, repo_full_name: str, pr_number: int) -> PaginatedList[PullRequestComment]:
+        repo = self.github.get_repo(repo_full_name)
+        pull_request = repo.get_pull(pr_number)
+        return pull_request.get_review_comments()
+
+    def reply_on_pr_comment(self, repo_full_name: str, pr_number: int, comment_id: int, comment: str) -> None:
+        repo = self.github.get_repo(repo_full_name)
+        pull_request = repo.get_pull(pr_number)
+        pull_request.create_review_comment_reply(
+            comment_id,
+            body=comment,
+        )
 
     def __create_branch(self, repo: Repository, branch_name: str, base_branch: str = "master") -> bool:
         try:
@@ -141,73 +152,3 @@ class GitHubOperations:
             return False, f"Error parsing markdown content: {e.content}"
 
         return True, structured_content
-
-    def __validate_md_structure(self, content: str) -> bool:
-        expected_structure = [
-            r"^# PRCoach Configuration File\s*$",
-            r"^## Overview\s*$",
-            r"^## PR Title and Description\s*$",
-            r"^## PR Summary of Changes\s*$",
-            r"^## Code Review\s*$",
-            r"^- \*\*Terraform Syntax and Style Checks:\*\*\s*$",
-            r"^## Documentation and Explanation\s*$",
-            r"^- \*\*Auto-Documentation:\*\*\s*$",
-            r"^- \*\*Code Comments:\*\*\s*$",
-            r"^## File Structure Review\s*$",
-            r"^- \*\*Consistency Checks:\*\*\s*$",
-            r"^- \*\*Best Practices Comparison:\*\*\s*$",
-            r"^## Cloud Environment \(as discovered by the system from your repo\)\s*$",
-            r"^- \*\*Primary Cloud Provider:\*\*",
-            r"^- \*\*Secondary Cloud Providers:\*\*",
-            r"^## Security & Compliance Policies\s*$",
-            r"^- \*\*Security Requirements:\*\*\s*$",
-            r"^- \*\*Compliance Requirements:\*\*\s*$",
-            r"^## Change Impact Analysis\s*$",
-            r"^- \*\*Dependency Analysis:\*\*\s*$",
-            r"^- \*\*Risk Assessment:\*\*\s*$",
-            r"^## Continuous review\s*$",
-            r"^- \*\*Linting Review:\*\*\s*$",
-            r"^- \*\*Scanning Review:\*\*\s*$",
-            r"^## Learning and Improvement\s*$",
-            r"^- \*\*Knowledge Base:\*\*\s*$",
-            r"^- \*\*KPI Tracking:\*\*\s*$",
-            r"^## Expert Reviewers\s*$",
-            r"^- \*\*Designated Expert Reviewers:\*\*\s*$",
-            r"^## Continuous Improvement\s*$",
-            r"^- \*\*Feedback Loop:\*\*\s*$",
-        ]
-
-        lines = content.split("\n")
-        index = 0
-
-        for pattern in expected_structure:
-            while index < len(lines) and not re.match(pattern, lines[index].strip()):
-                index += 1
-
-            if index >= len(lines):
-                return False
-
-            index += 1
-
-        return True
-
-    def list_comments_from_pr(self, repo_full_name: str, pr_number: int) -> PaginatedList[PullRequestComment]:
-        repo = self.github.get_repo(repo_full_name)
-        pull_request = repo.get_pull(pr_number)
-        return pull_request.get_review_comments()
-
-    def reply_on_pr_comment(self, repo_full_name: str, pr_number: int, comment_id: int, comment: str) -> None:
-        repo = self.github.get_repo(repo_full_name)
-        pull_request = repo.get_pull(pr_number)
-        pull_request.create_review_comment_reply(
-            comment_id,
-            body=comment,
-        )
-
-if __name__ == "__main__":
-    installation_id: str = "55482007"
-    repo_name = "bensagi/terraform-aws-eks"
-    git_ops = GitHubOperations(installation_id)
-    git_ops.add_pr_coach_config_file_pr(repo_name)
-
-    print(git_ops.retrieve_md_content_from_pr(10, repo_name))
