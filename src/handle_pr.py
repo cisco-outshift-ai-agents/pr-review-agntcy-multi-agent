@@ -3,8 +3,9 @@ import os
 from typing import Any
 from fastapi.responses import JSONResponse
 from pr_graph.graph import WorkFlow
-from utils.config_file_pr import GitHubOperations
+from utils.github_operations import GitHubOperations
 from utils.constants import ALFRED_CONFIG_BRANCH
+from config import ConfigManager
 from utils.logging_config import logger as log
 
 
@@ -43,10 +44,12 @@ def handle_pull_request(payload, local_run):
 def handle_installation(payload, local_run, repositories_key):
     try:
         installation_id = payload["installation"]["id"]
-        git_ops = GitHubOperations(installation_id)
+        github_ops = GitHubOperations(str(installation_id))
+        config_manager = ConfigManager(github_ops)
+
         for repo in payload[repositories_key]:
             repo_name = repo["full_name"]
-            git_ops.add_alfred_config_file_pr(repo_name)
+            config_manager.create_config(repo_name)
     except Exception as e:
         log.error(f"Error handling installation: {str(e)}")
         raise

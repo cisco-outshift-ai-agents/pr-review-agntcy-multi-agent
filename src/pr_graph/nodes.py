@@ -5,17 +5,17 @@ from github import UnknownObjectException
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
 from pr_graph.state import FileChange, GitHubPRState, Comment
-from utils.github_config import init_github
+from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
 
 
 class Nodes:
     def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: AzureChatOpenAI, user_config: Dict):
-        self.installation_id = installation_id
+        self.github_ops = GitHubOperations(str(installation_id))
+        self.github = self.github_ops.github
         self.repo_name = repo_name
         self.pr_number = pr_number
         self.model = model
-        self.github = init_github(str(installation_id))
         self.user_config = user_config
 
     def fetch_pr(self, state: GitHubPRState):
