@@ -22,7 +22,7 @@ def fastapi_validate_github_signature(handler: Callable[[Request], Awaitable[Any
 
     @wraps(handler)
     async def wrapper(request: Request, *args, **kwargs):
-        signature_header = request.headers.get("x-hub-signature-256")
+        signature_header = request.headers.get(GITHUB_SIGNATURE_HEADER)
         if not signature_header:
             log.debug("Missing signature header")
             raise HTTPException(status_code=HTTPStatus.FORBIDDEN)
@@ -52,6 +52,11 @@ def lambda_validate_github_signature(handler: Callable[[dict[str, Any], Any], di
     @wraps(handler)
     def wrapper(event: dict[str, Any], context: Any, *args, **kwargs):
         headers: dict[str, Any] = event.get("headers", {})
+        # Sometimes headers come with camel case, sometimes they are lowercase, depending on the Lambda trigger runtime
+        # sam preserves the case while AWS API GW or Function URLs in AWS don't, they send lowercase header keys
+        # This makes our funtction compatible with any env
+        headers = {key.lower(): value for key, value in headers.items()}
+
         signature_header = headers.get(GITHUB_SIGNATURE_HEADER)
         if not signature_header:
             log.debug("Missing signature header")

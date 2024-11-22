@@ -1,6 +1,7 @@
+import io
 import base64
 import re
-from typing import Union, Dict
+from typing import Union, Dict, Tuple
 
 import requests
 from dotenv import load_dotenv
@@ -12,15 +13,42 @@ from github.Repository import Repository
 
 from utils.github_config import init_github
 from utils.logging_config import logger as log
+from config import AgentConfig, MarkdownParser, ParseContentError
+
 
 # TODO: We use this package for alfred specific github actions. But some operations are happening outside of the class.
 #  That's why self is not used in some functions. We should refactor this class to use self in all functions.
 
 load_dotenv()
 
+
 class GitHubOperations:
     def __init__(self, installation_id: str):
         self.github = init_github(installation_id)
+
+    def add_pr_coach_config_file_pr(
+        self,
+        repo_name: str,
+        branch_name: str = "pr_coach_config",
+        file_path: str = "PRCoach_CONFIG.md",
+        commit_message: str = "Add PR coach config file",
+        pr_title: str = "PR coach config file",
+        pr_body: str = "This pull request adds PR coach default config file.",
+    ) -> None:
+        with open("./PRCoach_CONFIG.md", "r") as file:
+            file_content = file.read()
+            repo = self.github.get_repo(repo_name)
+            base_branch = repo.default_branch
+            if self.__create_branch(repo, branch_name, base_branch):
+                if self.__create_file(repo, branch_name, file_path, file_content, commit_message):
+                    self.__create_pull_request(repo, branch_name, pr_title, pr_body, base_branch)
+
+    def retrieve_md_content_from_pr(self, pr_number, repo_name) -> Dict[str, str]:
+        success, result = self.__parse_md_content_from_pr(repo_name, pr_number, self.github)
+        if not success:
+            log.error(f"Missing or invalid PR coach configuration: {result}")
+            return None
+        return result
 
     def __create_branch(self, repo: Repository, branch_name: str, base_branch: str = "master") -> bool:
         try:
@@ -35,7 +63,7 @@ class GitHubOperations:
             log.error(f"Failed to create branch: {e.data}")
             return False
 
-    def __file_exists(self, repo: Repository, branch_name: str, file_path: str) -> (bool, str):
+    def __file_exists(self, repo: Repository, branch_name: str, file_path: str) -> Tuple[bool, str]:
         try:
             contents = repo.get_contents(file_path, ref=branch_name)
             return True, contents
@@ -74,30 +102,6 @@ class GitHubOperations:
             log.error(f"Failed to create pull request: {e.data}")
             return False
 
-    def add_pr_coach_config_file_pr(
-        self,
-        repo_name: str,
-        branch_name: str = "pr_coach_config",
-        file_path: str = "PRCoach_CONFIG.md",
-        commit_message: str = "Add PR coach config file",
-        pr_title: str = "PR coach config file",
-        pr_body: str = "This pull request adds PR coach default config file.",
-    ) -> None:
-        with open("./PRCoach_CONFIG.md", "r") as file:
-            file_content = file.read()
-            repo = self.github.get_repo(repo_name)
-            base_branch = repo.default_branch
-            if self.__create_branch(repo, branch_name, base_branch):
-                if self.__create_file(repo, branch_name, file_path, file_content, commit_message):
-                    self.__create_pull_request(repo, branch_name, pr_title, pr_body, base_branch)
-
-    def retrieve_md_content_from_pr(self, pr_number, repo_name) -> Dict[str, str]:
-        success, result = self.__parse_md_content_from_pr(repo_name, pr_number, self.github)
-        if not success:
-            log.error(f"Missing or invalid PR coach configuration: {result}")
-            return None
-        return result
-
     def __parse_md_content_from_pr(self, repo_name: str, pr_number: int, github: Github) -> Union[bool, Dict[str, str]]:
         repo = github.get_repo(repo_name)
         pull_request = repo.get_pull(pr_number)
@@ -129,33 +133,12 @@ class GitHubOperations:
         if not md_content:
             return False, "No MD file found in the pull request."
 
-        if not self.__validate_md_structure(md_content):
-            return False, "The MD file structure is invalid."
-
-        sections = re.split(r"^##\s+", md_content, flags=re.MULTILINE)
-        sections = sections[1:] if len(sections) > 1 else sections
-        structured_content = {}
-
-        for section in sections:
-            lines = section.strip().split("\n")
-            main_title = lines[0].strip()
-            content = "\n".join(lines[1:]).strip()
-
-            # Split content by subtitles (-)
-            subsections = re.split(r"^-\s+\*\*(.*?):?\*\*", content, flags=re.MULTILINE)
-
-            if len(subsections) > 1:
-                structured_content[main_title] = {}
-                for i in range(1, len(subsections), 2):
-                    subtitle = subsections[i].strip()
-                    subcontent = subsections[i + 1].strip() if i + 1 < len(subsections) else ""
-                    if i == 1:
-                        structured_content[main_title] = f"{subtitle}: {subcontent}"
-                    else:
-                        structured_content[main_title] = structured_content[main_title] + f"\n{subtitle}: {subcontent}"
-
-            else:
-                structured_content[main_title] = content
+        try:
+            md_content_reader = io.StringIO(md_content)
+            config = AgentConfig(md_content_reader, MarkdownParser())
+            structured_content = config.data
+        except ParseContentError as e:
+            return False, f"Error parsing markdown content: {e.content}"
 
         return True, structured_content
 

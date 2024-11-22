@@ -1,3 +1,4 @@
+import base64
 import os
 import github.Auth
 from github import Github, GithubIntegration
@@ -12,9 +13,11 @@ def init_github(installation_id: str) -> Github:
     else:
         log.debug("GITHUB_APP_PRIVATE_KEY_FILE not set, using GITHUB_APP_PRIVATE_KEY env var")
         private_key = os.getenv("GITHUB_APP_PRIVATE_KEY")
+        if not private_key:
+            raise Exception("Private key is missing")
 
-    if not private_key:
-        raise Exception("Private key is missing")
+        private_key_bytes = base64.b64decode(private_key)
+        private_key = private_key_bytes.decode()
 
     app_id = os.getenv("GITHUB_APP_ID")
     if not app_id:

@@ -1,2 +1,2 @@
-GITHUB_EVENT_HEADER = "X-Github-Event"
-GITHUB_SIGNATURE_HEADER = "X-Hub-Signature-256"
+GITHUB_EVENT_HEADER = "x-github-event"
+GITHUB_SIGNATURE_HEADER = "x-hub-signature-256"
