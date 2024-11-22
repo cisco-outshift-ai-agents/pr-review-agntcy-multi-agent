@@ -20,7 +20,7 @@ class Nodes:
         self.github = init_github(str(installation_id))
         self.user_config = user_config
 
-    def fetch_pr(self, state: GitHubPRState):
+    def fetch_pr(self) -> GitHubPRState:
         log.info("in fetch_pr")
         repo = self.github.get_repo(self.repo_name)
         pull_request = repo.get_pull(self.pr_number)
@@ -77,7 +77,7 @@ class Nodes:
         description: {description}
         """)
 
-        return {**state, "changes": changes, "title": title, "description": description}
+        return {"changes": changes, "title": title, "description": description}
 
     def security_reviewer(self, state: GitHubPRState):
         """Security reviewer."""

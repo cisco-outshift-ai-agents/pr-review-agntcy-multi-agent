@@ -22,18 +22,17 @@ class WorkFlow:
     def run(self):
         workflow = StateGraph(GitHubPRState)
 
-        workflow.add_node("fetch_pr", self.nodes.fetch_pr)
         workflow.add_node("code_reviewer", self.nodes.code_reviewer)
         workflow.add_node("commenter", self.nodes.commenter)
         workflow.add_node("security_reviewer", self.nodes.security_reviewer)
         workflow.add_node("title_description_reviewer", self.nodes.title_description_reviewer)
 
-        workflow.set_entry_point("fetch_pr")
+        workflow.set_entry_point("code_reviewer")
 
-        workflow.add_edge("fetch_pr", "code_reviewer")
         workflow.add_edge("code_reviewer", "security_reviewer")
         workflow.add_edge("security_reviewer", "title_description_reviewer")
         workflow.add_edge("title_description_reviewer", "commenter")
-        # workflow.add_edge('security_reviewer', 'commenter')
-        # workflow.add_edge('title_description_reviewer', 'commenter')
-        return workflow.compile().invoke({"changes": [], "comments": [], "title": None, "description": None})
+
+        init_state: GitHubPRState = {**self.nodes.fetch_pr()}
+
+        return workflow.compile().invoke(init_state)
