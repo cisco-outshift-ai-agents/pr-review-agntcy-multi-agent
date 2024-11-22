@@ -1,9 +1,11 @@
 import json
 import re
 from typing import Dict
+
 from github import UnknownObjectException
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
+
 from pr_graph.state import FileChange, GitHubPRState, Comment
 from utils.github_config import init_github
 from utils.logging_config import logger as log
@@ -88,7 +90,6 @@ class Nodes:
                  you are a senior security specialist, expert in finding security threats.
                  Provide a list of issues found, focusing ONLY on security issues, sensitive information, secrets, and vulnerabilities.
                  For each issue found, comment on the code changes, provide the line number, the filename, status: added/removed and the changed line as is.
-                 Give the exact line number relative to the start_line number.
                  Do not comment on lines which start with @@ as they are not code changes.
                  Avoid making redundant comments, keep the comments concise.
                  Avoid making many comments on the same change.
@@ -97,8 +98,8 @@ class Nodes:
                  Avoid recommendation for review.
                  You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
                  If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
-                 ONLY Return the results in json format where the main key is 'issues' and the value is a list of issues.
-                 Each issue should have the following keys: filename, line_number, comment, status.
+                 Response object MUST look like this: {{"issues": [{{"filename": "main.tf", "line_number": 10, "comment": "This line is not formatted correctly", "status": "added"}}]}}.
+                 Issue in response object MUST be built based on changes as follows: {{"filename": "filename" field from change, "line_number": start_line field from change f, "comment": your comment MUST be placed here, "status": status field from change}}
                  Status can be 'added' or 'removed'. Added status is for lines that were added in the PR. Removed status is for lines that were removed in the PR.
                  DO NOT use markdown in the response.
                  """,
@@ -200,6 +201,7 @@ class Nodes:
                             If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
                             ONLY Return the results in json format.
                             Response object MUST look like this: {{"issues": [{{"filename": "main.tf", "line_number": 10, "comment": "This line is not formatted correctly", "status": "added"}}]}}.
+                            Issue in response object MUST be built based on changes as follows: {{"filename": "filename" field from change, "line_number": start_line field from change f, "comment": your comment MUST be placed here, "status": status field from change}}
                             Status can be 'added' or 'removed'.
                             Added status is for lines that were added in the PR. Removed status is for lines that were removed in the PR.
                             DON'T USE markdown in the response.""",
