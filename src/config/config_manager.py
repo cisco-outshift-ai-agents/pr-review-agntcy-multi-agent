@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 import io
+import os
 from utils.github_operations import GitHubOperations
 from .agent_config import AgentConfig
 from .md_parser import MarkdownParser
@@ -29,7 +30,9 @@ class ConfigManager:
         """Creates and submits a PR with the default config file"""
         # Read default config content
         try:
-            with open(f"./{ALFRED_CONFIG_FILE}", "r") as file:
+            alfred_config_path = os.getenv("ALFRED_CONFIG_PATH", ".")
+            config_file_path = os.path.join(alfred_config_path, ALFRED_CONFIG_FILE)
+            with open(config_file_path, "r") as file:
                 config_content = file.read()
         except Exception as e:
             log.error(f"Failed to read default config file: {e}")
