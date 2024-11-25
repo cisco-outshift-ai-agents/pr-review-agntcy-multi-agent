@@ -11,8 +11,7 @@ from utils.logging_config import logger as log
 
 class Nodes:
     def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: AzureChatOpenAI, user_config: Dict):
-        self.github_ops = GitHubOperations(str(installation_id))
-        self.github = self.github_ops.github
+        self._github = GitHubOperations(str(installation_id))
         self.repo_name = repo_name
         self.pr_number = pr_number
         self.model = model
@@ -20,7 +19,7 @@ class Nodes:
 
     def fetch_pr(self, state: GitHubPRState):
         log.info("in fetch_pr")
-        repo = self.github.get_repo(self.repo_name)
+        repo = self._github.get_repo(self.repo_name)
         pull_request = repo.get_pull(self.pr_number)
         files = pull_request.get_files()
         title = pull_request.title
@@ -234,7 +233,7 @@ class Nodes:
 
     def commenter(self, state: GitHubPRState):
         try:
-            repo = self.github.get_repo(self.repo_name)
+            repo = self._github.get_repo(self.repo_name)
             pull_request = repo.get_pull(self.pr_number)
             files = pull_request.get_files()
         except UnknownObjectException:

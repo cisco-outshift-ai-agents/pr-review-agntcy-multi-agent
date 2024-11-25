@@ -69,7 +69,7 @@ class ConfigManager:
     def _get_config_from_pr(self, pr_number: int, repo_name: str) -> Optional[str]:
         """Gets config content from PR branch"""
         try:
-            repo = self.github_ops.github.get_repo(repo_name)
+            repo = self.github_ops.get_repo(repo_name)
             pull_request = repo.get_pull(pr_number)
             branch_name = pull_request.head.ref
             return self.github_ops.get_file_content(repo_name, self.default_config_path, branch_name)

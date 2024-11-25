@@ -2,7 +2,7 @@ import base64
 import os
 from typing import Optional, Tuple
 import github.Auth
-from github import Github, GithubException, GithubIntegration
+from github import Github, GithubException, GithubIntegration, Repository
 from github.ContentFile import ContentFile
 from utils.logging_config import logger as log
 
@@ -14,7 +14,7 @@ class GitHubOperations:
     """
 
     def __init__(self, installation_id: str):
-        self.github = self._init_github(installation_id)
+        self._github = self._init_github(installation_id)
 
     def _init_github(self, installation_id: str) -> Github:
         """Initialize GitHub client with app credentials"""
@@ -61,7 +61,7 @@ class GitHubOperations:
     def create_branch(self, repo_name: str, branch_name: str, base_branch: str = None) -> bool:
         """Creates a new branch in the repository"""
         try:
-            repo = self.github.get_repo(repo_name)
+            repo = self._github.get_repo(repo_name)
             if base_branch is None:
                 base_branch = repo.default_branch
 
@@ -79,7 +79,7 @@ class GitHubOperations:
     def create_file(self, repo_name: str, branch_name: str, file_path: str, content: str, commit_message: str) -> bool:
         """Creates or updates a file in the repository"""
         try:
-            repo = self.github.get_repo(repo_name)
+            repo = self._github.get_repo(repo_name)
             file_exists, file_contents = self.get_file(repo_name, file_path, branch_name)
 
             if file_exists:
@@ -97,7 +97,7 @@ class GitHubOperations:
     def create_pull_request(self, repo_name: str, branch_name: str, base_branch: str, title: str, body: str) -> bool:
         """Creates a pull request in the repository"""
         try:
-            repo = self.github.get_repo(repo_name)
+            repo = self._github.get_repo(repo_name)
             if base_branch is None:
                 base_branch = repo.default_branch
 
@@ -118,7 +118,7 @@ class GitHubOperations:
     def get_file(self, repo_name: str, file_path: str, ref: str = None) -> Tuple[bool, Optional[ContentFile]]:
         """Gets a file from the repository"""
         try:
-            repo = self.github.get_repo(repo_name)
+            repo = self._github.get_repo(repo_name)
             contents = repo.get_contents(file_path, ref=ref)
             return True, contents
         except GithubException as e:
@@ -129,7 +129,7 @@ class GitHubOperations:
     def get_file_content(self, repo_name: str, file_path: str, ref: str = None) -> Optional[str]:
         """Gets the decoded content of a file from the repository"""
         try:
-            repo = self.github.get_repo(repo_name)
+            repo = self._github.get_repo(repo_name)
             if ref is None:
                 ref = repo.default_branch
 
@@ -142,8 +142,12 @@ class GitHubOperations:
     def get_default_branch(self, repo_name: str) -> str:
         """Gets the default branch name of a repository"""
         try:
-            repo = self.github.get_repo(repo_name)
+            repo = self._github.get_repo(repo_name)
             return repo.default_branch
         except GithubException as e:
             log.error(f"Failed to get default branch: {e.data}")
             raise
+
+    def get_repo(self, repo_name: str) -> Repository:
+        """Gets a repository from the GitHub API"""
+        return self._github.get_repo(repo_name)
