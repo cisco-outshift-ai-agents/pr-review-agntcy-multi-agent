@@ -26,7 +26,7 @@ class GitHubOperations:
             github_token = git_integration.get_access_token(int(installation_id)).token
             return Github(github_token)
         except Exception as e:
-            log.error(f"Failed to initialize GitHub client: {str(e)}")
+            log.error(f"Failed to initialize GitHub client: {e}")
             raise
 
     def _get_private_key(self) -> str:
@@ -37,7 +37,7 @@ class GitHubOperations:
                 with open(key_file_path, "r") as key_file:
                     return key_file.read()
             except IOError as e:
-                log.error(f"Failed to read private key file: {str(e)}")
+                log.error(f"Failed to read private key file: {e}")
                 raise
 
         private_key = os.getenv("GITHUB_APP_PRIVATE_KEY")
@@ -48,7 +48,7 @@ class GitHubOperations:
             private_key_bytes = base64.b64decode(private_key)
             return private_key_bytes.decode()
         except Exception as e:
-            log.error(f"Failed to decode private key: {str(e)}")
+            log.error(f"Failed to decode private key: {e}")
             raise
 
     def _get_app_id(self) -> str:

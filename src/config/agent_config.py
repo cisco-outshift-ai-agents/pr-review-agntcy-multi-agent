@@ -16,9 +16,9 @@ class AgentConfig:
             # Parse the content using the provided parser
             self.data = parser.parse_content(self._content)
         except ParseContentError as e:
-            raise Exception(f"Failed to parse content: {str(e)}")
+            raise Exception(f"Failed to parse content: {e}")
         except (IOError, OSError, ValueError, EOFError) as e:
-            raise Exception(f"Failed to read content: {str(e)}")
+            raise Exception(f"Failed to read content: {e}")
 
     @property
     def data(self) -> dict[str, str]:
