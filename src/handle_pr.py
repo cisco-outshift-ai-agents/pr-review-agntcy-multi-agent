@@ -5,7 +5,6 @@ from typing import Any
 from fastapi.responses import JSONResponse
 from langchain_openai import AzureChatOpenAI
 
-from handlers.pr_comment import handle_pull_request_comment
 from pr_graph.graph import WorkFlow
 from utils.config_file_pr import GitHubOperations
 from utils.constants import ALFRED_CONFIG_BRANCH
