@@ -56,6 +56,9 @@ def handle_pull_request_comment(
     except Exception as e:
         raise ValueError(f"Error invoking LLM model: {e}")
 
+    if response == "":
+        return
+
     try:
         github_operations.reply_on_pr_comment(repo_name, pr_number, payload["comment"]["in_reply_to_id"], response)
     except Exception as e:
