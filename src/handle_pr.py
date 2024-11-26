@@ -9,28 +9,37 @@ from config import ConfigManager
 from utils.logging_config import logger as log
 
 
-def handle_github_event(payload: dict[str, Any], github_event: str, local_run: bool = True):
+def handle_github_event(payload: dict[str, Any], github_event: str):
     try:
         log.debug(f"Header: {github_event}")
         if github_event == "pull_request" and payload["pull_request"]["head"]["ref"] != ALFRED_CONFIG_BRANCH:
             action = payload.get("action")
             if action in ["opened", "synchronize"]:
-                handle_pull_request(payload, local_run)
+                pr_number = payload["pull_request"]["number"]
+                repo_name = payload["repository"]["full_name"]
+                installation_id = payload["installation"]["id"]
+                # handle_pull_request(pr_number, repo_name, installation_id)
+        elif github_event == "issue_comment" and payload.get("action") == "created":
+            # Get the comment body and convert to lowercase for case-insensitive comparison
+            comment_body = payload["comment"]["body"].lower()
+            # Check if both "@alfred" and "review" appear in the comment in that order
+            if "@alfred" in comment_body and "review" in comment_body[comment_body.index("@alfred") :]:
+                pr_number = payload["issue"]["number"]
+                repo_name = payload["repository"]["full_name"]
+                installation_id = payload["installation"]["id"]
+                handle_pull_request(pr_number, repo_name, installation_id)
         elif github_event == "installation" and payload.get("action") == "created":
-            handle_installation(payload, local_run, "repositories")
+            handle_installation(payload, "repositories")
         elif github_event == "installation_repositories" and payload.get("action") == "added":
-            handle_installation(payload, local_run, "repositories_added")
+            handle_installation(payload, "repositories_added")
         return JSONResponse(content={"status": "ok"})
     except Exception as e:
         log.error(f"Error processing webhook: {e}")
         return JSONResponse(content={"status": "server error"}, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-def handle_pull_request(payload):
+def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
     try:
-        pr_number = payload["pull_request"]["number"]
-        repo_name = payload["repository"]["full_name"]
-        installation_id = payload["installation"]["id"]
         log.debug(f"repo: {repo_name}, pr number:{pr_number}, installation id:{installation_id}")
         agency_provider = os.environ.get("agency_provider")
         if agency_provider is None or agency_provider == "graph":
