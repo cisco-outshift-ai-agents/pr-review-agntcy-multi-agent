@@ -3,8 +3,9 @@ import os
 from typing import Any
 from fastapi.responses import JSONResponse
 from pr_graph.graph import WorkFlow
-from utils.config_file_pr import GitHubOperations
+from utils.github_operations import GitHubOperations
 from utils.constants import ALFRED_CONFIG_BRANCH
+from config import ConfigManager
 from utils.logging_config import logger as log
 
 
@@ -21,11 +22,11 @@ def handle_github_event(payload: dict[str, Any], github_event: str, local_run: b
             handle_installation(payload, local_run, "repositories_added")
         return JSONResponse(content={"status": "ok"})
     except Exception as e:
-        log.error(f"Error processing webhook: {str(e)}")
+        log.error(f"Error processing webhook: {e}")
         return JSONResponse(content={"status": "server error"}, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-def handle_pull_request(payload, local_run):
+def handle_pull_request(payload):
     try:
         pr_number = payload["pull_request"]["number"]
         repo_name = payload["repository"]["full_name"]
@@ -40,13 +41,17 @@ def handle_pull_request(payload, local_run):
         raise
 
 
-def handle_installation(payload, local_run, repositories_key):
+def handle_installation(payload, repositories_key):
     try:
         installation_id = payload["installation"]["id"]
-        git_ops = GitHubOperations(installation_id)
+        github_ops = GitHubOperations(str(installation_id))
+        config_manager = ConfigManager(github_ops)
+
         for repo in payload[repositories_key]:
             repo_name = repo["full_name"]
-            git_ops.add_alfred_config_file_pr(repo_name)
+            is_created = config_manager.create_config(repo_name)
+            if not is_created:
+                log.error(f"Failed to create config for repo: {repo_name}")
     except Exception as e:
-        log.error(f"Error handling installation: {str(e)}")
+        log.error(f"Error handling installation: {e}")
         raise

@@ -3,7 +3,8 @@ from langgraph.graph import StateGraph
 from pr_graph.nodes import Nodes
 from langchain_openai import AzureChatOpenAI
 from pr_graph.state import GitHubPRState
-from utils.config_file_pr import GitHubOperations
+from utils.github_operations import GitHubOperations
+from config import ConfigManager
 
 
 class WorkFlow:
@@ -16,7 +17,8 @@ class WorkFlow:
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
         )
         github_ops = GitHubOperations(str(installation_id))
-        user_config = github_ops.retrieve_md_content_from_pr(pr_number, repo_name)
+        config_manager = ConfigManager(github_ops)
+        user_config = config_manager.load_config(pr_number, repo_name)
         self.nodes = Nodes(installation_id, repo_name, pr_number, model, user_config)
 
     def run(self):
