@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from typing import Dict
 
@@ -9,6 +10,8 @@ from langchain_openai import AzureChatOpenAI
 from pr_graph.state import FileChange, GitHubPRState, Comment
 from utils.github_config import init_github
 from utils.logging_config import logger as log
+
+import flexrun_sdk
 
 
 class Nodes:
@@ -89,7 +92,7 @@ class Nodes:
                 (
                     "system",
                     """
-                 you are a senior security specialist, expert in finding security threats.
+                 You are a senior security specialist, expert in finding security threats.
                  Provide a list of issues found, focusing ONLY on security issues, sensitive information, secrets, and vulnerabilities.
                  For each issue found, comment on the code changes, provide the line number, the filename, status: added/removed and the changed line as is.
                  Do not comment on lines which start with @@ as they are not code changes.
@@ -184,57 +187,31 @@ class Nodes:
         """Code reviewer."""
         log.info("in code reviewer")
 
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    """You are senior developer experts in Terraform.
-                            Provide a list of issues found, focusing on code quality, best practices, and correct structure.
-                            For each comment on the code changes, provide the line number, the filename, status: added/removed and the changed line as is.
-                            Do not comment on lines which start with @@ as they are not code changes.
-                            Added line in changes start with +, removed line start with -.
-                            Avoid making redundant comments, keep the comments concise.
-                            Avoid making many comments on the same change.
-                            DO NOT comment on issues connected to security issues, sensitive information, secrets, and vulnerabilities.
-                            Avoid make up information.
-                            Avoid positive or general comments.
-                            Avoid recommendation for review.
-                            You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
-                            If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
-                            ONLY Return the results in json format.
-                            Response object MUST look like this: {{"issues": [{{"filename": "main.tf", "line_number": 10, "comment": "This line is not formatted correctly", "status": "added"}}]}}.
-                            Issue in response object MUST be built based on changes as follows: {{"filename": "filename" field from change, "line_number": "start_line" field from change, "comment": your comment MUST be placed here, "status": "status" field from change}}
-                            Status can be 'added' or 'removed'.
-                            Added status is for lines that were added in the PR. Removed status is for lines that were removed in the PR.
-                            DON'T USE markdown in the response.""",
-                ),
-                ("user", "{question}"),
-            ]
-        )
+        env = {
+            "AZURE_OPENAI_ENDPOINT": os.getenv("AZURE_OPENAI_ENDPOINT"),
+            "AZURE_OPENAI_DEPLOYMENT": os.getenv("AZURE_OPENAI_DEPLOYMENT"),
+            "AZURE_OPENAI_API_VERSION": os.getenv("AZURE_OPENAI_API_VERSION"),
+            "AZURE_OPENAI_API_KEY": os.getenv("AZURE_OPENAI_API_KEY"),
+            "INSTALLATION_ID": self.installation_id,
+            "PR_NUMBER": self.pr_number,
+            "REPO_NAME": self.repo_name,
+        }
 
-        chain = prompt | self.model
-        diff = state["changes"]
-        user_input = ""
-        if self.user_config and self.user_config["Code Review"]:
-            user_input = self.user_config["Code Review"]
-        result = chain.invoke(
-            {
-                "question": f"""
-                Review the following code changes:\n{diff}.\nConfiguration: {user_input}
-        """
-            }
-        )
-        log.info(f"in code reviewer results: {result.content}")
-        data = json.loads(result.content)
-        comments = []
-        for issue in data["issues"]:
-            comment = Comment(filename=issue["filename"], line_number=issue["line_number"], comment=issue["comment"], status=issue["status"])
-            comments.append(comment)
-        log.info(f"""
-        code reviewer finished.
-        comments: {json.dumps(comments, indent=4)}
-        """)
-        return {**state, "comments": comments}
+        result = flexrun_sdk.call_agent("code_reviewer", state["changes"], env)
+
+        log.info(f"in code reviewer results: {result}")
+        # data = json.loads(result.content)
+        # comments = []
+        # for issue in data["issues"]:
+        #     comment = Comment(filename=issue["filename"], line_number=issue["line_number"], comment=issue["comment"], status=issue["status"])
+        #     comments.append(comment)
+        # log.info(f"""
+        # code reviewer finished.
+        # comments: {json.dumps(comments, indent=4)}
+        # """)
+        # return {**state, "comments": comments}
+
+        return {**state, "comments": []}
 
     def commenter(self, state: GitHubPRState):
         try:

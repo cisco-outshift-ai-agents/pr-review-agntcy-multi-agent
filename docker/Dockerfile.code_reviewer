@@ -1,0 +1,16 @@
+FROM python:3.12.7-slim
+
+WORKDIR /app
+
+ENV PYTHONPATH="/app"
+
+COPY ./src/ .
+COPY pyproject.toml .
+COPY poetry.lock .
+
+RUN pip install poetry
+# We don't need a virtual env, the image itself is an isolated env
+RUN poetry config virtualenvs.create false 
+RUN poetry install --no-dev
+
+CMD ["python", "image_agents/code_reviewer/code_reviewer.py"]
