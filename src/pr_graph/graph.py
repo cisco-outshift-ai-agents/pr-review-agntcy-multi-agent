@@ -3,7 +3,8 @@ from langgraph.graph import StateGraph
 from pr_graph.nodes import Nodes
 from langchain_openai import AzureChatOpenAI
 from pr_graph.state import GitHubPRState
-from utils.config_file_pr import GitHubOperations
+from utils.github_operations import GitHubOperations
+from config import ConfigManager
 
 
 class WorkFlow:
@@ -16,24 +17,26 @@ class WorkFlow:
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
         )
         github_ops = GitHubOperations(str(installation_id))
-        user_config = github_ops.retrieve_md_content_from_pr(pr_number, repo_name)
+        config_manager = ConfigManager(github_ops)
+        user_config = config_manager.load_config(pr_number, repo_name)
         self.nodes = Nodes(installation_id, repo_name, pr_number, model, user_config)
 
     def run(self):
         workflow = StateGraph(GitHubPRState)
 
-        workflow.add_node("fetch_pr", self.nodes.fetch_pr)
         workflow.add_node("code_reviewer", self.nodes.code_reviewer)
         workflow.add_node("commenter", self.nodes.commenter)
         workflow.add_node("security_reviewer", self.nodes.security_reviewer)
         workflow.add_node("title_description_reviewer", self.nodes.title_description_reviewer)
 
-        workflow.set_entry_point("fetch_pr")
+        workflow.set_entry_point("code_reviewer")
+        workflow.set_entry_point("security_reviewer")
+        workflow.set_entry_point("title_description_reviewer")
 
-        workflow.add_edge("fetch_pr", "code_reviewer")
-        workflow.add_edge("code_reviewer", "security_reviewer")
-        workflow.add_edge("security_reviewer", "title_description_reviewer")
+        workflow.add_edge("code_reviewer", "commenter")
+        workflow.add_edge("security_reviewer", "commenter")
         workflow.add_edge("title_description_reviewer", "commenter")
-        # workflow.add_edge('security_reviewer', 'commenter')
-        # workflow.add_edge('title_description_reviewer', 'commenter')
-        return workflow.compile().invoke({"changes": [], "comments": [], "title": None, "description": None})
+
+        init_state: GitHubPRState = {**self.nodes.fetch_pr()}
+
+        return workflow.compile().invoke(init_state)
