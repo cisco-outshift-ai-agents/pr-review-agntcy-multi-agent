@@ -5,10 +5,10 @@ from typing import Any
 from fastapi.responses import JSONResponse
 
 from agents.pr_review_chat import PRReviewChatAgent
-from pr_graph.graph import WorkFlow
-from utils.github_operations import GitHubOperations
-from utils.constants import ALFRED_CONFIG_BRANCH
 from config import ConfigManager
+from pr_graph.graph import WorkFlow
+from utils.constants import ALFRED_CONFIG_BRANCH
+from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
 
 
@@ -24,8 +24,9 @@ def handle_github_event(payload: dict[str, Any], github_event: str, local_run: b
         elif github_event == "installation_repositories" and payload.get("action") == "added":
             handle_installation(payload, local_run, "repositories_added")
         elif github_event == "pull_request_review_comment" and \
-                payload.get("action") in ["created", "edited"] and \
+                payload.get("action") in ["created"] and \
                 __is_commented_by_human(payload):
+            # TODO: handle edited comments
             handle_pull_request_comment(payload)
         return JSONResponse(content={"status": "ok"})
     except Exception as e:

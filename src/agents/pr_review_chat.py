@@ -10,7 +10,7 @@ from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTempla
 from langchain_openai import AzureChatOpenAI
 
 from agents.agent import Agent
-from utils.config_file_pr import GitHubOperations
+from utils.github_operations import GitHubOperations
 
 BOT_USER_TYPE = "Bot"
 HUMAN_USER_TYPE = "User"
@@ -19,7 +19,7 @@ HUMAN_USER_TYPE = "User"
 class PRReviewChatAgent(Agent):
 
     def __init__(self, github_operations: GitHubOperations):
-        super().__init__(self)
+        super(PRReviewChatAgent, self).__init__()
 
         self.__github_ops = github_operations
 
@@ -32,7 +32,7 @@ class PRReviewChatAgent(Agent):
 
     def invoke(self, repo_full_name: str, pr_number: int, comment: dict[str, Any]):
         try:
-            repo = self.__github_ops.github.get_repo(repo_full_name)
+            repo = self.__github_ops.get_repo(repo_full_name)
         except Exception as e:
             raise ValueError(f"Error getting repository from GitHub: {e}")
 
