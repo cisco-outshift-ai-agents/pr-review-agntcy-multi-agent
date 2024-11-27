@@ -23,7 +23,7 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
             # Get the comment body and convert to lowercase for case-insensitive comparison
             comment_body = payload["comment"]["body"].lower()
             # Check if both "@alfred" and "review" appear in the comment in that order
-            if "@alfred" in comment_body and "review" in comment_body[comment_body.index("@alfred") :]:
+            if "alfred" in comment_body and "review" in comment_body[comment_body.index("alfred") :]:
                 pr_number = payload["issue"]["number"]
                 repo_name = payload["repository"]["full_name"]
                 installation_id = payload["installation"]["id"]
