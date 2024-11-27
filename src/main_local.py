@@ -1,9 +1,11 @@
-from dotenv import load_dotenv
 from http import HTTPStatus
-from utils.constants import GITHUB_EVENT_HEADER
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
+
 import handle_pr
 from auth import fastapi_validate_github_signature
+from utils.constants import GITHUB_EVENT_HEADER
 
 load_dotenv()
 

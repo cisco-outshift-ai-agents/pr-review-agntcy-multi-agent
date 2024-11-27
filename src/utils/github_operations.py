@@ -1,9 +1,13 @@
 import base64
 import os
 from typing import Optional, Tuple
+
 import github.Auth
 from github import Github, GithubException, GithubIntegration, Repository
 from github.ContentFile import ContentFile
+from github.PaginatedList import PaginatedList
+from github.PullRequestComment import PullRequestComment
+
 from utils.logging_config import logger as log
 
 
@@ -151,3 +155,23 @@ class GitHubOperations:
     def get_repo(self, repo_name: str) -> Repository:
         """Gets a repository from the GitHub API"""
         return self._github.get_repo(repo_name)
+
+    def list_comments_from_pr(self, repo_full_name: str, pr_number: int) -> PaginatedList[PullRequestComment]:
+        repo = self._github.get_repo(repo_full_name)
+        pull_request = repo.get_pull(pr_number)
+        return pull_request.get_review_comments()
+
+    def reply_on_pr_comment(self, repo_full_name: str, pr_number: int, comment_id: int, comment: str) -> None:
+        if repo_full_name is None or repo_full_name == "" or \
+                pr_number is None or pr_number == 0 or \
+                comment_id is None or comment_id == 0 or \
+                comment is None or comment == "":
+            raise ValueError("Invalid input parameters")
+
+        repo = self._github.get_repo(repo_full_name)
+        pull_request = repo.get_pull(pr_number)
+
+        pull_request.create_review_comment_reply(
+            comment_id,
+            body=comment,
+        )
