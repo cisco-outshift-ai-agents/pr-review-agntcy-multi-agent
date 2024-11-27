@@ -1,19 +1,25 @@
-import json
 import os
 from typing import Any
 
 from github.PaginatedList import PaginatedList
 from github.PullRequest import PullRequest
 from github.PullRequestComment import PullRequestComment
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
 from langchain_openai import AzureChatOpenAI
+from pydantic import BaseModel, Field
 
 from agents.agent import Agent
 from utils.github_operations import GitHubOperations
 
 BOT_USER_TYPE = "Bot"
 HUMAN_USER_TYPE = "User"
+
+
+class PRReviewChatResponse(BaseModel):
+    isSkipped: bool = Field(description="Indicates if the response is skipped. Set to true if the response is skipped.")
+    response: str = Field(description="Your response based on the conversation.")
 
 
 class PRReviewChatAgent(Agent):
@@ -71,47 +77,46 @@ class PRReviewChatAgent(Agent):
 
     def __invoke_llm(self, message_history: list[BaseMessage], code: str,
                      comment: dict[str, Any]) -> str:
-        if message_history is None or len(message_history) == 0:
-            raise ValueError("At least the original review should be presented in the message history")
+        if message_history is None or len(message_history) < 2:
+            raise ValueError("At least the original review and a comment should be presented in the message history")
         messages = [
             SystemMessagePromptTemplate.from_template(
                 """You are a senior software developer.
+                Your name is Alfred.
                 You were reviewing a pull request so you are the REVIEWER.
+                Your review is the FIRST message in the CONVERSATION.
                 Other developers asked you to explain your review. 
                 Give a DETAILED explanation of your review.
-                Answer the question based on the code and your review and the conversation below.
                 Concentrate on the modification that you reviewed.
-                Skip the answer if the conversation is not related to the code.
-                Skip the answer if the conversation does not contain a question or a command to you.
-                Respond in the following format: {{\"skip\": true, \"response\": \"Your response here\"}}
-
-                The code that you reviewed is:
+                The code you reviewed is the following:
                 ```
                 {code}
                 ```
-                The conversation is about the modification in line {line_number}.
 
-                Your review is:
-                {review}
-                """
+                Respond to the LAST message in the CONVERSATION.
+                Respond ONLY IF the message is LOOSELY related to the modification in the code.
+                Respond ONLY IF the message is a question or an instruction that is put to you.
+                If the last message is not a question, but an instruction, follow the instruction.
+                The conversation is about the modification in line {line_number}.
+                If you skip the response, explain why you skipped it in the response field.
+                {format_instructions}
+                
+                The CONVERSATION is as follows:
+                """,
             )
         ]
-        if len(message_history) > 1:
-            messages.append(SystemMessage(content="The conversation is as follows:"))
-            messages.append(*message_history[1:])
+        messages.extend(message_history)
 
         template = ChatPromptTemplate.from_messages(messages)
-        prompt = template.format(
-            code=code,
-            line_number=comment["position"],
-            review=message_history[0].content
-        )
-        response = self.__model.invoke(prompt)
-        json_response = json.loads(response.content)
+        parser = JsonOutputParser(pydantic_object=PRReviewChatResponse)
+        template = template.partial(format_instructions=parser.get_format_instructions())
 
-        if json_response["skip"]:
+        chain = template | self.__model | parser
+
+        response: PRReviewChatResponse = chain.invoke({"code": code, "line_number": comment["line"]})
+        if response["isSkipped"]:
             return ""
-        return json_response["response"]
+        return response["response"]
 
     @staticmethod
     def __get_comment_thread(comment: dict[str, Any], comments: PaginatedList[PullRequestComment]) -> list[
