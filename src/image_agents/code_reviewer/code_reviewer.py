@@ -1,4 +1,5 @@
 import argparse
+import json
 from multiprocessing import Value
 import os
 import sys
@@ -18,27 +19,48 @@ def code_reviewer():
         api_key=os.environ["AZURE_OPENAI_API_KEY"],
     )
 
-    installation_id = os.getenv("INSTALLATION_ID")
-    pr_number = os.getenv("PR_NUMBER")
-    repo_name = os.getenv("REPO_NAME")
+    try:
+        installation_id_str = os.getenv("INSTALLATION_ID")
+        if not installation_id_str:
+            raise ValueError("INSTALLATION_ID is not set")
+
+        pr_number_str = os.getenv("PR_NUMBER")
+        if not pr_number_str:
+            raise ValueError("PR_NUMBER is not set")
+
+        repo_name = os.getenv("REPO_NAME")
+        if not repo_name:
+            raise ValueError("REPO_NAME is not set")
+
+        installation_id = int(installation_id_str)
+        pr_number = int(pr_number_str)
+    except ValueError as e:
+        log.error(f"Error with input env: {e}")
+        sys.exit(1)
 
     try:
         parser = argparse.ArgumentParser()
-        parser.add_argument("--changes-file", "File with the PR diffs")
+        parser.add_argument("-if", "--changes-file")
+        parser.add_argument("-cf", "--comments-file")
         args = parser.parse_args()
-        file_path = args.changes_file
-        if not file_path:
+
+        if not args.changes_file:
             raise ValueError("Missing changes file path")
-        changes_file = open(file_path)
-        changes = changes_file.read()
+        if not args.changes_file:
+            raise ValueError("Missing output file path")
+
+        with open(args.changes_file) as changes_file:
+            changes = json.load(changes_file)
         if not changes:
             raise ValueError("Changes file empty")
+
+        log.info(f"Changes: {changes}")
     except Exception as e:
         log.error(f"Error with changes file: {e}")
         sys.exit(1)
 
-    github_ops = GitHubOperations(str(installation_id))
-    user_config = github_ops.retrieve_md_content_from_pr(pr_number, repo_name)
+    # github_ops = GitHubOperations(str(installation_id))
+    # user_config = github_ops.retrieve_md_content_from_pr(pr_number, repo_name)
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -70,8 +92,8 @@ def code_reviewer():
 
     chain = prompt | model
     user_input = ""
-    if user_config and user_config["Code Review"]:
-        user_input = user_config["Code Review"]
+    # if user_config and user_config["Code Review"]:
+    #     user_input = user_config["Code Review"]
     result = chain.invoke(
         {
             "question": f"""
@@ -81,6 +103,9 @@ def code_reviewer():
     )
 
     log.info(f"in code reviewer results: {result.content}")
+
+    with open(args.comments_file) as comments_file:
+        comments_file.write(json.dumps(result.content))
     # data = json.loads(result.content)
     # comments = []
     # for issue in data["issues"]:

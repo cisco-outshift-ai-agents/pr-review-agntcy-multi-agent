@@ -192,12 +192,12 @@ class Nodes:
             "AZURE_OPENAI_DEPLOYMENT": os.getenv("AZURE_OPENAI_DEPLOYMENT"),
             "AZURE_OPENAI_API_VERSION": os.getenv("AZURE_OPENAI_API_VERSION"),
             "AZURE_OPENAI_API_KEY": os.getenv("AZURE_OPENAI_API_KEY"),
-            "INSTALLATION_ID": self.installation_id,
-            "PR_NUMBER": self.pr_number,
+            "INSTALLATION_ID": str(self.installation_id),
+            "PR_NUMBER": str(self.pr_number),
             "REPO_NAME": self.repo_name,
         }
 
-        result = flexrun_sdk.call_agent("code_reviewer", state["changes"], env)
+        result = flexrun_sdk.call_agent(name="code_reviewer", input=json.dumps(state["changes"]), env=env)
 
         log.info(f"in code reviewer results: {result}")
         # data = json.loads(result.content)
