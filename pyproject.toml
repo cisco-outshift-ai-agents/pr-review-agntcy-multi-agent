@@ -17,6 +17,7 @@ langchain-openai = "^0.2.8"
 requests = "^2.32.3"
 langchain-core = "^0.3.18"
 typing-extensions = "^4.12.2"
+pydantic = ">=2.0.0"
 
 
 [tool.poetry.group.dev.dependencies]

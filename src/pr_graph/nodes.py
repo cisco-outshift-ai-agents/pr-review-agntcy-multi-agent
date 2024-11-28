@@ -5,10 +5,28 @@ from typing import Dict
 from github import UnknownObjectException
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
+from pydantic import BaseModel, Field
+from typing import List
+from langchain_core.output_parsers import PydanticOutputParser
 
 from pr_graph.state import FileChange, GitHubPRState, Comment
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
+
+
+class CodeReviewIssue(BaseModel):
+    filename: str = Field(description="The name of the file where the issue was found")
+    line_number: int = Field(description="The line number where the issue was found")
+    comment: str = Field(description="The review comment describing the issue")
+    status: str = Field(description="Status of the line - either 'added' or 'removed'")
+
+
+class CodeReviewResponse(BaseModel):
+    issues: List[CodeReviewIssue] = Field(description="List of code review issues found")
+
+
+class SecurityReviewResponse(BaseModel):
+    issues: List[CodeReviewIssue] = Field(description="List of security review issues found")
 
 
 class Nodes:
@@ -102,6 +120,8 @@ class Nodes:
             # Continue even if we can't fetch existing comments
             pass
 
+        parser = PydanticOutputParser(pydantic_object=SecurityReviewResponse)
+
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -132,12 +152,7 @@ class Nodes:
             ]
         )
 
-        chain = prompt | self.model
-        diff = state["changes"]
-
-        user_input = ""
-        if self.user_config and self.user_config["Security & Compliance Policies"]:
-            user_input = self.user_config["Security & Compliance Policies"]
+        chain = prompt | self.model | parser
 
         result = chain.invoke(
             {
@@ -146,18 +161,18 @@ class Nodes:
             {json.dumps(existing_comments, indent=2)}
             
             Focus on finding security issues on the following changes and provide NEW unique comments if it has additional information that don't duplicate the existing ones:
-            {diff}
+            {state["changes"]}
             
-            Configuration: {user_input}
-            """
+            Configuration: {self.user_config.get("Security & Compliance Policies", "")}
+            """,
+                "format_instructions": parser.get_format_instructions(),
             }
         )
 
-        log.info(f"in security reviewer results: {result.content}")
-        data = json.loads(result.content)
+        # result will now be a SecurityReviewResponse object
         comments = []
-        for issue in data["issues"]:
-            comment = Comment(filename=issue["filename"], line_number=issue["line_number"], comment=issue["comment"], status=issue["status"])
+        for issue in result.issues:
+            comment = Comment(filename=issue.filename, line_number=issue.line_number, comment=issue.comment, status=issue.status)
             comments.append(comment)
 
         log.info(f"""
@@ -257,6 +272,8 @@ class Nodes:
             # Continue even if we can't fetch existing comments
             pass
 
+        parser = PydanticOutputParser(pydantic_object=CodeReviewResponse)
+
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -289,11 +306,7 @@ class Nodes:
             ]
         )
 
-        chain = prompt | self.model
-        diff = state["changes"]
-        user_input = ""
-        if self.user_config and self.user_config["Code Review"]:
-            user_input = self.user_config["Code Review"]
+        chain = prompt | self.model | parser
 
         result = chain.invoke(
             {
@@ -302,18 +315,18 @@ class Nodes:
             {json.dumps(existing_comments, indent=2)}
             
             Review the following code changes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:
-            {diff}
+            {state["changes"]}
             
-            Configuration: {user_input}
-            """
+            Configuration: {self.user_config.get("Code Review", "")}
+            """,
+                "format_instructions": parser.get_format_instructions(),
             }
         )
 
-        log.info(f"in code reviewer results: {result.content}")
-        data = json.loads(result.content)
+        # result will now be a CodeReviewResponse object
         comments = []
-        for issue in data["issues"]:
-            comment = Comment(filename=issue["filename"], line_number=issue["line_number"], comment=issue["comment"], status=issue["status"])
+        for issue in result.issues:
+            comment = Comment(filename=issue.filename, line_number=issue.line_number, comment=issue.comment, status=issue.status)
             comments.append(comment)
 
         log.info(f"""
