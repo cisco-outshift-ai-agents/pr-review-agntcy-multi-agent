@@ -15,10 +15,12 @@ from utils.logging_config import logger as log
 
 
 class CodeReviewIssue(BaseModel):
-    filename: str = Field(description="The name of the file where the issue was found")
-    line_number: int = Field(description="The line number where the issue was found")
-    comment: str = Field(description="The review comment describing the issue")
-    status: str = Field(description="Status of the line - either 'added' or 'removed'")
+    filename: str = Field(description="The name of the file where the issue was found. Must match the 'filename' field from the change.")
+    line_number: int = Field(description="The line number where the issue was found. Must match the 'start_line' field from the change.")
+    comment: str = Field(description="The review comment describing the issue. Must be placed here without markdown formatting.")
+    status: str = Field(
+        description="Status of the line - must be either 'added' (for lines added in the PR) or 'removed' (for lines removed in the PR). Must match the 'status' field from the change."
+    )
 
 
 class CodeReviewResponse(BaseModel):
@@ -142,9 +144,8 @@ class Nodes:
                 IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments.
                 Review the existing comments and only add new unique insights that haven't been mentioned before.
 
-                Response object MUST look like this: {{"issues": [{{"filename": "main.tf", "line_number": 10, "comment": "[Security] This line is not formatted correctly", "status": "added"}}]}}.
-                Issue in response object MUST be built based on changes as follows: {{"filename": "filename" field from change, "line_number": "start_line" field from change, "comment": your comment MUST be placed here, "status": "status" field from change}}
-                Status can be 'added' or 'removed'. Added status is for lines that were added in the PR. Removed status is for lines that were removed in the PR.
+                ONLY Return the results in json format.
+                {format_instructions}
                 DO NOT use markdown in the response.
                 """,
                 ),
@@ -172,7 +173,7 @@ class Nodes:
         # result will now be a SecurityReviewResponse object
         comments = []
         for issue in result.issues:
-            comment = Comment(filename=issue.filename, line_number=issue.line_number, comment=issue.comment, status=issue.status)
+            comment = Comment(filename=issue.filename, line_number=issue.line_number, comment=f"[Security] {issue.comment}", status=issue.status)
             comments.append(comment)
 
         log.info(f"""
@@ -296,10 +297,7 @@ class Nodes:
                 Review the existing comments and only add new unique insights that haven't been mentioned before.
                 
                 ONLY Return the results in json format.
-                Response object MUST look like this: {{"issues": [{{"filename": "main.tf", "line_number": 10, "comment": "[Code Review] This line is not formatted correctly", "status": "added"}}]}}.
-                Issue in response object MUST be built based on changes as follows: {{"filename": "filename" field from change, "line_number": "start_line" field from change, "comment": your comment MUST be placed here, "status": "status" field from change}}
-                Status can be 'added' or 'removed'.
-                Added status is for lines that were added in the PR. Removed status is for lines that were removed in the PR.
+                {format_instructions}
                 DON'T USE markdown in the response.""",
                 ),
                 ("user", "{question}"),
@@ -326,7 +324,7 @@ class Nodes:
         # result will now be a CodeReviewResponse object
         comments = []
         for issue in result.issues:
-            comment = Comment(filename=issue.filename, line_number=issue.line_number, comment=issue.comment, status=issue.status)
+            comment = Comment(filename=issue.filename, line_number=issue.line_number, comment=f"[Code Review] {issue.comment}", status=issue.status)
             comments.append(comment)
 
         log.info(f"""
