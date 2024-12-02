@@ -168,3 +168,6 @@ cython_debug/
 *.pem
 .python-version
 requirements.txt
+
+*.png
+gcp_service_account.json
