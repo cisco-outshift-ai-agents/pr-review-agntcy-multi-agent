@@ -1,9 +1,11 @@
+from operator import concat, add
 from typing import Annotated, Sequence
 from typing import List
+
 from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
+from pydantic import BaseModel
 from typing_extensions import TypedDict
-from operator import concat, add
 
 
 class FileChange(TypedDict):
@@ -19,12 +21,16 @@ class Comment(TypedDict):
     comment: str
     status: str
 
-class ContextFile(TypedDict):
+
+class ContextFile(BaseModel):
     path: str
     content: str
 
     def __str__(self) -> str:
         return f"File: {self.path}\n```\n{self.content}\n```"
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 class GitHubPRState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]

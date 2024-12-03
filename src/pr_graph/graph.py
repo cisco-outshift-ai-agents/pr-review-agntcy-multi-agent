@@ -26,37 +26,17 @@ class WorkFlow:
 
         workflow.add_node("code_reviewer", self.nodes.code_reviewer)
         workflow.add_node("commenter", self.nodes.commenter)
-        workflow.add_node("security_reviewer", self.nodes.security_reviewer)
-        workflow.add_node("title_description_reviewer", self.nodes.title_description_reviewer)
-        workflow.add_node("tool_node", self.nodes.calculate_line_tool_node)
+        # workflow.add_node("security_reviewer", self.nodes.security_reviewer)
+        # workflow.add_node("title_description_reviewer", self.nodes.title_description_reviewer)
 
         workflow.set_entry_point("code_reviewer")
-        workflow.set_entry_point("security_reviewer")
-        workflow.set_entry_point("title_description_reviewer")
+        # workflow.set_entry_point("security_reviewer")
+        # workflow.set_entry_point("title_description_reviewer")
 
-        workflow.add_edge("security_reviewer", "commenter")
-        workflow.add_edge("title_description_reviewer", "commenter")
-
-        workflow.add_conditional_edges("code_reviewer", self._route_tools, {"tools": "tool_node", "next": "commenter"})
-        workflow.add_edge("tool_node", "code_reviewer")
+        workflow.add_edge("code_reviewer", "commenter")
+        # workflow.add_edge("security_reviewer", "commenter")
+        # workflow.add_edge("title_description_reviewer", "commenter")
 
         init_state: GitHubPRState = {**self.nodes.fetch_pr(), **self.nodes.fetch_pr_files()}
 
         return workflow.compile().invoke(init_state)
-    
-    def _route_tools(
-        state: GitHubPRState,
-    ):
-        """
-        Use in the conditional_edge to route to the ToolNode if the last message
-        has tool calls. Otherwise, route to the end.
-        """
-        if isinstance(state, list):
-            ai_message = state[-1]
-        elif messages := state.get("messages", []):
-            ai_message = messages[-1]
-        else:
-            raise ValueError(f"No messages found in input state to tool_edge: {state}")
-        if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
-            return "tools"
-        return "next"
