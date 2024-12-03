@@ -1,25 +1,34 @@
+from dataclasses import dataclass
 import json
 import re
-from typing import Dict
+import os
+from typing import Dict, Set
 
 from github import UnknownObjectException
+from github.ContentFile import ContentFile
+from github.File import File
+from github.PullRequest import PullRequest
+from github.Repository import Repository
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.tools import BaseTool
 from langchain_openai import AzureChatOpenAI
 from pydantic import BaseModel, Field
 from typing import List
 from langchain_core.output_parsers import PydanticOutputParser
 
-from pr_graph.state import FileChange, GitHubPRState, Comment
+from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile
+from pr_graph.tools import CalculateLineNumberTool
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
 
 
 class CodeReviewIssue(BaseModel):
-    filename: str = Field(description="The name of the file where the issue was found. Must match the 'filename' field from the change.")
-    line_number: int = Field(description="The line number where the issue was found. Must match the 'start_line' field from the change.")
+    filename: str = Field(description="The name of the file where the issue was found. It can be found at the beginning of the file/")
+    line_number: int = Field(description="The line number where the issue was found. Must be calculated by 'calculate_line_number' tool.")
     comment: str = Field(description="The review comment describing the issue. Must be placed here without markdown formatting.")
     status: str = Field(
-        description="Status of the line - must be either 'added' (for lines added in the PR) or 'removed' (for lines removed in the PR). Must match the 'status' field from the change."
+        description="Status of the line - must be either 'added' (for lines added in the PR) or 'removed' (for lines removed in the PR). Must be 'added' if the line starts with '+' and must be 'removed' if the line starts with '-'."
     )
 
 
@@ -29,6 +38,30 @@ class CodeReviewResponse(BaseModel):
 
 class SecurityReviewResponse(BaseModel):
     issues: List[CodeReviewIssue] = Field(description="List of security review issues found")
+
+class BaseToolNode:
+    def __init__(self, tools: list) -> None:
+        self.tools_by_name = {tool.name: tool for tool in tools}
+
+    def __call__(self, inputs: dict):
+        if messages := inputs.get("messages", []):
+            message = messages[-1]
+        else:
+            raise ValueError("No message found in input")
+        outputs = []
+        for tool_call in message.tool_calls:
+            tool_result = self.tools_by_name[tool_call["name"]].invoke(
+                tool_call["args"]
+            )
+            outputs.append(
+                ToolMessage(
+                    content=json.dumps(tool_result),
+                    name=tool_call["name"],
+                    tool_call_id=tool_call["id"],
+                )
+            )
+        return {"messages": outputs}
+
 
 
 class Nodes:
@@ -99,6 +132,16 @@ class Nodes:
         """)
 
         return {"changes": changes, "title": title, "description": description}
+    
+    def fetch_pr_files(self) -> GitHubPRState:
+        repo = self._github.get_repo(self.repo_name)
+        pr = repo.get_pull(self.pr_number)
+
+        modified_files = self.__get_modified_files(repo, pr)
+        context = self.__get_context_for_modified_files(repo, pr)
+
+        return {"modified_files": modified_files, "context_files": context}
+
 
     def security_reviewer(self, state: GitHubPRState):
         """Security reviewer."""
@@ -275,6 +318,44 @@ class Nodes:
 
         parser = PydanticOutputParser(pydantic_object=CodeReviewResponse)
 
+        examples = [
+            HumanMessage("""
+                Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:
+                File: folder/variables.tf
+                +variable environment {
+                +  type    = string
+                +  default = "production"
+                +}
+                """),
+            AIMessage("", tool_calls=[
+                {
+                    "name": "calculate_line_number",
+                    "args": {
+                        "file": """
+                                +variable environment {
+                                +  type    = string
+                                +  default = "production"
+                                +}
+                                """,
+                        "line": "+  default = \"production\""
+                    },
+                    "id": "1",
+                }
+            ]),
+            ToolMessage("3", tool_call_id="1"),
+            AIMessage("""{
+                        "issues": [
+                            {
+                                "file_name": "folder/variables.tf"
+                                "line_number": 3,
+                                "status": "added",
+                                "comment": "Hardcoded variable"
+                            }
+                        ]
+                      }
+            """)
+        ]
+
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -282,8 +363,9 @@ class Nodes:
                     """You are senior developer experts in Terraform.
                 Provide a list of issues found, focusing on code quality, best practices, and correct structure.
                 For each comment on the code changes, provide the line number, the filename, status: added/removed and the changed line as is.
+                Review ONLY the lines that start with '+' or '-'
+                Added line in changes start with '+', removed line start with '-'.
                 Do not comment on lines which start with @@ as they are not code changes.
-                Added line in changes start with +, removed line start with -.
                 Avoid making redundant comments, keep the comments concise.
                 Avoid making many comments on the same change.
                 DO NOT comment on issues connected to security issues, sensitive information, secrets, and vulnerabilities.
@@ -296,15 +378,18 @@ class Nodes:
                 IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments.
                 Review the existing comments and only add new unique insights that haven't been mentioned before.
                 
-                ONLY Return the results in json format.
                 {format_instructions}
+
                 DON'T USE markdown in the response.""",
                 ),
+                *examples
                 ("user", "{question}"),
             ]
         )
 
-        chain = prompt | self.model | parser
+        model = self.model.model_copy()
+        model.bind_tools([CalculateLineNumberTool])
+        chain = prompt | model | parser
 
         result = chain.invoke(
             {
@@ -312,8 +397,11 @@ class Nodes:
             If a comment starting with '[Code Review]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:
             {json.dumps(existing_comments, indent=2)}
             
-            Review the following code changes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:
-            {state["changes"]}
+            Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:
+            {'\n'.join(state["modified_files"])}
+
+            Consider the following codes that are related to the modified codes:
+            {'\n'.join(state['context_files'])}
             
             Configuration: {self.user_config.get("Code Review", "")}
             """,
@@ -361,3 +449,67 @@ class Nodes:
             if comment["filename"] == "":
                 pull_request.create_issue_comment(comment["comment"])
         return state
+    
+    def calculate_line_tool_node():
+        return BaseToolNode(tools=[CalculateLineNumberTool])
+    
+    def __get_modified_file(repo: Repository, pr: PullRequest, pr_file: File) -> str:
+        @dataclass
+        class Changes:
+            start: int
+            end: int
+            change: str
+
+        o_file = repo.get_contents(pr_file.filename, ref=pr.base.ref).decoded_content.decode("utf-8").splitlines()
+        patch_blocks = re.split(r"(@@ -\d+,\d+ \+\d+,\d+ @@.*\n)", pr_file.patch)
+
+        changes: list[Changes] = []
+        for i in range(1, len(patch_blocks), 2):
+            change = patch_blocks[i+1]
+            change.removesuffix("<<EOF")
+            boundaries = re.match(r"@@ -(\d+),(\d+) \+(\d+),(\d+) @@", patch_blocks[i])
+            additions_start = int(boundaries.group(3))
+            additions_end = int(boundaries.group(4))
+            deletions_start = int(boundaries.group(1))
+            deletions_end = int(boundaries.group(2))
+            if additions_start == 0:
+                change_start = deletions_start
+                change_end = deletions_end
+            elif deletions_start == 0:
+                change_start = additions_start
+                change_end = additions_end
+            else:
+                change_start = min(int(boundaries.group(1)), int(boundaries.group(3)))
+                change_end = max(int(boundaries.group(1)) + int(boundaries.group(2)) - 1, int(boundaries.group(3)) + int(boundaries.group(4)) - 1)
+            changes.append(Changes(start=change_start, end=change_end, change=change))
+
+        for i in range(len(o_file)):
+            o_file[i] = " " + o_file[i]
+
+        newFile: list[str] = []
+        cursorPos: int = 0
+        for c in changes:
+            newFile.extend(o_file[cursorPos:c.start-1])
+            newFile.extend(c.change.splitlines())
+            cursorPos = c.end
+        newFile.extend(o_file[cursorPos:])
+
+        return "\n".join(newFile)
+    
+    def __get_modified_files(self, repo: Repository, pr: PullRequest) -> List[ContextFile]:
+        return [ContextFile(path=file.filename, content=self.__get_modified_file(repo, pr, file)) for file in pr.get_files()]
+    
+    def __get_context_for_modified_files(self, repo: Repository, pr: PullRequest) -> List[ContextFile]:
+        pr_files = pr.get_files()
+        unique_dirs: Set[str] = set()
+        pr_filenames: List[str] = []
+        for file in pr_files:
+            pr_filenames.append(file.filename)
+            dir = os.path.dirname(file.filename)
+            unique_dirs.add(dir)
+
+        all_files: List[ContentFile] = []
+        for dir in unique_dirs:
+           all_files.extend(repo.get_contents(dir, ref=pr.head.ref))
+
+        return [ContextFile(path=f.path, content=f.decoded_content.decode("utf-8")) for f in all_files if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames]

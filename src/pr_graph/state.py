@@ -19,10 +19,18 @@ class Comment(TypedDict):
     comment: str
     status: str
 
+class ContextFile(TypedDict):
+    path: str
+    content: str
+
+    def __str__(self) -> str:
+        return f"File: {self.path}\n```\n{self.content}\n```"
 
 class GitHubPRState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     changes: Annotated[List[FileChange], concat]
+    modified_files: Annotated[List[ContextFile], concat]
+    context_files: Annotated[List[ContextFile], concat]
     comments: Annotated[List[Comment], concat]
     sender: Annotated[List[str], add]
     title: Annotated[List[str], add]
