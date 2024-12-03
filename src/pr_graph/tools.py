@@ -1,10 +1,19 @@
+from typing import Type, Optional
+
 from langchain_core.tools import BaseTool
-import re
+from pydantic import BaseModel, Field
+
+
+class CalculateLineNumberInut(BaseModel):
+    file: str = Field("The modified file content as a string")
+    line: str = Field("The specific line to find the line number for")
 
 class CalculateLineNumberTool(BaseTool):
-    name = "calculate_line_number"
-    description = "Calculate the line number for a given line in a modified file."
+    name: str = "custom_search"
+    description: str = "useful for when you need to answer questions about current events"
+    args_schema: Type[BaseModel] = CalculateLineNumberInut
     
+
     def _run(self, file: str, line: str) -> int:
         """Calculate the line number for a given line in a file patch.
         
