@@ -1,25 +1,17 @@
-import os
 from langgraph.graph import StateGraph
 from pr_graph.nodes import Nodes
-from langchain_openai import AzureChatOpenAI
 from pr_graph.state import GitHubPRState
 from utils.github_operations import GitHubOperations
+from utils.modelfactory import models
 from config import ConfigManager
 
 
 class WorkFlow:
     def __init__(self, installation_id: int, repo_name: str, pr_number: int):
-        # Initialize the AI model
-        model = AzureChatOpenAI(
-            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-            azure_deployment=os.environ["AZURE_OPENAI_DEPLOYMENT"],
-            openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
-            api_key=os.environ["AZURE_OPENAI_API_KEY"],
-        )
         github_ops = GitHubOperations(str(installation_id))
         config_manager = ConfigManager(github_ops)
         user_config = config_manager.load_config(pr_number, repo_name)
-        self.nodes = Nodes(installation_id, repo_name, pr_number, model, user_config)
+        self.nodes = Nodes(installation_id, repo_name, pr_number, models.get_vertexai(), user_config)
 
     def run(self):
         workflow = StateGraph(GitHubPRState)

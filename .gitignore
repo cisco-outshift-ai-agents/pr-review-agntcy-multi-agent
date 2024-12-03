@@ -131,6 +131,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+gcp_service_account.json
 
 # Spyder project settings
 .spyderproject

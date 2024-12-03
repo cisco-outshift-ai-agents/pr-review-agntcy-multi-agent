@@ -4,7 +4,7 @@ from typing import Dict
 
 from github import UnknownObjectException
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import AzureChatOpenAI
+from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 from pydantic import BaseModel, Field
 from typing import List
 from langchain_core.output_parsers import PydanticOutputParser
@@ -32,7 +32,7 @@ class SecurityReviewResponse(BaseModel):
 
 
 class Nodes:
-    def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: AzureChatOpenAI, user_config: Dict):
+    def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: ChatAnthropicVertex, user_config: Dict):
         self._github = GitHubOperations(str(installation_id))
         self.repo_name = repo_name
         self.pr_number = pr_number
