@@ -4,7 +4,6 @@ from pr_graph.state import GitHubPRState, create_default_github_pr_state
 from utils.github_operations import GitHubOperations
 from utils.modelfactory import models
 from config import ConfigManager
-from pydantic import SecretStr
 
 
 class WorkFlow:

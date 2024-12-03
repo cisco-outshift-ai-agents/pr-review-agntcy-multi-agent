@@ -6,6 +6,7 @@ from langchain_openai import AzureChatOpenAI
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 from google.oauth2 import service_account
 from utils.logging_config import logger as log
+from pydantic import SecretStr
 
 
 class ChatModelFactory:
@@ -69,12 +70,12 @@ class ChatModelFactory:
     @staticmethod
     def __init_azure_openai() -> AzureChatOpenAI:
         log.debug("Initializing AzureChatOpenAI model...")
-
+        api_key = os.getenv("AZURE_OPENAI_API_KEY")
         return AzureChatOpenAI(
             azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
-            openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+            api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+            api_key=SecretStr(api_key) if api_key else None,
         )
 
 
