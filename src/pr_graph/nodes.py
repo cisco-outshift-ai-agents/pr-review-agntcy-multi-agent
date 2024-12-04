@@ -367,6 +367,20 @@ Consider the following codes that are related to the modified codes:
         return state
     
     def __get_modified_files(self, repo: Repository, pr: PullRequest) -> List[ContextFile]:
+        """Get a list of modified files in a pull request.
+
+        This method retrieves all files modified in a pull request and returns them as ContextFile objects
+        containing the file path and content. The content includes the full file with diff annotations
+        (+ for additions, - for deletions) showing the changes made in the PR.
+
+        Args:
+            repo (Repository): The GitHub repository object
+            pr (PullRequest): The pull request object to get modified files from
+
+        Returns:
+            List[ContextFile]: List of ContextFile objects containing the path and annotated content
+                             of each modified file
+        """
         return [ContextFile(path=file.filename, content=self.__get_modified_file(repo, pr, file)) for file in pr.get_files()]
 
     @staticmethod
@@ -422,6 +436,20 @@ Consider the following codes that are related to the modified codes:
 
     @staticmethod
     def __get_context_for_modified_files(repo: Repository, pr: PullRequest) -> List[ContextFile]:
+        """Get context files for modified files in a pull request.
+
+        This method retrieves additional context files from the same directories as modified files
+        in the pull request. It specifically looks for Terraform (.tf) files that were not modified
+        in the PR to provide additional context.
+
+        Args:
+            repo (Repository): The GitHub repository object
+            pr (PullRequest): The pull request object
+
+        Returns:
+            List[ContextFile]: A list of ContextFile objects containing paths and contents of
+                relevant Terraform files that provide context
+        """
         pr_files = pr.get_files()
         unique_dirs: Set[str] = set()
         pr_filenames: List[str] = []
