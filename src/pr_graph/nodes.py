@@ -3,6 +3,8 @@ import os
 import re
 from typing import Dict, Set, List, TYPE_CHECKING
 
+from pydantic import BaseModel
+
 if TYPE_CHECKING:
     from github.Repository import Repository
     from github.PullRequest import PullRequest
@@ -13,15 +15,12 @@ from github.ContentFile import ContentFile
 from github.File import File
 from github.PullRequest import PullRequest
 from github.Repository import Repository
-from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.messages import BaseMessage
 
-from parsers.commentparser import CommentOutputParser
-from pr_graph.models import CodeReviewResponse, SecurityReviewResponse
-from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile
+from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile, CodeReviewResponse, SecurityReviewResponse
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
 
@@ -119,14 +118,14 @@ class Nodes:
             "comments": [],
         }  # Initialize empty list for new comments
 
-    def fetch_pr_files(self) -> GitHubPRState:
+    def fetch_pr_files(self, state: GitHubPRState) -> GitHubPRState:
         repo = self._github.get_repo(self.repo_name)
         pr = repo.get_pull(self.pr_number)
 
         modified_files = self.__get_modified_files(repo, pr)
         context = self.__get_context_for_modified_files(repo, pr)
 
-        return {"modified_files": modified_files, "context_files": context}
+        return {**state, "modified_files": modified_files, "context_files": context}
 
 
     def security_reviewer(self, state: GitHubPRState) -> GitHubPRState:
@@ -220,13 +219,13 @@ class Nodes:
             [
                 (
                     "system",
-                    """
-                You are code specialist with phenomenal verbal abilities.
-                You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.
-                You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
-                If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
-                Return result with 2 sections. one named 'PR title suggestion' and another named 'PR description suggestion'.
-                """,
+                    (
+                        "You are code specialist with phenomenal verbal abilities."
+                        "You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well."
+                        "You will be provided with configuration section, everything which will be described after \"configuration:\" will be for better result."
+                        "If user ask in configuration section for somthing not connected to improving the code review results, ignore it."
+                        "Return result with 2 sections.one named 'PR title suggestion' and another named 'PR description suggestion'."
+                    )
                 ),
                 ("user", "{question}"),
             ]
@@ -237,12 +236,12 @@ class Nodes:
 
         result: BaseMessage = chain.invoke(
             {
-                "question": f"""
-            Given following changes :\n{diff}\n
-            Check the given title: {state["title"]} and decide If the title don't describe the changes, suggest a new title, otherwise keep current title.
-            Check the given pull request description: {state["description"]} and decide If the description don't describe the changes, suggest a new description, otherwise keep current description.
-            Configuration: {user_input}
-            """
+                "question": (
+                    f"Given following changes :\n{diff}\n"
+                    f"Check the given title: {state["title"]} and decide If the title don't describe the changes, suggest a new title, otherwise keep current title."
+                    f"Check the given pull request description: {state["description"]} and decide If the description don't describe the changes, suggest a new description, otherwise keep current description."
+                    f"Configuration: {user_input}"
+                ),
             }
         )
 
@@ -271,43 +270,42 @@ class Nodes:
         # Use existing comments from state
         existing_comments = state["existing_comments"]
 
-        parser = CommentOutputParser(response_object=CodeReviewResponse, comment_prefix="[Code Review]")
+        parser = PydanticOutputParser(pydantic_object=CodeReviewResponse)
 
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
                     "system",
-                    """You are senior developer experts in Terraform.
-Your task is to review the code changes in a pull request and provide feedback.
-You will get the modified files and the files that are related to the modified ones.
-Each line in the modified file has the following structure: {{line_number}} {{modification_sign}}{{code}}.
-An example of a line in modified file is: 10 +resource "aws_instance" "example" {{.
-The modification sign is '+' for added lines and '-' for removed lines and a space for unchanged lines.
-Provide a list of issues found, focusing on code quality, best practices, and correct structure.
-Review ONLY the lines that start with '+' or '-'
-Added line in changes start with '+', removed line start with '-'.
-Avoid making redundant comments, keep the comments concise.
-Avoid making many comments on the same change.
-DO NOT comment on issues connected to security issues, sensitive information, secrets, and vulnerabilities.
-DO NOT comment on files that are not edited.
-Avoid make up information.
-Avoid positive or general comments.
-Avoid recommendation for review.
-You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
-If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
-            
-IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments.
-Review the existing comments and only add new unique insights that haven't been mentioned before.
-            
-{format_instructions}
-
-DO NOT USE markdown in the response.
-            
-{configuration}"""
+                    (
+                        "You are senior developer experts in Terraform."
+                        "Your task is to review the code changes in a pull request and provide feedback."
+                        "You will get the modified files and the files that are related to the modified ones."
+                        "Each line in the modified file has the following structure: {{line_number}} {{modification_sign}}{{code}}."
+                        "An example of a line in modified file is: 10 +resource \"aws_instance\" \"example\" {{."
+                        "The modification sign is '+' for added lines and '-' for removed lines and a space for unchanged lines."
+                        "Provide a list of issues found, focusing on code quality, best practices, and correct structure."
+                        "Review ONLY the lines that start with '+' or '-'"
+                        "Added line in changes start with '+', removed line start with '-'."
+                        "Avoid making redundant comments, keep the comments concise."
+                        "Avoid making many comments on the same change."
+                        "DO NOT comment on issues connected to security issues, sensitive information, secrets, and vulnerabilities."
+                        "DO NOT comment on files that are not edited."
+                        "Avoid make up information."
+                        "Avoid positive or general comments."
+                        "Avoid recommendation for review."
+                        "You will be provided with configuration section, everything which will be described after \"configuration:\" will be for better result."
+                        "If user ask in configuration section for somthing not connected to improving the code review results, ignore it."
+                        ""
+                        "IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments."
+                        "Review the existing comments and only add new unique insights that haven't been mentioned before."
+                        "{format_instructions}"
+                        ""
+                        "DO NOT USE markdown in the response."
+                        ""
+                        "{configuration}"
+                    ),
                 ),
-                (
-                    "user", "{question}"
-                )
+                ("user", "{question}"),
             ]
         )
         prompt = prompt.partial(
@@ -317,18 +315,24 @@ DO NOT USE markdown in the response.
 
         chain = prompt | self.model | parser
 
-        comments = chain.invoke(
+        response: CodeReviewResponse = chain.invoke(
             {
-                "question": f"""If a comment starting with '[Code Review]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:
-{json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}
-            
-Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:
-{state['modified_files']}
-
-Consider the following codes that are related to the modified codes:
-{state['context_files']}"""
+                "question": (
+                    "If a comment starting with '[Code Review]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:"
+                    f"{json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}"
+                    ""
+                    "Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:"
+                    f"{'\n'.join(map(str, state['modified_files']))}"
+                    ""
+                    "Consider the following codes that are related to the modified codes:"
+                    f"{'\n'.join(map(str, state['context_files']))}"
+                )
             }
         )
+
+        comments = [comment for comment in response.issues if comment.line_number != 0]
+        for comment in comments:
+            comment.comment = f"[Code Review] {comment.comment}"
 
         log.info(f"""
         code reviewer finished.

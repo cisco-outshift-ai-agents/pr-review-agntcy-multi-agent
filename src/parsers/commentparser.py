@@ -3,7 +3,7 @@ from typing import List, Union, Type
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.outputs import Generation
 
-from pr_graph.models import CodeReviewResponse, SecurityReviewResponse
+from pr_graph.state import CodeReviewResponse, SecurityReviewResponse
 from pr_graph.state import Comment
 
 

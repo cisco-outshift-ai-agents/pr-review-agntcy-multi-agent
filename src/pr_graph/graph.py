@@ -1,9 +1,10 @@
 from langgraph.graph import StateGraph
+
+from config import ConfigManager
 from pr_graph.nodes import Nodes
 from pr_graph.state import GitHubPRState, create_default_github_pr_state
 from utils.github_operations import GitHubOperations
 from utils.modelfactory import models
-from config import ConfigManager
 
 
 class WorkFlow:
@@ -20,20 +21,21 @@ class WorkFlow:
         workflow = StateGraph(GitHubPRState)
 
         workflow.add_node("fetch_pr", self.nodes.fetch_pr)
-        workflow.add_edge("fetch_pr", "code_reviewer")
-        workflow.add_edge("fetch_pr", "security_reviewer")
-        workflow.add_edge("fetch_pr", "title_description_reviewer")
-
+        workflow.add_node("fetch_pr_files", self.nodes.fetch_pr_files)
         workflow.add_node("code_reviewer", self.nodes.code_reviewer)
         workflow.add_node("commenter", self.nodes.commenter)
         workflow.add_node("security_reviewer", self.nodes.security_reviewer)
         workflow.add_node("title_description_reviewer", self.nodes.title_description_reviewer)
 
-        workflow.set_entry_point("fetch_pr")
-
+        workflow.add_edge("fetch_pr", "fetch_pr_files")
+        workflow.add_edge("fetch_pr_files", "code_reviewer")
+        workflow.add_edge("fetch_pr_files", "security_reviewer")
+        workflow.add_edge("fetch_pr_files", "title_description_reviewer")
         workflow.add_edge("code_reviewer", "commenter")
         workflow.add_edge("security_reviewer", "commenter")
         workflow.add_edge("title_description_reviewer", "commenter")
+
+        workflow.set_entry_point("fetch_pr")
 
         init_state = create_default_github_pr_state()
 
