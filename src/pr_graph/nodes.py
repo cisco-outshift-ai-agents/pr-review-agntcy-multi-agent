@@ -396,7 +396,7 @@ Consider the following codes that are related to the modified codes:
         # If the file is not found on the base branch it means it is new, so all lines in it are new.
         # Return the whole file without the annotation
         try:
-            o_file = repo.get_contents(pr_file.filename, ref=pr.base.ref).decoded_content.decode("utf-8").splitlines()
+            o_file = repo.get_contents(pr_file.filename, ref=pr.base.sha).decoded_content.decode("utf-8").splitlines()
         except UnknownObjectException:
             new_file = patch_blocks[2].strip().splitlines()
             self.__append_line_number(new_file)
@@ -443,7 +443,11 @@ Consider the following codes that are related to the modified codes:
             List[ContextFile]: A list of ContextFile objects containing paths and contents of
                 relevant Terraform files that provide context
         """
-        pr_files = pr.get_files()
+        try:
+            pr_files = pr.get_files()
+        except Exception as e:
+            raise Exception(f"Error fetching PR files: {e}")
+
         unique_dirs: Set[str] = set()
         pr_filenames: List[str] = []
         for file in pr_files:
@@ -453,7 +457,10 @@ Consider the following codes that are related to the modified codes:
 
         all_files: List[ContentFile] = []
         for directory in unique_dirs:
-            all_files.extend(repo.get_contents(directory, ref=pr.head.ref))
+            try:
+                all_files.extend(repo.get_contents(directory, ref=pr.head.ref))
+            except UnknownObjectException:
+                log.error(f"Error fetching directory: {directory}")
 
         return [ContextFile(path=f.path, content=f.decoded_content.decode("utf-8")) for f in all_files if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames]
 
