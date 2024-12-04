@@ -47,7 +47,6 @@ class GitHubPRState(TypedDict):
     title: Annotated[List[str], add]
     description: Annotated[List[str], add]
 
-
 def create_default_github_pr_state() -> GitHubPRState:
     return GitHubPRState(
         messages=[],  # Default to an empty list of messages
@@ -62,7 +61,3 @@ def create_default_github_pr_state() -> GitHubPRState:
 
 class CodeReviewResponse(BaseModel):
     issues: List[Comment] = Field(description="List of code review issues found")
-
-
-class SecurityReviewResponse(BaseModel):
-    issues: List[Comment] = Field(description="List of security review issues found")

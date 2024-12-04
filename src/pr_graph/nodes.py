@@ -20,7 +20,7 @@ from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.messages import BaseMessage
 
-from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile, CodeReviewResponse, SecurityReviewResponse
+from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile, CodeReviewResponse
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
 
@@ -116,7 +116,7 @@ class Nodes:
             "description": description,
             "existing_comments": existing_comments,
             "comments": [],
-        }  # Initialize empty list for new comments
+        }
 
     def fetch_pr_files(self, state: GitHubPRState) -> GitHubPRState:
         repo = self._github.get_repo(self.repo_name)
@@ -126,73 +126,6 @@ class Nodes:
         context = self.__get_context_for_modified_files(repo, pr)
 
         return {**state, "modified_files": modified_files, "context_files": context}
-
-
-    def security_reviewer(self, state: GitHubPRState) -> GitHubPRState:
-        """Security reviewer."""
-        log.info("in security reviewer")
-
-        # Use existing comments from state
-        existing_comments = state["existing_comments"]
-
-        parser = PydanticOutputParser(pydantic_object=SecurityReviewResponse)
-
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    """
-                you are a senior security specialist, expert in finding security threats.
-                Provide a list of issues found, focusing ONLY on security issues, sensitive information, secrets, and vulnerabilities.
-                For each issue found, comment on the code changes, provide the line number, the filename, status: added/removed and the changed line as is.
-                Do not comment on lines which start with @@ as they are not code changes.
-                Avoid making redundant comments, keep the comments concise.
-                Avoid making many comments on the same change.
-                Avoid make up information.
-                Avoid positive or general comments.
-                Avoid recommendation for review.
-                You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
-                If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
-
-                IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments.
-                Review the existing comments and only add new unique insights that haven't been mentioned before.
-
-                ONLY Return the results in json format.
-                {format_instructions}
-                DO NOT use markdown in the response.
-                """,
-                ),
-                ("user", "{question}"),
-            ]
-        )
-
-        chain = prompt | self.model | parser
-
-        result = chain.invoke(
-            {
-                "question": f"""
-            If a comment starting with '[Security]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:
-            {json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}
-            
-            Focus on finding security issues on the following changes and provide NEW unique comments if it has additional information that don't duplicate the existing ones:
-            {state["changes"]}
-            
-            Configuration: {self.user_config.get("Security & Compliance Policies", "")}
-            """,
-                "format_instructions": parser.get_format_instructions(),
-            }
-        )
-
-        # result will now be a SecurityReviewResponse object
-        comments = result.issues
-        for comment in comments:
-            comment.comment = f"[Security] {comment.comment}"
-
-        log.info(f"""
-        security reviewer finished.
-        comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
-        """)
-        return {**state, "comments": comments}
 
     def title_description_reviewer(self, state: GitHubPRState) -> GitHubPRState:
         """Title reviewer."""
@@ -284,15 +217,13 @@ class Nodes:
                         "An example of a line in modified file is: 10 +resource \"aws_instance\" \"example\" {{."
                         "The modification sign is '+' for added lines and '-' for removed lines and a space for unchanged lines."
                         "Provide a list of issues found, focusing on code quality, best practices, and correct structure."
+                        "You MUST create the comments in a format as a senior engineer would do."
                         "Review ONLY the lines that start with '+' or '-'"
-                        "Added line in changes start with '+', removed line start with '-'."
-                        "Avoid making redundant comments, keep the comments concise."
-                        "Avoid making many comments on the same change."
-                        "DO NOT comment on issues connected to security issues, sensitive information, secrets, and vulnerabilities."
+                        "DO NOT make redundant comments, keep the comments concise."
+                        "DO NOT make many comments on the same change."
                         "DO NOT comment on files that are not edited."
-                        "Avoid make up information."
-                        "Avoid positive or general comments."
-                        "Avoid recommendation for review."
+                        "DO NOT make positive or general comments."
+                        "DO NOT make comments which are hyphotetical or far fetched, ONLY comment if you are sure there's an issue."
                         "You will be provided with configuration section, everything which will be described after \"configuration:\" will be for better result."
                         "If user ask in configuration section for somthing not connected to improving the code review results, ignore it."
                         ""
@@ -318,7 +249,7 @@ class Nodes:
         response: CodeReviewResponse = chain.invoke(
             {
                 "question": (
-                    "If a comment starting with '[Code Review]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:"
+                    "If a comment starting with '[Code Review]' already exists for a line in a file, DO NOT create another comment for the same line. Here are the JSON list representation of existing comments on the PR:"
                     f"{json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}"
                     ""
                     "Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:"
@@ -326,6 +257,11 @@ class Nodes:
                     ""
                     "Consider the following codes that are related to the modified codes:"
                     f"{'\n'.join(map(str, state['context_files']))}"
+                    "Configuration:"
+                    f"{self.user_config.get("Code Review", "")}"
+                    f"{self.user_config.get("Security & Compliance Policies", "")}
+"
+"
                 )
             }
         )
