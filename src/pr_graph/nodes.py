@@ -1,34 +1,21 @@
 import json
 import re
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from github.Repository import Repository
+    from github.PullRequest import PullRequest
+
 
 from github import UnknownObjectException
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
-from pydantic import BaseModel, Field
-from typing import List
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.messages import BaseMessage
 
-from pr_graph.state import FileChange, GitHubPRState, Comment
+from pr_graph.state import FileChange, GitHubPRState, Comment, CodeReviewResponse, SecurityReviewResponse
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
-
-
-class CodeReviewIssue(BaseModel):
-    filename: str = Field(description="The name of the file where the issue was found. Must match the 'filename' field from the change.")
-    line_number: int = Field(description="The line number where the issue was found. Must match the 'start_line' field from the change.")
-    comment: str = Field(description="The review comment describing the issue. Must be placed here without markdown formatting.")
-    status: str = Field(
-        description="Status of the line - must be either 'added' (for lines added in the PR) or 'removed' (for lines removed in the PR). Must match the 'status' field from the change."
-    )
-
-
-class CodeReviewResponse(BaseModel):
-    issues: List[CodeReviewIssue] = Field(description="List of code review issues found")
-
-
-class SecurityReviewResponse(BaseModel):
-    issues: List[CodeReviewIssue] = Field(description="List of security review issues found")
 
 
 class Nodes:
@@ -39,16 +26,32 @@ class Nodes:
         self.model = model
         self.user_config = user_config
 
-    def fetch_pr(self) -> GitHubPRState:
+    def fetch_pr(self, state: GitHubPRState) -> GitHubPRState:
         log.info("in fetch_pr")
-        repo = self._github.get_repo(self.repo_name)
-        pull_request = repo.get_pull(self.pr_number)
+        repo: Repository = self._github.get_repo(self.repo_name)
+        pull_request: PullRequest = repo.get_pull(self.pr_number)
         files = pull_request.get_files()
-        title = []
-        title.append(pull_request.title)
-        description = []
-        description.append(pull_request.body)
+        title = [pull_request.title]
+        description = [pull_request.body]
         changes = []
+        existing_comments = []
+
+        # Fetch existing comments from PR
+        try:
+            pr_comments = self._github.list_comments_from_pr(self.repo_name, self.pr_number)
+            for comment in pr_comments:
+                existing_comments.append(
+                    Comment(
+                        filename=comment.path,
+                        line_number=comment.position,
+                        comment=comment.body,
+                        status="added" if comment.position is not None else "removed",
+                    )
+                )
+        except Exception as e:
+            log.error(f"Error fetching existing comments: {e}")
+            pass
+
         for file in files:
             filename = file.filename
             patch = file.patch
@@ -95,32 +98,25 @@ class Nodes:
         fetch pr finished.
         changes: {json.dumps(changes, indent=4)},
         title: {title},
-        description: {description}
+        description: {description},
+        existing_comments: {json.dumps([comment.model_dump() for comment in existing_comments], indent=4)}
         """)
 
-        return {"changes": changes, "title": title, "description": description}
+        return {
+            **state,
+            "changes": changes,
+            "title": title,
+            "description": description,
+            "existing_comments": existing_comments,
+            "comments": [],
+        }  # Initialize empty list for new comments
 
-    def security_reviewer(self, state: GitHubPRState):
+    def security_reviewer(self, state: GitHubPRState) -> GitHubPRState:
         """Security reviewer."""
         log.info("in security reviewer")
 
-        # Fetch existing comments from PR
-        existing_comments = []
-        try:
-            pr_comments = self._github.list_comments_from_pr(self.repo_name, self.pr_number)
-            for comment in pr_comments:
-                existing_comments.append(
-                    {
-                        "filename": comment.path,
-                        "line_number": comment.position,
-                        "comment": comment.body,
-                        "status": "added" if comment.position is not None else "removed",
-                    }
-                )
-        except Exception as e:
-            log.error(f"Error fetching existing comments: {e}")
-            # Continue even if we can't fetch existing comments
-            pass
+        # Use existing comments from state
+        existing_comments = state["existing_comments"]
 
         parser = PydanticOutputParser(pydantic_object=SecurityReviewResponse)
 
@@ -159,7 +155,7 @@ class Nodes:
             {
                 "question": f"""
             If a comment starting with '[Security]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:
-            {json.dumps(existing_comments, indent=2)}
+            {json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}
             
             Focus on finding security issues on the following changes and provide NEW unique comments if it has additional information that don't duplicate the existing ones:
             {state["changes"]}
@@ -171,18 +167,17 @@ class Nodes:
         )
 
         # result will now be a SecurityReviewResponse object
-        comments = []
-        for issue in result.issues:
-            comment = Comment(filename=issue.filename, line_number=issue.line_number, comment=f"[Security] {issue.comment}", status=issue.status)
-            comments.append(comment)
+        comments = result.issues
+        for comment in comments:
+            comment.comment = f"[Security] {comment.comment}"
 
         log.info(f"""
         security reviewer finished.
-        comments: {json.dumps(comments, indent=4)}
+        comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
         """)
         return {**state, "comments": comments}
 
-    def title_description_reviewer(self, state: GitHubPRState):
+    def title_description_reviewer(self, state: GitHubPRState) -> GitHubPRState:
         """Title reviewer."""
         log.info("in title reviewer")
         user_input = ""
@@ -222,7 +217,7 @@ class Nodes:
         chain = prompt | self.model
         diff = state["changes"]
 
-        result = chain.invoke(
+        result: BaseMessage = chain.invoke(
             {
                 "question": f"""
             Given following changes :\n{diff}\n
@@ -236,7 +231,7 @@ class Nodes:
         if existing_title_desc_comment:
             # Update existing comment
             try:
-                existing_title_desc_comment.edit(result.content)
+                existing_title_desc_comment.edit(str(result.content))
                 comments = []  # Return empty comments since we updated existing comment
             except Exception as e:
                 log.error(f"Error updating existing comment: {e}")
@@ -247,31 +242,16 @@ class Nodes:
 
         log.info(f"""
         title and description reviewer finished.
-        comments: {json.dumps(comments, indent=4)}
+        comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
         """)
         return {**state, "comments": comments}
 
-    def code_reviewer(self, state: GitHubPRState):
+    def code_reviewer(self, state: GitHubPRState) -> GitHubPRState:
         """Code reviewer."""
         log.info("in code reviewer")
 
-        # Fetch existing comments from PR
-        existing_comments = []
-        try:
-            pr_comments = self._github.list_comments_from_pr(self.repo_name, self.pr_number)
-            for comment in pr_comments:
-                existing_comments.append(
-                    {
-                        "filename": comment.path,
-                        "line_number": comment.position,
-                        "comment": comment.body,
-                        "status": "added" if comment.position is not None else "removed",
-                    }
-                )
-        except Exception as e:
-            log.error(f"Error fetching existing comments: {e}")
-            # Continue even if we can't fetch existing comments
-            pass
+        # Use existing comments from state
+        existing_comments = state["existing_comments"]
 
         parser = PydanticOutputParser(pydantic_object=CodeReviewResponse)
 
@@ -310,7 +290,7 @@ class Nodes:
             {
                 "question": f"""
             If a comment starting with '[Code Review]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:
-            {json.dumps(existing_comments, indent=2)}
+            {json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}
             
             Review the following code changes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:
             {state["changes"]}
@@ -322,18 +302,17 @@ class Nodes:
         )
 
         # result will now be a CodeReviewResponse object
-        comments = []
-        for issue in result.issues:
-            comment = Comment(filename=issue.filename, line_number=issue.line_number, comment=f"[Code Review] {issue.comment}", status=issue.status)
-            comments.append(comment)
+        comments = result.issues
+        for comment in comments:
+            comment.comment = f"[Code Review] {comment.comment}"
 
         log.info(f"""
         code reviewer finished.
-        comments: {json.dumps(comments, indent=4)}
+        comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
         """)
         return {**state, "comments": comments}
 
-    def commenter(self, state: GitHubPRState):
+    def commenter(self, state: GitHubPRState) -> GitHubPRState:
         try:
             repo = self._github.get_repo(self.repo_name)
             pull_request = repo.get_pull(self.pr_number)
@@ -348,16 +327,16 @@ class Nodes:
         commit = repo.get_commit(latest_commit.sha)
         for pr_file in files:
             for comment in state["comments"]:
-                if comment["filename"] == pr_file.filename:
+                if comment.filename == pr_file.filename:
                     # Create a comment on the specific line
                     pull_request.create_review_comment(
-                        comment["comment"],
+                        comment.comment,
                         commit,
                         path=pr_file.filename,
-                        line=int(comment["line_number"]),
-                        side="LEFT" if comment["status"] == "removed" else "RIGHT",
+                        line=int(comment.line_number),
+                        side="LEFT" if comment.status == "removed" else "RIGHT",
                     )
         for comment in state["comments"]:
-            if comment["filename"] == "":
-                pull_request.create_issue_comment(comment["comment"])
+            if comment.filename == "":
+                pull_request.create_issue_comment(comment.comment)
         return state

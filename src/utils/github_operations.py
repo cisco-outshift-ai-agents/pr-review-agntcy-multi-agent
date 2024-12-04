@@ -3,7 +3,8 @@ import os
 from typing import Optional, Tuple
 
 import github.Auth
-from github import Github, GithubException, GithubIntegration, Repository
+from github import Github, GithubException, GithubIntegration
+from github.Repository import Repository
 from github.ContentFile import ContentFile
 from github.PaginatedList import PaginatedList
 from github.PullRequestComment import PullRequestComment
@@ -62,7 +63,7 @@ class GitHubOperations:
             raise ValueError("GITHUB_APP_ID environment variable is not set")
         return app_id
 
-    def create_branch(self, repo_name: str, branch_name: str, base_branch: str = None) -> bool:
+    def create_branch(self, repo_name: str, branch_name: str, base_branch: Optional[str] = None) -> bool:
         """Creates a new branch in the repository"""
         try:
             repo = self._github.get_repo(repo_name)
@@ -83,10 +84,13 @@ class GitHubOperations:
     def create_file(self, repo_name: str, branch_name: str, file_path: str, content: str, commit_message: str) -> bool:
         """Creates or updates a file in the repository"""
         try:
-            repo = self._github.get_repo(repo_name)
+            repo: Repository = self._github.get_repo(repo_name)
             file_exists, file_contents = self.get_file(repo_name, file_path, branch_name)
 
             if file_exists:
+                if file_contents is None:
+                    raise ValueError("File contents are None")
+
                 log.info(f"File {file_path} already exists in branch {branch_name}.")
                 repo.update_file(path=file_path, message=commit_message, content=content, branch=branch_name, sha=file_contents.sha)
                 return True
@@ -119,25 +123,34 @@ class GitHubOperations:
             log.error(f"Failed to create pull request: {e.data}")
             return False
 
-    def get_file(self, repo_name: str, file_path: str, ref: str = None) -> Tuple[bool, Optional[ContentFile]]:
+    def get_file(self, repo_name: str, file_path: str, ref: Optional[str] = None) -> Tuple[bool, Optional[ContentFile]]:
         """Gets a file from the repository"""
         try:
-            repo = self._github.get_repo(repo_name)
-            contents = repo.get_contents(file_path, ref=ref)
+            repo: Repository = self._github.get_repo(repo_name)
+            if ref is None:
+                ref = repo.default_branch
+            contents: list[ContentFile] | ContentFile = repo.get_contents(file_path, ref=ref)
+
+            if isinstance(contents, list):
+                raise ValueError("Expected a single file, but got multiple files")
+
             return True, contents
         except GithubException as e:
             if e.status == 404:
                 return False, None
             raise e
 
-    def get_file_content(self, repo_name: str, file_path: str, ref: str = None) -> Optional[str]:
+    def get_file_content(self, repo_name: str, file_path: str, ref: Optional[str] = None) -> Optional[str]:
         """Gets the decoded content of a file from the repository"""
         try:
-            repo = self._github.get_repo(repo_name)
+            repo: Repository = self._github.get_repo(repo_name)
             if ref is None:
                 ref = repo.default_branch
 
-            file = repo.get_contents(file_path, ref=ref)
+            file: ContentFile | list[ContentFile] = repo.get_contents(file_path, ref=ref)
+            if isinstance(file, list):
+                raise ValueError("Expected a single file, but got multiple files")
+
             return base64.b64decode(file.content).decode("utf-8")
         except Exception as e:
             log.error(f"Error getting file content: {e}")
@@ -162,10 +175,16 @@ class GitHubOperations:
         return pull_request.get_review_comments()
 
     def reply_on_pr_comment(self, repo_full_name: str, pr_number: int, comment_id: int, comment: str) -> None:
-        if repo_full_name is None or repo_full_name == "" or \
-                pr_number is None or pr_number == 0 or \
-                comment_id is None or comment_id == 0 or \
-                comment is None or comment == "":
+        if (
+            repo_full_name is None
+            or repo_full_name == ""
+            or pr_number is None
+            or pr_number == 0
+            or comment_id is None
+            or comment_id == 0
+            or comment is None
+            or comment == ""
+        ):
             raise ValueError("Invalid input parameters")
 
         repo = self._github.get_repo(repo_full_name)
