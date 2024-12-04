@@ -25,7 +25,8 @@ class CommentOutputParser(PydanticOutputParser):
         for issue in objects.issues:
             content = self._modified_file_dict.get(issue.filename, "")
             if content == "":
-                raise ValueError(f"{issue.filename} is not found as a modified file")
+                log.error(f"{issue.filename} is not found as a modified file")
+                continue
             
             try:
                 line_number = self._calculate_line_number(content, issue.reviewed_line)
