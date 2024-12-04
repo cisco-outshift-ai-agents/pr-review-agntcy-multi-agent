@@ -37,10 +37,6 @@ class CodeReviewResponse(BaseModel):
     issues: List[Comment] = Field(description="List of code review issues found")
 
 
-class SecurityReviewResponse(BaseModel):
-    issues: List[Comment] = Field(description="List of security review issues found")
-
-
 def create_default_github_pr_state() -> GitHubPRState:
     return GitHubPRState(
         messages=[],  # Default to an empty list of messages
