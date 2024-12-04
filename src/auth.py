@@ -1,4 +1,3 @@
-from ast import Dict
 from functools import wraps
 import hashlib
 import hmac
@@ -56,6 +55,7 @@ def lambda_validate_github_signature(handler: Callable[[dict[str, Any], Any], di
         # sam preserves the case while AWS API GW or Function URLs in AWS don't, they send lowercase header keys
         # This makes our funtction compatible with any env
         headers = {key.lower(): value for key, value in headers.items()}
+        event["headers"] = headers
 
         signature_header = headers.get(GITHUB_SIGNATURE_HEADER)
         if not signature_header:

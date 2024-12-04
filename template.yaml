@@ -11,6 +11,7 @@ Resources:
       Architectures:
         - x86_64
       Timeout: 120
+      MemorySize: 1024
       Environment:
         Variables:
           GITHUB_APP_ID: ""
@@ -20,6 +21,10 @@ Resources:
           AZURE_OPENAI_DEPLOYMENT: ""
           AZURE_OPENAI_API_KEY: ""
           AZURE_OPENAI_API_VERSION: ""
+          VERTEXAI_MODEL: ""
+          VERTEXAI_GCP_REGION: ""
+          GCP_SERVICE_ACCOUNT_SECRET_NAME: ""
+          GCP_SERVICE_ACCOUNT_SECRET_REGION: ""
           LOG_LEVEL: ""
       Events:
         Api:

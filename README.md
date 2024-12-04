@@ -44,13 +44,12 @@ TBD
 #### Setup alfred local instance
 
 1. Copy the .env.example file to .env and fill up with the followings:
-   - GitHub App ID
-   - GitHub App private key file path
-   - GitHub webhook secret
-   - Azure OpenAI endpoint
-   - Azure OpenAI deployment
-   - Azure OpenAI API key
-   - Azure OpenAI API version
+   - GITHUB_APP_ID
+   - GITHUB_APP_PRIVATE_KEY_FILE
+   - GITHUB_WEBHOOK_SECRET
+   - GCP_SERVICE_ACCOUNT - this should point to a local file with the GCP service account where the model is hosted
+   - VERTEXAI_MODEL
+   - VERTEXAI_GCP_REGION
 
 ##### Automatic way to install python environment with dependecies
 
@@ -96,14 +95,16 @@ Run `make setup` in this project folder
 
 Alfred is deployed as a Lambda function so optionally you can also run this locally instead of the above mentioned webserver in `main_local.py`. For this, you need the AWS SAM CLI installed.
 
-1. Copy the `lambda-env.json.example` and create a `lambda-env.json`, fill out the same env vars as in the `.env` file. IMPORTANT: The GitHub Private Key File env var is not supported in this configuration, the value of the key file will be directly loaded to the container, so make sure there's a key file called private-key.pem in the root directory.
+1. Copy the `lambda-env.json.example` and create a `lambda-env.json`, fill out the same env vars similarly to the `.env` file. IMPORTANT: The GitHub Private Key File env var is not supported in this configuration, the value of the key file will be directly loaded to the container, so make sure there's a key file called private-key.pem in the root directory. Also, the GCP_SERVICE_ACCOUNT is not applicable here, the lambda has to download the secret from Secret Store. So create a secret in your AWS account which contains the service account config and set the two related env vars accordingly (secret name and secret region).
 
-2. Start the Smee client for the Lambda:
+2. Login to the `outshift-common-dev` AWS account using duo-sso. This is a must, because the lambda func will pull secrets from the AWS Secrets Manager.
+
+3. Start the Smee client for the Lambda:
    ```bash
    make smee_id=your-smee-id start-smee-for-lambda
    ```
 
-3. Build and start the Lambda using sam:
+4. Build and start the Lambda using sam:
    ```bash
    make start-lambda
    ```

@@ -1,4 +1,3 @@
-import os
 from typing import Any
 
 from github.PaginatedList import PaginatedList
@@ -7,11 +6,11 @@ from github.PullRequestComment import PullRequestComment
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
-from langchain_openai import AzureChatOpenAI
 from pydantic import BaseModel, Field
 
 from agents.agent import Agent
 from utils.github_operations import GitHubOperations
+from utils.modelfactory import models
 
 BOT_USER_TYPE = "Bot"
 HUMAN_USER_TYPE = "User"
@@ -23,18 +22,11 @@ class PRReviewChatResponse(BaseModel):
 
 
 class PRReviewChatAgent(Agent):
-
     def __init__(self, github_operations: GitHubOperations):
         super(PRReviewChatAgent, self).__init__()
 
         self.__github_ops = github_operations
-
-        self.__model = AzureChatOpenAI(
-            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-            azure_deployment=os.environ["AZURE_OPENAI_DEPLOYMENT"],
-            openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
-            api_key=os.environ["AZURE_OPENAI_API_KEY"],
-        )
+        self.__model = models.get_vertexai()
 
     def invoke(self, repo_full_name: str, pr_number: int, comment: dict[str, Any]):
         try:
@@ -75,8 +67,7 @@ class PRReviewChatAgent(Agent):
         except Exception as e:
             raise ValueError(f"Error sending reply to comment on GitHub: {e}")
 
-    def __invoke_llm(self, message_history: list[BaseMessage], code: str,
-                     comment: dict[str, Any]) -> str:
+    def __invoke_llm(self, message_history: list[BaseMessage], code: str, comment: dict[str, Any]) -> str:
         if message_history is None or len(message_history) < 2:
             raise ValueError("At least the original review and a comment should be presented in the message history")
         messages = [
@@ -119,12 +110,10 @@ class PRReviewChatAgent(Agent):
         return response["response"]
 
     @staticmethod
-    def __get_comment_thread(comment: dict[str, Any], comments: PaginatedList[PullRequestComment]) -> list[
-        PullRequestComment]:
-        thread_comments = [c for c in comments if
-                           comment["in_reply_to_id"] == c.id or
-                           c.id == comment["id"] or
-                           c.in_reply_to_id == comment["in_reply_to_id"]]
+    def __get_comment_thread(comment: dict[str, Any], comments: PaginatedList[PullRequestComment]) -> list[PullRequestComment]:
+        thread_comments = [
+            c for c in comments if comment["in_reply_to_id"] == c.id or c.id == comment["id"] or c.in_reply_to_id == comment["in_reply_to_id"]
+        ]
         thread_comments.sort(key=lambda x: x.created_at)
         return thread_comments
 
