@@ -15,7 +15,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
 from pydantic import BaseModel, Field
 
-from parsers.codereviewresponse import CodeReviewResponseParser
+from parsers.commentparser import CommentOutputParser
 from pr_graph.models import CodeReviewResponse, SecurityReviewResponse
 from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile
 from utils.github_operations import GitHubOperations
@@ -273,7 +273,10 @@ class Nodes:
             # Continue even if we can't fetch existing comments
             pass
 
-        pydantic_parser = PydanticOutputParser(pydantic_object=CodeReviewResponse)
+        parser = CommentOutputParser(
+            response_object=CodeReviewResponse,
+            modified_files=state["modified_files"],
+            comment_prefix="[Code Review]")
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -308,37 +311,24 @@ class Nodes:
             ]
         )
         prompt = prompt.partial(
-            format_instructions=pydantic_parser.get_format_instructions(),
+            format_instructions=parser.get_format_instructions(),
             configuration=self.user_config.get("Code Review", "")
         )
 
-        full_prompt = prompt.invoke({"query":f"""If a comment starting with '[Code Review]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:
+        chain = prompt | self.model | parser
+
+        comments = chain.invoke(
+            {
+                "query": f"""If a comment starting with '[Code Review]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:
 {json.dumps(existing_comments, indent=2)}
             
 Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:
 {state['modified_files']}
 
 Consider the following codes that are related to the modified codes:
-{state['context_files']}"""})
-
-        response = self.model.invoke(full_prompt)
-
-        crr = pydantic_parser.invoke(response.content)
-
-        comments = self.parse(state, crr)
-
-#         comments = chain.invoke(
-#             {
-#                 "query": f"""If a comment starting with '[Code Review]' already exists for a line in a file, do not create another comment for the same line. Here are the JSON list representation of existing comments on the PR:
-# {json.dumps(existing_comments, indent=2)}
-            
-# Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:
-# {state['modified_files']}
-
-# Consider the following codes that are related to the modified codes:
-# {state['context_files']}"""
-#             }
-#         )
+{state['context_files']}"""
+            }
+        )
 
         log.info(f"""
         code reviewer finished.
@@ -444,46 +434,3 @@ Consider the following codes that are related to the modified codes:
             all_files.extend(repo.get_contents(directory, ref=pr.head.ref))
 
         return [ContextFile(path=f.path, content=f.decoded_content.decode("utf-8")) for f in all_files if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames]
-    
-    def parse(self, state:GitHubOperations, response: CodeReviewResponse) -> List[Comment]:
-        modified_file_dict: Dict[str, str] = {f.path:f.content for f in state["modified_files"]}
-
-        comments: List[Comment] = []
-        for issue in response.issues:
-            content = modified_file_dict.get(issue.filename, "")
-            if content == "":
-                raise ValueError(f"{issue.filename} is not found as a modified file")
-            
-            line_number = self.calculate_line_number(content, issue.reviewed_line)
-            if line_number == 0:
-                continue
-
-            comments.append(
-                Comment(
-                    filename=issue.filename,
-                    line_number=line_number,
-                    comment=issue.comment,
-                    status=issue.status
-                )
-            )
-        return comments
-    
-    def calculate_line_number(self, file: str, line: str) -> int:
-        if not line.startswith("+") and not line.startswith("-"):
-            return 0
-
-        if line.startswith("+"):
-            skip_sign = "-"
-        else:
-            skip_sign = "+"
-
-        line_number = 0
-        for l in file.splitlines():
-
-            if l.startswith(skip_sign):
-                continue
-            line_number += 1
-            if l == line:
-                return line_number
-
-        raise KeyError("line not found")
