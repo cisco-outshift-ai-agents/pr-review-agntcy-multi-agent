@@ -283,27 +283,28 @@ class Nodes:
                 (
                     "system",
                     """You are senior developer experts in Terraform.
-                Provide a list of issues found, focusing on code quality, best practices, and correct structure.
-                For each comment on the code changes, provide the line number, the filename, status: added/removed and the changed line as is.
-                Review ONLY the lines that start with '+' or '-'
-                Added line in changes start with '+', removed line start with '-'.
-                Avoid making redundant comments, keep the comments concise.
-                Avoid making many comments on the same change.
-                DO NOT comment on issues connected to security issues, sensitive information, secrets, and vulnerabilities.
-                Avoid make up information.
-                Avoid positive or general comments.
-                Avoid recommendation for review.
-                You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
-                If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
-                
-                IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments.
-                Review the existing comments and only add new unique insights that haven't been mentioned before.
-                
-                {format_instructions}
+Provide a list of issues found, focusing on code quality, best practices, and correct structure.
+For each comment on the code changes, provide the line number, the filename, status: added/removed and the changed line as is.
+Review ONLY the lines that start with '+' or '-'
+Added line in changes start with '+', removed line start with '-'.
+Avoid making redundant comments, keep the comments concise.
+Avoid making many comments on the same change.
+DO NOT comment on issues connected to security issues, sensitive information, secrets, and vulnerabilities.
+DO NOT comment on files that are not edited.
+Avoid make up information.
+Avoid positive or general comments.
+Avoid recommendation for review.
+You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
+If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
+            
+IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments.
+Review the existing comments and only add new unique insights that haven't been mentioned before.
+            
+{format_instructions}
 
-                DO NOT USE markdown in the response.
-                
-                {configuration}"""
+DO NOT USE markdown in the response.
+            
+{configuration}"""
                 ),
                 (
                     "human", "{query}"
