@@ -1,7 +1,6 @@
 import json
 import os
 import re
-from dataclasses import dataclass
 from typing import Dict, Set
 from typing import List
 
@@ -13,6 +12,7 @@ from github.Repository import Repository
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
+from pydantic import BaseModel
 
 from parsers.commentparser import CommentOutputParser
 from pr_graph.models import CodeReviewResponse, SecurityReviewResponse
@@ -385,8 +385,7 @@ Consider the following codes that are related to the modified codes:
         return [ContextFile(path=file.filename, content=self.__get_modified_file(repo, pr, file)) for file in pr.get_files()]
 
     def __get_modified_file(self, repo: Repository, pr: PullRequest, pr_file: File) -> str:
-        @dataclass
-        class Changes:
+        class Changes(BaseModel):
             start: int
             end: int
             change: str
