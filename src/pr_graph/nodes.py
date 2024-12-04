@@ -13,13 +13,13 @@ from github.Repository import Repository
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
-from pydantic import BaseModel, Field
 
 from parsers.commentparser import CommentOutputParser
 from pr_graph.models import CodeReviewResponse, SecurityReviewResponse
 from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
+
 
 class Nodes:
     def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: AzureChatOpenAI, user_config: Dict):
@@ -273,18 +273,19 @@ class Nodes:
             # Continue even if we can't fetch existing comments
             pass
 
-        parser = CommentOutputParser(
-            response_object=CodeReviewResponse,
-            modified_files=state["modified_files"],
-            comment_prefix="[Code Review]")
+        parser = CommentOutputParser(response_object=CodeReviewResponse, comment_prefix="[Code Review]")
 
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
                     "system",
                     """You are senior developer experts in Terraform.
+Your task is to review the code changes in a pull request and provide feedback.
+You will get the modified files and the files that are related to the modified ones.
+Each line in the modified file has the following structure: {{line_number}} {{modification_sign}}{{code}}.
+An example of a line in modified file is: 10 +resource "aws_instance" "example" {{.
+The modification sign is '+' for added lines and '-' for removed lines and a space for unchanged lines.
 Provide a list of issues found, focusing on code quality, best practices, and correct structure.
-For each comment on the code changes, provide the line number, the filename, status: added/removed and the changed line as is.
 Review ONLY the lines that start with '+' or '-'
 Added line in changes start with '+', removed line start with '-'.
 Avoid making redundant comments, keep the comments concise.
@@ -383,8 +384,7 @@ Consider the following codes that are related to the modified codes:
         """
         return [ContextFile(path=file.filename, content=self.__get_modified_file(repo, pr, file)) for file in pr.get_files()]
 
-    @staticmethod
-    def __get_modified_file(repo: Repository, pr: PullRequest, pr_file: File) -> str:
+    def __get_modified_file(self, repo: Repository, pr: PullRequest, pr_file: File) -> str:
         @dataclass
         class Changes:
             start: int
@@ -398,41 +398,35 @@ Consider the following codes that are related to the modified codes:
         # Return the whole file without the annotation
         try:
             o_file = repo.get_contents(pr_file.filename, ref=pr.base.ref).decoded_content.decode("utf-8").splitlines()
-        except UnknownObjectException as e:
-            return patch_blocks[2]
+        except UnknownObjectException:
+            new_file = patch_blocks[2].strip().splitlines()
+            self.__append_line_number(new_file)
+            return "\n".join(new_file)
         
         changes: list[Changes] = []
         for i in range(1, len(patch_blocks), 2):
-            change = patch_blocks[i+1]
+            change = patch_blocks[i + 1].strip()
             change.removesuffix("<<EOF")
             boundaries = re.match(r"@@ -(\d+),(\d+) \+(\d+),(\d+) @@", patch_blocks[i])
-            additions_start = int(boundaries.group(3))
-            additions_end = int(boundaries.group(4))
-            deletions_start = int(boundaries.group(1))
-            deletions_end = int(boundaries.group(2))
-            if additions_start == 0:
-                change_start = deletions_start
-                change_end = deletions_end
-            elif deletions_start == 0:
-                change_start = additions_start
-                change_end = additions_end
-            else:
-                change_start = min(int(boundaries.group(1)), int(boundaries.group(3)))
-                change_end = max(int(boundaries.group(1)) + int(boundaries.group(2)) - 1, int(boundaries.group(3)) + int(boundaries.group(4)) - 1)
-            changes.append(Changes(start=change_start, end=change_end, change=change))
+            original_start = int(boundaries.group(1))
+            original_end = original_start + int(boundaries.group(2)) - 1
+
+            changes.append(Changes(start=original_start, end=original_end, change=change))
 
         for i in range(len(o_file)):
-            o_file[i] = " " + o_file[i]
+            o_file[i] = ' ' + o_file[i]
 
-        newFile: list[str] = []
-        cursorPos: int = 0
+        new_file: list[str] = []
+        cursor_pos: int = 0
         for c in changes:
-            newFile.extend(o_file[cursorPos:c.start-1])
-            newFile.extend(c.change.splitlines())
-            cursorPos = c.end
-        newFile.extend(o_file[cursorPos:])
+            new_file.extend(o_file[cursor_pos:c.start - 1])
+            new_file.extend(c.change.splitlines())
+            cursor_pos = c.end
+        new_file.extend(o_file[cursor_pos:])
 
-        return "\n".join(newFile)
+        self.__append_line_number(new_file)
+
+        return "\n".join(new_file)
 
     @staticmethod
     def __get_context_for_modified_files(repo: Repository, pr: PullRequest) -> List[ContextFile]:
@@ -463,3 +457,19 @@ Consider the following codes that are related to the modified codes:
             all_files.extend(repo.get_contents(directory, ref=pr.head.ref))
 
         return [ContextFile(path=f.path, content=f.decoded_content.decode("utf-8")) for f in all_files if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames]
+
+    @staticmethod
+    def __append_line_number(lines: List[str]):
+        added_line_idx = 0
+        removed_line_idx = 0
+        for i in range(len(lines)):
+            if lines[i].startswith("+"):
+                added_line_idx += 1
+                lines[i] = f"{str(added_line_idx).rjust(4)} {lines[i]}"
+            elif lines[i].startswith("-"):
+                removed_line_idx += 1
+                lines[i] = f"{str(removed_line_idx).rjust(4)} {lines[i]}"
+            else:
+                added_line_idx += 1
+                removed_line_idx += 1
+                lines[i] = f"{'0'.rjust(4)} {lines[i]}"
