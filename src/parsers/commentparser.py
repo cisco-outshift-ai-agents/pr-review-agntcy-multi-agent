@@ -1,5 +1,6 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, override
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.outputs import Generation
 
 from pr_graph.models import CodeReviewResponse, SecurityReviewResponse
 from pr_graph.state import Comment, FileChange
@@ -17,8 +18,8 @@ class CommentOutputParser(PydanticOutputParser):
         self._modified_file_dict = {f.path:f.content for f in modified_files}
         self._comment_prefix = comment_prefix
 
-    def parse(self, text: str) -> List[Comment]:
-        objects = super().parse(text)
+    def parse_result(self, result: list[Generation], *, partial: bool = False) -> List[Comment]:
+        objects = super().parse_result(result)
 
         comments: List[Comment] = []
         for issue in objects.issues:
@@ -47,6 +48,10 @@ class CommentOutputParser(PydanticOutputParser):
 
     def get_format_instructions(self) -> str:
         return super().get_format_instructions()
+    
+    @property
+    def _type(self) -> str:
+        return "comment_parser"
     
     @staticmethod
     def _calculate_line_number(document: str, line: str) -> int:

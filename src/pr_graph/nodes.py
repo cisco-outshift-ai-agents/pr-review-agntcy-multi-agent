@@ -301,7 +301,7 @@ class Nodes:
                 
                 {format_instructions}
 
-                DON'T USE markdown in the response.
+                DO NOT USE markdown in the response.
                 
                 {configuration}"""
                 ),
@@ -315,7 +315,7 @@ class Nodes:
             configuration=self.user_config.get("Code Review", "")
         )
 
-        chain = prompt | self.model | parser
+        chain = prompt | self.model| parser
 
         comments = chain.invoke(
             {
