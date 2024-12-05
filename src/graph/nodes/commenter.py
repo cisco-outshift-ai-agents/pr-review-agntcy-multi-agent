@@ -27,7 +27,14 @@ def create_commenter_node(context: GitHubContext):
 
             for comment in state["comments"]:
                 if comment.filename == "":
-                    pull_request.create_issue_comment(comment.comment)
+                    # Fetch title_description comment
+                    existing_comments = pull_request.get_issue_comments()
+                    for existing_comment in existing_comments:
+                        if "PR title suggestion" in existing_comment.body and "PR description suggestion" in existing_comment.body:
+                            existing_comment.edit(comment.comment)
+                            break
+                    else:
+                        pull_request.create_issue_comment(comment.comment)
 
         except UnknownObjectException:
             log.error(f"repo: {context.repo_name} with pr: {context.pr_number} not found")
