@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from agents.pr_review_chat import PRReviewChatAgent
 from config import ConfigManager
-from pr_graph.graph import WorkFlow
+from graph.graph import WorkFlow
 from utils.constants import ALFRED_CONFIG_BRANCH
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
@@ -35,9 +35,7 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
             handle_installation(payload, "repositories")
         elif github_event == "installation_repositories" and payload.get("action") == "added":
             handle_installation(payload, "repositories_added")
-        elif github_event == "pull_request_review_comment" and \
-                payload.get("action") in ["created"] and \
-                __is_commented_by_human(payload):
+        elif github_event == "pull_request_review_comment" and payload.get("action") in ["created"] and __is_commented_by_human(payload):
             # TODO: handle edited comments
             handle_pull_request_comment(payload)
         return JSONResponse(content={"status": "ok"})
@@ -95,4 +93,3 @@ def handle_pull_request_comment(payload):
 
 def __is_commented_by_human(payload: dict[str, Any]) -> bool:
     return payload["comment"]["user"]["type"] == "User"
-
