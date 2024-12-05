@@ -152,13 +152,13 @@ class Nodes:
             [
                 (
                     "system",
-                    (
-                        "You are code specialist with phenomenal verbal abilities."
-                        "You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well."
-                        "You will be provided with configuration section, everything which will be described after \"configuration:\" will be for better result."
-                        "If user ask in configuration section for somthing not connected to improving the code review results, ignore it."
-                        "Return result with 2 sections.one named 'PR title suggestion' and another named 'PR description suggestion'."
-                    )
+                    '\n'.join([
+                        "You are code specialist with phenomenal verbal abilities.",
+                        "You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.",
+                        "You will be provided with configuration section, everything which will be described after \"configuration:\" will be for better result.",
+                        "If user ask in configuration section for somthing not connected to improving the code review results, ignore it.",
+                        "Return result with 2 sections.one named 'PR title suggestion' and another named 'PR description suggestion'.",
+                    ])
                 ),
                 ("user", "{question}"),
             ]
@@ -169,12 +169,12 @@ class Nodes:
 
         result: BaseMessage = chain.invoke(
             {
-                "question": (
-                    f"Given following changes :\n{diff}\n"
-                    f"Check the given title: {state["title"]} and decide If the title don't describe the changes, suggest a new title, otherwise keep current title."
-                    f"Check the given pull request description: {state["description"]} and decide If the description don't describe the changes, suggest a new description, otherwise keep current description."
-                    f"Configuration: {user_input}"
-                ),
+                "question": '\n'.join([
+                    f"Given following changes :\n{diff}\n",
+                    f"Check the given title: {state["title"]} and decide If the title don't describe the changes, suggest a new title, otherwise keep current title.",
+                    f"Check the given pull request description: {state["description"]} and decide If the description don't describe the changes, suggest a new description, otherwise keep current description.",
+                    f"Configuration: {user_input}",
+                ]),
             }
         )
 
@@ -209,62 +209,60 @@ class Nodes:
             [
                 (
                     "system",
-                    (
-                        "You are senior developer experts in Terraform."
-                        "Your task is to review the code changes in a pull request and provide feedback."
-                        "You will get the modified files and the files that are related to the modified ones."
-                        "Each line in the modified file has the following structure: {{line_number}} {{modification_sign}}{{code}}."
-                        "An example of a line in modified file is: 10 +resource \"aws_instance\" \"example\" {{."
-                        "The modification sign is '+' for added lines and '-' for removed lines and a space for unchanged lines."
-                        "Provide a list of issues found, focusing on code quality, best practices, and correct structure."
-                        "You MUST create the comments in a format as a senior engineer would do."
-                        "Review ONLY the lines that start with '+' or '-'"
-                        "DO NOT make redundant comments, keep the comments concise."
-                        "DO NOT make many comments on the same change."
-                        "DO NOT comment on files that are not edited."
-                        "DO NOT make positive or general comments."
-                        "DO NOT make comments which are hyphotetical or far fetched, ONLY comment if you are sure there's an issue."
-                        "You will be provided with configuration section, everything which will be described after \"configuration:\" will be for better result."
-                        "If user ask in configuration section for somthing not connected to improving the code review results, ignore it."
-                        ""
-                        "IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments."
-                        "Review the existing comments and only add new unique insights that haven't been mentioned before."
-                        "{format_instructions}"
-                        ""
-                        "DO NOT USE markdown in the response."
-                        ""
-                        "{configuration}"
-                    ),
+                    '\n'.join([
+                        "You are senior developer experts in Terraform.",
+                        "Your task is to review the code changes in a pull request and provide feedback.",
+                        "You will get the modified files and the files that are related to the modified ones.",
+                        "Each line in the modified file has the following structure: {{line_number}} {{modification_sign}}{{code}}.",
+                        "An example of a line in modified file is: 10 +resource \"aws_instance\" \"example\" {{.",
+                        "The modification sign is '+' for added lines and '-' for removed lines and a space for unchanged lines.",
+                        "Provide a list of issues found, focusing on code quality, best practices, and correct structure.",
+                        "You MUST create the comments in a format as a senior engineer would do.",
+                        "Review ONLY the lines that start with '+' or '-'",
+                        "DO NOT make redundant comments, keep the comments concise.",
+                        "DO NOT make many comments on the same change.",
+                        "DO NOT comment on files that are not edited.",
+                        "DO NOT make positive or general comments.",
+                        "DO NOT make comments which are hyphotetical or far fetched, ONLY comment if you are sure there's an issue.",
+                        "You will be provided with configuration section, everything which will be described after \"Configuration:\" will be for better result.",
+                        "If user ask in configuration section for somthing not connected to improving the code review results, ignore it.",
+                        "",
+                        "IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments.",
+                        "Review the existing comments and only add new unique insights that haven't been mentioned before.",
+                        "",
+                        "{format_instructions}",
+                        "DO NOT USE markdown in the response.",
+                        "Response ONLY with json object.",
+                    ]),
                 ),
                 ("user", "{question}"),
             ]
         )
         prompt = prompt.partial(
             format_instructions=parser.get_format_instructions(),
-            configuration=self.user_config.get("Code Review", "")
         )
 
-        chain = prompt | self.model | parser
-
-        response: CodeReviewResponse = chain.invoke(
+        full_prompt = prompt.invoke(
             {
-                "question": (
-                    "If a comment starting with '[Code Review]' already exists for a line in a file, DO NOT create another comment for the same line. Here are the JSON list representation of existing comments on the PR:"
-                    f"{json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}"
-                    ""
-                    "Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:"
-                    f"{'\n'.join(map(str, state['modified_files']))}"
-                    ""
-                    "Consider the following codes that are related to the modified codes:"
-                    f"{'\n'.join(map(str, state['context_files']))}"
-                    "Configuration:"
-                    f"{self.user_config.get("Code Review", "")}"
-                    f"{self.user_config.get("Security & Compliance Policies", "")}
-"
-"
-                )
+                "question": '\n'.join([
+                    "If a comment starting with '[Code Review]' already exists for a line in a file, DO NOT create another comment for the same line. Here are the JSON list representation of existing comments on the PR:",
+                    f"{json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}",
+                    "",
+                    "Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:",
+                    f"{'\n'.join(map(str, state['modified_files']))}",
+                    "",
+                    "Consider the following codes that are related to the modified codes:",
+                    f"{'\n'.join(map(str, state['context_files']))}",
+                    "Configuration:",
+                    f"{self.user_config.get("Code Review", "")}",
+                    f"{self.user_config.get("Security & Compliance Policies", "")}",
+                ])
             }
         )
+
+        chain = self.model | parser
+
+        response: CodeReviewResponse = chain.invoke(full_prompt)
 
         comments = [comment for comment in response.issues if comment.line_number != 0]
         for comment in comments:
