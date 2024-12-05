@@ -18,7 +18,7 @@ def create_title_description_review_chain(model):
                 "system",
                 system_message,
             ),
-            ("user", "{question}"),
+            ("user", "{{question}}"),
         ],
     )
 
