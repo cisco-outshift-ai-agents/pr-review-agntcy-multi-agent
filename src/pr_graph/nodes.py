@@ -237,31 +237,25 @@ class Nodes:
             format_instructions=parser.get_format_instructions(),
         )
 
-        full_prompt = prompt.invoke(
-            {
-                "question": wrap_prompt(
-                    "If a comment starting with '[Code Review]' already exists for a line in a file, DO NOT create another comment for the same line. Here are the JSON list representation of existing comments on the PR:",
-                    f"{json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}",
-                    "",
-                    "Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:",
-                    f"{'\n'.join(map(str, state['modified_files']))}",
-                    "",
-                    "Consider the following codes that are related to the modified codes:",
-                    f"{'\n'.join(map(str, state['context_files']))}",
-                    "Configuration:",
-                    f"{self.user_config.get("Code Review", "")}",
-                    f"{self.user_config.get("Security & Compliance Policies", "")}",
-                )
-            }
-        )
+        chain = prompt | self.model | parser
 
-        chain = self.model | parser
-
-        response: CodeReviewResponse = chain.invoke(full_prompt)
+        response: CodeReviewResponse = chain.invoke({
+            "question": wrap_prompt(
+                "If a comment starting with '[Code Review]' already exists for a line in a file, DO NOT create another comment for the same line. Here are the JSON list representation of existing comments on the PR:",
+                f"{json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}",
+                "",
+                "Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:",
+                f"{'\n'.join(map(str, state['modified_files']))}",
+                "",
+                "Consider the following codes that are related to the modified codes:",
+                f"{'\n'.join(map(str, state['context_files']))}",
+                "Configuration:",
+                f"{self.user_config.get("Code Review", "")}",
+                f"{self.user_config.get("Security & Compliance Policies", "")}"
+            )
+        })
 
         comments = [comment for comment in response.issues if comment.line_number != 0]
-        for comment in comments:
-            comment.comment = f"[Code Review] {comment.comment}"
 
         log.info(f"""
         code reviewer finished.
