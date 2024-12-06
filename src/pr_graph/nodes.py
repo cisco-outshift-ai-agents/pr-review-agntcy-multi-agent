@@ -1,30 +1,23 @@
 import json
 import os
 import re
-from typing import Dict, Set, List, TYPE_CHECKING
-
-from pydantic import BaseModel
-
-from utils.wrap_prompt import wrap_prompt
-
-if TYPE_CHECKING:
-    from github.Repository import Repository
-    from github.PullRequest import PullRequest
-
+from typing import Dict, Set, List
 
 from github import UnknownObjectException
 from github.ContentFile import ContentFile
 from github.File import File
 from github.PullRequest import PullRequest
 from github.Repository import Repository
+from langchain_core.messages import BaseMessage
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_vertexai.model_garden import ChatAnthropicVertex
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain_core.messages import BaseMessage
+from pydantic import BaseModel
 
 from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile, CodeReviewResponse
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
+from utils.wrap_prompt import wrap_prompt
 
 
 class Nodes:
