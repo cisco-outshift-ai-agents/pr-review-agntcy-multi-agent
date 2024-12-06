@@ -1,8 +1,21 @@
 def wrap_prompt(*args):
     lines = []
+    min_indent = float("inf")
+
     for arg in args:
         for line in arg.split("\n"):
-            # trim leading and trailing whitespace
-            line = line.strip()
+            if line.lstrip():
+                indent = len(line) - len(line.lstrip())
+                min_indent = min(min_indent, indent)
             lines.append(line)
-    return "\n".join(lines)
+
+    normalized_lines = []
+    for line in lines:
+        if line.lstrip():
+            current_indent = len(line) - len(line.lstrip())
+            relative_indent = current_indent - min_indent
+            normalized_lines.append(" " * relative_indent + line.lstrip().rstrip())
+        else:
+            normalized_lines.append("")
+
+    return "\n".join(normalized_lines)
