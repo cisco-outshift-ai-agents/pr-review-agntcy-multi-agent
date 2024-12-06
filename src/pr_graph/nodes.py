@@ -403,7 +403,7 @@ class Nodes:
 
         return [ContextFile(path=f.path, content=f.decoded_content.decode("utf-8")) for f in all_files if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames]
 
-
+    @staticmethod
     def __append_line_number(lines: List[str]):
         """
         Append line numbers to modified lines. Line numbers reflect the line number of a removed line in the original file.
