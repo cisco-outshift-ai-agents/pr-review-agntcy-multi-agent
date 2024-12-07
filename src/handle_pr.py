@@ -4,9 +4,9 @@ from typing import Any
 
 from fastapi.responses import JSONResponse
 
-from agents.pr_review_chat import PRReviewChatAgent
 from config import ConfigManager
-from graph.graph import WorkFlow
+from graphs.codereviewer.graph import CodeReviewerWorkflow
+from graphs.reviewchat.graph import ReviewChatWorkflow
 from utils.constants import ALFRED_CONFIG_BRANCH
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
@@ -48,8 +48,8 @@ def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
     try:
         log.debug(f"repo: {repo_name}, pr number:{pr_number}, installation id:{installation_id}")
         agency_provider = os.environ.get("agency_provider")
-        if agency_provider is None or agency_provider == "graph":
-            graph = WorkFlow(installation_id, repo_name, pr_number)
+        if agency_provider is None or agency_provider == "codereviewer":
+            graph = CodeReviewerWorkflow(installation_id, repo_name, pr_number)
             print(graph.run())
     except Exception as e:
         log.error("Error handling pull request", e)
@@ -86,9 +86,8 @@ def handle_pull_request_comment(payload):
     if installation_id is None:
         raise ValueError("Installation ID is missing in the payload")
 
-    github_operations = GitHubOperations(installation_id)
-    agent = PRReviewChatAgent(github_operations)
-    agent.invoke(repo_name, pr_number, comment)
+    workflow = ReviewChatWorkflow(installation_id)
+    workflow(repo_name, pr_number, comment)
 
 
 def __is_commented_by_human(payload: dict[str, Any]) -> bool:

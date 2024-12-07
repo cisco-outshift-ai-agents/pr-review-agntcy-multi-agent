@@ -1,7 +1,8 @@
 from functools import partial
-from graph.state import GitHubPRState, Comment
-from .contexts import TitleDescriptionContext
+
+from graphs.codereviewer.state import GitHubPRState, Comment
 from utils.logging_config import logger as log
+from .contexts import TitleDescriptionContext
 
 
 def create_title_description_reviewer_node(context: TitleDescriptionContext):

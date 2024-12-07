@@ -1,9 +1,10 @@
-from functools import partial
-from graph.state import GitHubPRState, FileChange, Comment
-from .contexts import GitHubContext
-from utils.logging_config import logger as log
 import json
 import re
+from functools import partial
+
+from graphs.codereviewer.state import GitHubPRState, FileChange, Comment
+from utils.logging_config import logger as log
+from .contexts import GitHubContext
 
 
 def create_fetch_pr_node(context: GitHubContext):

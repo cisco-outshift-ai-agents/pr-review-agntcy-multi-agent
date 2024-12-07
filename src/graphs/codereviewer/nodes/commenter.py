@@ -1,7 +1,9 @@
 from functools import partial
+
 from github import UnknownObjectException
-from graph.state import GitHubPRState
-from .contexts import GitHubContext
+from graphs.reviewchat.chains.contexts import GitHubContext
+
+from graphs.codereviewer.state import GitHubPRState
 from utils.logging_config import logger as log
 
 

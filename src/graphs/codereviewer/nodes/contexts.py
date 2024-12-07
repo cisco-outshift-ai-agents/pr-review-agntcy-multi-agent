@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from typing import Dict, Any
-from utils.github_operations import GitHubOperations
+
 from langchain_core.runnables import RunnableSerializable
+
+from utils.github_operations import GitHubOperations
 
 
 @dataclass

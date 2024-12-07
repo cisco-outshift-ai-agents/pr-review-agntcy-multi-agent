@@ -1,24 +1,25 @@
 from langgraph.graph import StateGraph
-from graph.state import GitHubPRState, create_default_github_pr_state
-from graph.nodes.contexts import (
+
+from config import ConfigManager
+from graphs.codereviewer.chains import (
+    create_code_review_chain,
+    create_title_description_review_chain,
+)
+from graphs.codereviewer.nodes.code_reviewer import create_code_reviewer_node
+from graphs.codereviewer.nodes.commenter import create_commenter_node
+from graphs.codereviewer.nodes.contexts import (
     GitHubContext,
     CodeReviewContext,
     TitleDescriptionContext,
 )
-from graph.nodes.code_reviewer import create_code_reviewer_node
-from graph.nodes.title_description_reviewer import create_title_description_reviewer_node
-from graph.nodes.fetch_pr import create_fetch_pr_node
-from graph.nodes.commenter import create_commenter_node
-from graph.chains import (
-    create_code_review_chain,
-    create_title_description_review_chain,
-)
+from graphs.codereviewer.nodes.fetch_pr import create_fetch_pr_node
+from graphs.codereviewer.nodes.title_description_reviewer import create_title_description_reviewer_node
+from graphs.codereviewer.state import GitHubPRState, create_default_github_pr_state
 from utils.github_operations import GitHubOperations
 from utils.modelfactory import models
-from config import ConfigManager
 
 
-class WorkFlow:
+class CodeReviewerWorkflow:
     def __init__(self, installation_id: int, repo_name: str, pr_number: int):
         github_ops = GitHubOperations(str(installation_id))
         config_manager = ConfigManager(github_ops)

@@ -1,9 +1,10 @@
-from functools import partial
-from graph.state import GitHubPRState
-from .contexts import CodeReviewContext
-from utils.logging_config import logger as log
-from graph.chains.code_review import CodeReviewResponse
 import json
+from functools import partial
+
+from graphs.codereviewer.chains.code_review import CodeReviewResponse
+from graphs.codereviewer.state import GitHubPRState
+from utils.logging_config import logger as log
+from .contexts import CodeReviewContext
 
 
 def create_code_reviewer_node(context: CodeReviewContext):
