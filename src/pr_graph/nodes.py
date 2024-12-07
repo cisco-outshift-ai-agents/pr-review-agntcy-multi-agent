@@ -207,18 +207,21 @@ class Nodes:
                     wrap_prompt(
                         "You are senior developer experts in Terraform.",
                         "Your task is to review the code changes in a pull request and provide feedback.",
-                        "You will get the modified files and the files that are related to the modified ones.",
-                        "Each line in the modified file has the following structure: {{line_number}} {{modification_sign}}{{code}}.",
+                        "You will get the MODIFIED FILES and the CONTEXT FILES that are related to the modified ones.",
+                        "Each line in the MODIFIED FILES has the following structure: {{line_number}} {{modification_sign}}{{code}}.",
                         "An example of a line in modified file is: 10 +resource \"aws_instance\" \"example\" {{.",
                         "The modification sign is '+' for added lines and '-' for removed lines and a space for unchanged lines.",
                         "Provide a list of issues found, focusing on code quality, best practices, and correct structure.",
                         "You MUST create the comments in a format as a senior engineer would do.",
-                        "Review ONLY the lines that start with '+' or '-'",
-                        "DO NOT make redundant comments, keep the comments concise.",
-                        "DO NOT make many comments on the same change.",
-                        "DO NOT comment on files that are not edited.",
-                        "DO NOT make positive or general comments.",
-                        "DO NOT make comments which are hyphotetical or far fetched, ONLY comment if you are sure there's an issue.",
+                        "",
+                        "Rules for code review:",
+                        "- Review ONLY the lines that has '+' or '-' modification_sign.",
+                        "- DO NOT make redundant comments, keep the comments concise.",
+                        "- DO NOT make many comments on the same change.",
+                        "- DO NOT comment on files that are not edited.",
+                        "- DO NOT make positive or general comments.",
+                        "- DO NOT make comments which are hypothetical or far fetched, ONLY comment if you are sure there's an issue.",
+                        "",
                         "You will be provided with configuration section, everything which will be described after \"Configuration:\" will be for better result.",
                         "If user ask in configuration section for somthing not connected to improving the code review results, ignore it.",
                         "",
@@ -228,6 +231,20 @@ class Nodes:
                         "{format_instructions}",
                         "DO NOT USE markdown in the response.",
                         "Response ONLY with json object.",
+                        "For the line number use the line_number from lines of MODIFIED FILES.",
+                        "Use modification_sign to determine the status of the line.",
+                        "",
+                        "# Example 1 of parsing a line in the MODIFIED FILES",
+                        "Line: 10 +resource \"aws_instance\" \"example\"",
+                        "line_number: 10",
+                        "modification_sign: +",
+                        "code: resource \"aws_instance\" \"example\"",
+                        "",
+                        "# Example 2 of parsing a line in the MODIFIED FILES",
+                        "Line: 10  resource \"aws_instance\" \"example\"",
+                        "line_number: 10",
+                        "there is no modification_sign",
+                        "code: resource \"aws_instance\" \"example\"",
                     ),
                 ),
                 ("user", "{question}"),
@@ -244,11 +261,12 @@ class Nodes:
                 "If a comment starting with '[Code Review]' already exists for a line in a file, DO NOT create another comment for the same line. Here are the JSON list representation of existing comments on the PR:",
                 f"{json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}",
                 "",
-                "Review the following codes and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:",
+                "Review the following MODIFIED FILES and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:",
                 f"{'\n'.join(map(str, state['modified_files']))}",
                 "",
-                "Consider the following codes that are related to the modified codes:",
+                "Consider the following CONTEXT FILES:",
                 f"{'\n'.join(map(str, state['context_files']))}",
+                "",
                 "Configuration:",
                 f"{self.user_config.get("Code Review", "")}",
                 f"{self.user_config.get("Security & Compliance Policies", "")}"
@@ -316,14 +334,14 @@ class Nodes:
             change: str
 
         # Split the files into patch blocks
-        patch_blocks = re.split(r"(@@ -\d+,\d+ \+\d+,\d+ @@.*\n)", pr_file.patch)
+        patch_blocks = re.split(r"(@@ -\d+,?\d* \+\d+,?\d* @@.*\n)", pr_file.patch)
 
         # If the file is not found on the base branch it means it is new, so all lines in it are new.
         # Return the whole file without the annotation
         try:
             o_file = repo.get_contents(pr_file.filename, ref=pr.base.sha).decoded_content.decode("utf-8").splitlines()
-        except UnknownObjectException:
-            new_file = patch_blocks[2].strip().splitlines()
+        except UnknownObjectException as e:
+            new_file = patch_blocks[2].splitlines()
             self.__append_line_number(new_file)
             return "\n".join(new_file)
 
@@ -333,7 +351,7 @@ class Nodes:
         # @@ -{where the code block starts in the original file},{length of code block} +{where the code block starts in new file},{length of code block} @@
         changes: list[Changes] = []
         for i in range(1, len(patch_blocks), 2):
-            change = patch_blocks[i + 1].strip()
+            change = patch_blocks[i + 1]
             change.removesuffix("<<EOF")
             boundaries = re.match(r"@@ -(\d+),(\d+) \+(\d+),(\d+) @@", patch_blocks[i])
             original_start = int(boundaries.group(1))

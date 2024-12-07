@@ -1,12 +1,14 @@
 import json
 import os
 from typing import Optional
+
 import boto3
-from langchain_openai import AzureChatOpenAI
-from langchain_google_vertexai.model_garden import ChatAnthropicVertex
 from google.oauth2 import service_account
-from utils.logging_config import logger as log
+from langchain_google_vertexai.model_garden import ChatAnthropicVertex
+from langchain_openai import AzureChatOpenAI
 from pydantic import SecretStr
+
+from utils.logging_config import logger as log
 
 
 class ChatModelFactory:
@@ -33,7 +35,8 @@ class ChatModelFactory:
             log.error(f"Error while getting GCP credentials for VertexAI: {e}")
             raise EnvironmentError(f"Invalid enviroment config for getting GCP credentials: {e}")
 
-        return ChatAnthropicVertex(model=os.getenv("VERTEXAI_MODEL"), location=os.getenv("VERTEXAI_GCP_REGION"), credentials=credentials)
+        return ChatAnthropicVertex(model=os.getenv("VERTEXAI_MODEL"), location=os.getenv("VERTEXAI_GCP_REGION"),
+                                   credentials=credentials, temperature=0)
 
     def __get_gcp_credentials(self) -> service_account.Credentials:
         service_acc_file_path = os.getenv("GCP_SERVICE_ACCOUNT")
@@ -76,6 +79,7 @@ class ChatModelFactory:
             azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
             api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
             api_key=SecretStr(api_key) if api_key else None,
+            temperature=0,
         )
 
 
