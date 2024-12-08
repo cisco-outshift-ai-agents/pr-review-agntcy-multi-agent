@@ -1,24 +1,32 @@
+import re
 from typing import Any
 
 from github.PaginatedList import PaginatedList
 from github.PullRequest import PullRequest
 from github.PullRequestComment import PullRequestComment
+from langchain_core.exceptions import OutputParserException
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
-from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
 from pydantic import BaseModel, Field
 
 from agents.agent import Agent
 from utils.github_operations import GitHubOperations
 from utils.modelfactory import models
+from utils.wrap_prompt import wrap_prompt
 
 BOT_USER_TYPE = "Bot"
 HUMAN_USER_TYPE = "User"
 
+NOT_RELATED_MESSAGE = "I apologize but your question or instruction is not related to the code so I cannot provide a response."
+
 
 class PRReviewChatResponse(BaseModel):
-    isSkipped: bool = Field(description="Indicates if the response is skipped. Set to true if the response is skipped.")
-    response: str = Field(description="Your response based on the conversation.")
+    is_addressed_to_alfred: bool = Field(
+        description="Indicates if the response is skipped.")
+    is_related_to_code: bool = Field(
+        description="Indicates if the question or instruction is related to the code.")
+    message: str = Field(description="Your answer MUST be placed here.")
 
 
 class PRReviewChatAgent(Agent):
@@ -27,6 +35,7 @@ class PRReviewChatAgent(Agent):
 
         self.__github_ops = github_operations
         self.__model = models.get_vertexai()
+        self.__parser = PydanticOutputParser(pydantic_object=PRReviewChatResponse)
 
     def invoke(self, repo_full_name: str, pr_number: int, comment: dict[str, Any]):
         try:
@@ -70,44 +79,58 @@ class PRReviewChatAgent(Agent):
     def __invoke_llm(self, message_history: list[BaseMessage], code: str, comment: dict[str, Any]) -> str:
         if message_history is None or len(message_history) < 2:
             raise ValueError("At least the original review and a comment should be presented in the message history")
+
+        system_prompt = wrap_prompt("""\
+            You are Alfred, a senior software developer and the reviewer of a pull request.
+            Your review is the first message in the conversation.
+            Other developers have asked you to answer question about your review or have gave instructions about your review.
+            Provide a detailed explanation, focusing on the specific modification you reviewed.
+            
+            The code modifications you reviewed are as follows:
+            ```
+            {code}
+            ```
+            The conversation is about the modification in line {line_number}.
+            
+            Respond to the last message of the the conversation.
+            {format_instructions}
+            SET `is_addressed_to_alfred` to `true` IF the question or instruction IS addressed to you.
+            SET `is_related_to_code` to `true` IF the question or instruction IS related to the code.
+            PLACE your answer in the `message` field.
+            ALWAYS GIVE THE PROVIDED JSON SCHEMA AS A RESPONSE. OTHER FORMATS ARE UNACCEPTABLE.
+            
+            The conversation is as follows:""")
+
         messages = [
             SystemMessagePromptTemplate.from_template(
-                """You are a senior software developer.
-                Your name is Alfred.
-                You were reviewing a pull request so you are the REVIEWER.
-                Your review is the FIRST message in the CONVERSATION.
-                Other developers asked you to explain your review. 
-                Give a DETAILED explanation of your review.
-                Concentrate on the modification that you reviewed.
-                The code you reviewed is the following:
-                ```
-                {code}
-                ```
-
-                Respond to the LAST message in the CONVERSATION.
-                Respond ONLY IF the message is LOOSELY related to the modification in the code.
-                Respond ONLY IF the message is a question or an instruction that is put to you.
-                If the last message is not a question, but an instruction, follow the instruction.
-                The conversation is about the modification in line {line_number}.
-                If you skip the response, explain why you skipped it in the response field.
-                {format_instructions}
-                
-                The CONVERSATION is as follows:
-                """,
+                wrap_prompt(system_prompt),
             )
         ]
         messages.extend(message_history)
 
         template = ChatPromptTemplate.from_messages(messages)
-        parser = JsonOutputParser(pydantic_object=PRReviewChatResponse)
-        template = template.partial(format_instructions=parser.get_format_instructions())
 
-        chain = template | self.__model | parser
+        template = template.partial(
+            format_instructions=self.__parser.get_format_instructions(),
+        )
 
-        response: PRReviewChatResponse = chain.invoke({"code": code, "line_number": comment["line"]})
-        if response["isSkipped"]:
+        filled_template = template.invoke({"code": code, "line_number": comment["line"]})
+        try:
+            response = self.__model.invoke(filled_template)
+        except Exception as e:
+            raise ValueError(f"Error invoking LLM model: {e}")
+
+        try:
+            response = self.__parser.invoke(response)
+        except OutputParserException as e:
+            raise ValueError(f"Error parsing response {response}: {e}")
+
+        if (not response.is_addressed_to_alfred and not self.__num_of_participants(
+                messages[1:]) == 2) or self.__is_comment_tagged(messages):
             return ""
-        return response["response"]
+        if not response.is_related_to_code:
+            return NOT_RELATED_MESSAGE
+        return response.message
 
     @staticmethod
     def __get_comment_thread(comment: dict[str, Any], comments: PaginatedList[PullRequestComment]) -> list[PullRequestComment]:
@@ -130,7 +153,7 @@ class PRReviewChatAgent(Agent):
             if comment.user.type == HUMAN_USER_TYPE:
                 messages.append(HumanMessage(content=comment.body, id=comment.user.id))
             elif comment.user.type == BOT_USER_TYPE:
-                messages.append(AIMessage(content=comment.body))
+                messages.append(AIMessage(content=comment.body, id=comment.user.id))
             else:
                 pass
         return messages
@@ -150,3 +173,15 @@ class PRReviewChatAgent(Agent):
                 return file.patch
 
         raise ValueError(f"File {comment['path']} not found in the PR's files")
+
+    @staticmethod
+    def __num_of_participants(thread: list[BaseMessage]) -> int:
+        participants = set()
+        for comment in thread:
+            participants.add(comment.id)
+        return len(participants)
+
+    @staticmethod
+    def __is_comment_tagged(thread: list[BaseMessage]) -> bool:
+        comment = thread[-1]
+        return re.search(r"@[a-zA-Z0-9]+", comment.content) is not None
