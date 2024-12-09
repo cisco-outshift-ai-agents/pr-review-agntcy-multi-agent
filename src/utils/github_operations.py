@@ -195,7 +195,9 @@ class GitHubOperations:
             body=comment,
         )
 
-    def create_pending_pull_request_comment(self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list):
+    def create_pending_pull_request_comment(
+        self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list
+    ):
         self.delete_pending_pull_request(pull_request)
 
         # NOTE: event prop needs to be undefined for pending PR state
