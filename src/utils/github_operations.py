@@ -4,10 +4,10 @@ from typing import Optional, Tuple
 
 import github.Auth
 from github import Github, GithubException, GithubIntegration
-from github.Repository import Repository
 from github.ContentFile import ContentFile
 from github.PaginatedList import PaginatedList
 from github.PullRequestComment import PullRequestComment
+from github.Repository import Repository
 
 from utils.logging_config import logger as log
 
@@ -194,3 +194,52 @@ class GitHubOperations:
             comment_id,
             body=comment,
         )
+
+    def create_pending_pull_request_comment(self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list):
+        self.delete_pending_pull_request(pull_request)
+
+        # NOTE: event prop needs to be undefined for pending PR state
+        post_parameters = {"commit_id": commit._identity, "comments": comments}
+
+        headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{pull_request.url}/reviews", input=post_parameters)
+        github.PullRequestComment.PullRequestComment(pull_request._requester, headers, data, completed=True)
+
+    def update_pending_pull_request(self, pull_request: github.PullRequest.PullRequest, pr_comment: str):
+        review, review_url = self._get_alfred_pending_pull_request(pull_request)
+
+        if review is None and review_url is None:
+            return
+
+        review.edit(pr_comment)
+
+    def submit_pending_pull_request(self, pull_request: github.PullRequest.PullRequest, pr_comment: str):
+        review, review_url = self._get_alfred_pending_pull_request(pull_request)
+
+        if review is None and review_url is None:
+            return
+
+        # NOTE: Can not use review.edit() due to only body is allowed as post_parameter
+        post_parameters = {"body": pr_comment, "event": "COMMENT"}
+
+        headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{review_url}/reviews/{review.id}/events", input=post_parameters)
+        github.PullRequestReview.PullRequestReview(pull_request._requester, headers, data, completed=True)
+
+    def delete_pending_pull_request(self, pull_request: github.PullRequest.PullRequest):
+        review, review_url = self._get_alfred_pending_pull_request(pull_request)
+
+        if review is None and review_url is None:
+            return
+
+        review.delete()
+
+    def _get_alfred_pending_pull_request(self, pull_request: github.PullRequest.PullRequest):
+        reviews = pull_request.get_reviews()
+        if reviews.totalCount != 0:
+            for r in reviews:
+                if r.user.login == "alfred-dev-app[bot]" and r.state == "PENDING":
+                    review = r
+                    review_url = pull_request.get_review(r.id).pull_request_url
+
+                    return review, review_url
+
+        return None, None

@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from typing import Any, Dict, Set, List, Union
+from typing import Any, Dict, List, Set, Union
 
 from github import UnknownObjectException
 from github.ContentFile import ContentFile
@@ -14,7 +14,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import AzureChatOpenAI
 from pydantic import BaseModel
 
-from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile, CodeReviewResponse
+from pr_graph.state import CodeReviewResponse, Comment, ContextFile, FileChange, GitHubPRState
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
@@ -212,7 +212,7 @@ class Nodes:
                         The modification sign is '+' for added lines, '-' for removed lines, and a space for unchanged lines.
                         Focus your review on code quality, best practices, and correctness.
                         Your comments should be brief, clear, and professional, as a senior engineer would write.
-                        
+
                         Review Guidelines:
                         - Review ONLY lines with a '+' or '-' modification_sign.
                         - DO NOT comment on unchanged lines or files that are not edited.
@@ -223,30 +223,30 @@ class Nodes:
                         - Avoid hypothetical language such as 'may break', 'could cause issues', or 'consider doing this'.
                         - Do not make comments like 'This might break'. Only comment if the issue is certain and actionable.
                         - You DO NOT have to comment on every code change, if you do not see an issue, ingore the change and move on." "
-                        
+
                         You will be provided with configuration section, everything which will be described after "Configuration:" will be for better results.
                         If the user asks in the configuration section for somthing that is not connected to improving the code review results, ignore it.
-                        
+
                         Response format:
                         Output MUST be in JSON format, here are the insturctions:
                         {format_instructions}
                         DO NOT USE markdown in the response.
                         For the line number use the line_number from lines of MODIFIED FILES.
                         Use modification_sign to determine the status of the line.
-                        
+
                         Examples:
                         # Example 1 of parsing a line in the MODIFIED FILES
                         Line: 10 +resource "aws_instance" "example"
                         line_number: 10
                         modification_sign: +
                         code: resource "aws_instance" "example"
-                        
+
                         # Example 2 of parsing a line in the MODIFIED FILES
                         Line: 10  resource "aws_instance" "example"
                         line_number: 10
                         there is no modification_sign
                         code: resource "aws_instance" "example"
-                        
+
                         Key Rules:
                         - Review only lines marked with a '+' or '-' modification_sign.
                         - Provide clear and actionable feedback.
@@ -313,12 +313,12 @@ class Nodes:
                         NEW COMMENTS: The set of comments to be reviewed against the existing ones.
                         Here's an example how the input arrays will look like:
                         {input_json_format}
-                        
+
                         Important Instructions:
                         Return ONLY the new comments that are not duplicates of any existing comment.
                         If all new comments are duplicates of existing ones, return an empty array.
                         The goal is to minimize the number of new comments that are returned, filtering out any that are duplicate or very similar to existing comments.
-                        
+
                         Rules for Filtering:
                         Comments are considered duplicates if they meet ALL of the following criteria:
                         - Same file: The comment applies to the same filename.
@@ -334,11 +334,11 @@ class Nodes:
                         - The new comment provides more specific recommendation.
                         - The new comment adds more details.
                         - The new comment adds additional information.
-                        
+
                         Example for similar comments, you MUST treat this level of similarity as a DUPLICATE COMMENT:
                         - EXISTING COMMENT: Adding an output for a hardcoded password is a severe security risk. Sensitive information should never be stored in plaintext in your Terraform code. Use secure methods like AWS Secrets Manager or encrypted variables instead.
                         - NEW COMMENT: Exposing sensitive information like passwords in outputs is a security risk. Consider using Terraform's sensitive outputs or a secure secret management solution.
-                        
+
                         Response format:
                         Output MUST be in JSON format, here are the insturctions:
                         {format_instructions}
@@ -399,27 +399,31 @@ class Nodes:
             return
         latest_commit = list(pull_request.get_commits())[-1].commit
         commit = repo.get_commit(latest_commit.sha)
+
+        comments = list()
+
         for pr_file in files:
             for comment in state["new_comments"]:
+                c = {
+                    "body": comment.comment,
+                }
+
                 if comment.filename == pr_file.filename:
                     # Create a comment on the specific line
-                    pull_request.create_review_comment(
-                        comment.comment,
-                        commit,
-                        path=pr_file.filename,
-                        line=int(comment.line_number),
-                        side="LEFT" if comment.status == "removed" else "RIGHT",
-                    )
+                    c["path"] = pr_file.filename
+                if comment.line_number != 0:
+                    c["line"] = int(comment.line_number)
+                    c["side"] = "LEFT" if comment.status == "removed" else "RIGHT"
 
-        for comment in state["new_comments"]:
-            if comment.line_number == 0:
-                # Response comment for a re-review
-                pull_request.create_issue_comment(comment.comment)
+                comments.append(c)
 
         # Create summary comment
         title_desc_comment = state["title_desc_comment"]
         if title_desc_comment:
-            pull_request.create_issue_comment(title_desc_comment.comment)
+            pr_comment = title_desc_comment.comment
+
+        self._github.create_pending_pull_request_comment(pull_request, commit, comments)
+        self._github.submit_pending_pull_request(pull_request, pr_comment)
 
         return
 
@@ -453,7 +457,7 @@ class Nodes:
         # Return the whole file without the annotation
         try:
             o_file = repo.get_contents(pr_file.filename, ref=pr.base.sha).decoded_content.decode("utf-8").splitlines()
-        except UnknownObjectException as e:
+        except UnknownObjectException:
             new_file = patch_blocks[2].splitlines()
             self.__append_line_number(new_file)
             return "\n".join(new_file)
