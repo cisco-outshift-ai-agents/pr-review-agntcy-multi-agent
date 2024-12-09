@@ -103,7 +103,7 @@ class PRReviewChatAgent(Agent):
 
         messages = [
             SystemMessagePromptTemplate.from_template(
-                wrap_prompt(system_prompt),
+                system_prompt,
             )
         ]
         messages.extend(message_history)
