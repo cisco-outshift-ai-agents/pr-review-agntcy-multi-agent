@@ -201,8 +201,11 @@ class GitHubOperations:
         # NOTE: event prop needs to be undefined for pending PR state
         post_parameters = {"commit_id": commit._identity, "comments": comments}
 
-        headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{pull_request.url}/reviews", input=post_parameters)
-        github.PullRequestComment.PullRequestComment(pull_request._requester, headers, data, completed=True)
+        try:
+            headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{pull_request.url}/reviews", input=post_parameters)
+            github.PullRequestComment.PullRequestComment(pull_request._requester, headers, data, completed=True)
+        except Exception as e:
+            log.error(f"Error during create a new pending pull request: {e}")
 
     def update_pending_pull_request(self, pull_request: github.PullRequest.PullRequest, pr_comment: str):
         review, review_url = self._get_alfred_pending_pull_request(pull_request)
@@ -221,8 +224,11 @@ class GitHubOperations:
         # NOTE: Can not use review.edit() due to only body is allowed as post_parameter
         post_parameters = {"body": pr_comment, "event": "COMMENT"}
 
-        headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{review_url}/reviews/{review.id}/events", input=post_parameters)
-        github.PullRequestReview.PullRequestReview(pull_request._requester, headers, data, completed=True)
+        try:
+            headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{review_url}/reviews/{review.id}/events", input=post_parameters)
+            github.PullRequestReview.PullRequestReview(pull_request._requester, headers, data, completed=True)
+        except Exception as e:
+            log.error(f"Error during submit a pending pull request: {e}")
 
     def delete_pending_pull_request(self, pull_request: github.PullRequest.PullRequest):
         review, review_url = self._get_alfred_pending_pull_request(pull_request)
