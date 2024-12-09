@@ -207,14 +207,6 @@ class GitHubOperations:
         except Exception as e:
             log.error(f"Error during create a new pending pull request: {e}")
 
-    def update_pending_pull_request(self, pull_request: github.PullRequest.PullRequest, pr_comment: str):
-        review, review_url = self._get_alfred_pending_pull_request(pull_request)
-
-        if review is None and review_url is None:
-            return
-
-        review.edit(pr_comment)
-
     def submit_pending_pull_request(self, pull_request: github.PullRequest.PullRequest, pr_comment: str):
         review, review_url = self._get_alfred_pending_pull_request(pull_request)
 
