@@ -93,11 +93,14 @@ class PRReviewChatAgent(Agent):
             The conversation is about the modification in line {line_number}.
             
             Respond to the last message of the the conversation.
-            {format_instructions}
             SET `is_addressed_to_alfred` to `true` IF the question or instruction IS addressed to you.
             SET `is_related_to_code` to `true` IF the question or instruction IS related to the code.
             PLACE your answer in the `message` field.
-            ALWAYS GIVE THE PROVIDED JSON SCHEMA AS A RESPONSE. OTHER FORMATS ARE UNACCEPTABLE.
+            
+            Response format:
+            Output MUST be in JSON format, here are the insturctions:
+            {format_instructions}
+            DO NOT include anything other than the JSON object in the response.
             
             The conversation is as follows:""")
 
