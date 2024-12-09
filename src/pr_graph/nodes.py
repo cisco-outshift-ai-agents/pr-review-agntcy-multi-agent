@@ -381,7 +381,7 @@ class Nodes:
             )
 
         log.info(f"""
-        Comment duplications remowed.
+        Comment duplications removed.
         comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
         """)
         return {"new_comments": comments}
