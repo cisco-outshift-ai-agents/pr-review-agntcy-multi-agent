@@ -400,29 +400,18 @@ class Nodes:
         latest_commit = list(pull_request.get_commits())[-1].commit
         commit = repo.get_commit(latest_commit.sha)
 
-        comments = list()
-
         for pr_file in files:
             for comment in state["new_comments"]:
-                c = {
-                    "body": comment.comment,
-                }
-
-                if comment.filename == pr_file.filename:
-                    # Create a comment on the specific line
-                    c["path"] = pr_file.filename
-                if comment.line_number != 0:
-                    c["line"] = int(comment.line_number)
-                    c["side"] = "LEFT" if comment.status == "removed" else "RIGHT"
-
-                comments.append(c)
+                if comment.line_number == 0:
+                    # Response comment for a re-review
+                    pull_request.create_issue_comment(comment.comment)
 
         # Create summary comment
         title_desc_comment = state["title_desc_comment"]
         if title_desc_comment:
             pr_comment = title_desc_comment.comment
 
-        self._github.create_pending_pull_request_comment(pull_request, commit, comments)
+        self._github.create_pending_pull_request_comment(pull_request, commit, state["new_comments"])
         self._github.submit_pending_pull_request(pull_request, pr_comment)
 
         return
