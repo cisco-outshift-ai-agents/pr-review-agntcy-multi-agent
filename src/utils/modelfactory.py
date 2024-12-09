@@ -35,8 +35,9 @@ class ChatModelFactory:
             log.error(f"Error while getting GCP credentials for VertexAI: {e}")
             raise EnvironmentError(f"Invalid enviroment config for getting GCP credentials: {e}")
 
-        return ChatAnthropicVertex(model=os.getenv("VERTEXAI_MODEL"), location=os.getenv("VERTEXAI_GCP_REGION"),
-                                   credentials=credentials, temperature=0)
+        return ChatAnthropicVertex(
+            model=os.getenv("VERTEXAI_MODEL"), location=os.getenv("VERTEXAI_GCP_REGION"), credentials=credentials, temperature=0
+        )
 
     def __get_gcp_credentials(self) -> service_account.Credentials:
         service_acc_file_path = os.getenv("GCP_SERVICE_ACCOUNT")

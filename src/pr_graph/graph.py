@@ -21,17 +21,17 @@ class WorkFlow:
         workflow = StateGraph(GitHubPRState)
 
         workflow.add_node("fetch_pr", self.nodes.fetch_pr)
-        workflow.add_node("fetch_pr_files", self.nodes.fetch_pr_files)
         workflow.add_node("code_reviewer", self.nodes.code_reviewer)
         workflow.add_node("title_description_reviewer", self.nodes.title_description_reviewer)
+        workflow.add_node("duplicate_comment_remover", self.nodes.duplicate_comment_remover)
         workflow.add_node("commenter", self.nodes.commenter)
 
-        workflow.add_edge("fetch_pr", "fetch_pr_files")
-        workflow.add_edge("fetch_pr_files", "code_reviewer")
-        workflow.add_edge("fetch_pr_files", "title_description_reviewer")
-        workflow.add_edge(["code_reviewer", "title_description_reviewer"], "commenter")
-
         workflow.set_entry_point("fetch_pr")
+
+        workflow.add_edge("fetch_pr", "code_reviewer")
+        workflow.add_edge("fetch_pr", "title_description_reviewer")
+        workflow.add_edge("code_reviewer", "duplicate_comment_remover")
+        workflow.add_edge(["duplicate_comment_remover", "title_description_reviewer"], "commenter")
 
         init_state = create_default_github_pr_state()
         graph = workflow.compile()

@@ -22,10 +22,8 @@ NOT_RELATED_MESSAGE = "I apologize but your question or instruction is not relat
 
 
 class PRReviewChatResponse(BaseModel):
-    is_addressed_to_alfred: bool = Field(
-        description="Indicates if the response is skipped.")
-    is_related_to_code: bool = Field(
-        description="Indicates if the question or instruction is related to the code.")
+    is_addressed_to_alfred: bool = Field(description="Indicates if the response is skipped.")
+    is_related_to_code: bool = Field(description="Indicates if the question or instruction is related to the code.")
     message: str = Field(description="Your answer MUST be placed here.")
 
 
@@ -128,8 +126,7 @@ class PRReviewChatAgent(Agent):
         except OutputParserException as e:
             raise ValueError(f"Error parsing response {response}: {e}")
 
-        if (not response.is_addressed_to_alfred and not self.__num_of_participants(
-                messages[1:]) == 2) or self.__is_comment_tagged(messages):
+        if (not response.is_addressed_to_alfred and not self.__num_of_participants(messages[1:]) == 2) or self.__is_comment_tagged(messages):
             return ""
         if not response.is_related_to_code:
             return NOT_RELATED_MESSAGE

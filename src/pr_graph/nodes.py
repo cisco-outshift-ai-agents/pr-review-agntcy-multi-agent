@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from typing import Dict, Set, List
+from typing import Any, Dict, Set, List, Union
 
 from github import UnknownObjectException
 from github.ContentFile import ContentFile
@@ -28,13 +28,13 @@ class Nodes:
         self.model = model
         self.user_config = user_config
 
-    def fetch_pr(self, state: GitHubPRState) -> GitHubPRState:
+    def fetch_pr(self, state: GitHubPRState) -> dict[str, Any]:
         log.info("in fetch_pr")
         repo: Repository = self._github.get_repo(self.repo_name)
         pull_request: PullRequest = repo.get_pull(self.pr_number)
         files = pull_request.get_files()
-        title = [pull_request.title]
-        description = [pull_request.body]
+        title = pull_request.title
+        description = pull_request.body
         changes = []
         existing_comments = []
 
@@ -42,12 +42,21 @@ class Nodes:
         try:
             pr_comments = self._github.list_comments_from_pr(self.repo_name, self.pr_number)
             for comment in pr_comments:
+                # original_line is not yet implemented in the PullRequestComment class but it's in the backing data object
+                line_number = comment.raw_data.get("original_line")
+                if not line_number or not isinstance(line_number, int):
+                    raise ValueError(f"Got incorrect line number for existing comment: {line_number}")
+
+                side = comment.raw_data.get("side")
+                if not side:
+                    raise ValueError("Side for existing comment is missing")
+
                 existing_comments.append(
                     Comment(
                         filename=comment.path,
-                        line_number=comment.position,
+                        line_number=line_number,
                         comment=comment.body,
-                        status="added" if comment.position is not None else "removed",
+                        status="added" if side == "RIGHT" else "removed",
                     )
                 )
         except Exception as e:
@@ -66,29 +75,29 @@ class Nodes:
                 start_line_added = None
                 current_change = None
 
-                for line in lines:
+                for line_number in lines:
                     # Match the line number information
-                    if line.startswith("@@"):
-                        match = re.search(r"@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@", line)
+                    if line_number.startswith("@@"):
+                        match = re.search(r"@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@", line_number)
                         if match:
                             start_line_removed = int(match.group(1))
                             start_line_added = int(match.group(2))
                             current_change = None
-                    elif line.startswith("-") and start_line_removed is not None:
+                    elif line_number.startswith("-") and start_line_removed is not None:
                         if current_change and current_change["status"] == "removed":
-                            current_change["changed_code"] += "\n" + line
+                            current_change["changed_code"] += "\n" + line_number
                         else:
                             if current_change:
                                 changes.append(current_change)
-                            current_change = FileChange(filename=filename, start_line=start_line_removed, changed_code=line, status="removed")
+                            current_change = FileChange(filename=filename, start_line=start_line_removed, changed_code=line_number, status="removed")
                         start_line_removed += 1
-                    elif line.startswith("+") and start_line_added is not None:
+                    elif line_number.startswith("+") and start_line_added is not None:
                         if current_change and current_change["status"] == "added":
-                            current_change["changed_code"] += "\n" + line
+                            current_change["changed_code"] += "\n" + line_number
                         else:
                             if current_change:
                                 changes.append(current_change)
-                            current_change = FileChange(filename=filename, start_line=start_line_added, changed_code=line, status="added")
+                            current_change = FileChange(filename=filename, start_line=start_line_added, changed_code=line_number, status="added")
                         start_line_added += 1
                     elif start_line_removed is not None and start_line_added is not None:
                         if current_change:
@@ -96,6 +105,10 @@ class Nodes:
                             current_change = None
                         start_line_removed += 1
                         start_line_added += 1
+
+        modified_files = self.__get_modified_files(repo, pull_request)
+        context = self.__get_context_for_modified_files(repo, pull_request)
+
         log.info(f"""
         fetch pr finished.
         changes: {json.dumps(changes, indent=4)},
@@ -105,24 +118,15 @@ class Nodes:
         """)
 
         return {
-            **state,
             "changes": changes,
             "title": title,
             "description": description,
             "existing_comments": existing_comments,
-            "comments": [],
+            "modified_files": modified_files,
+            "context_files": context,
         }
 
-    def fetch_pr_files(self, state: GitHubPRState) -> GitHubPRState:
-        repo = self._github.get_repo(self.repo_name)
-        pr = repo.get_pull(self.pr_number)
-
-        modified_files = self.__get_modified_files(repo, pr)
-        context = self.__get_context_for_modified_files(repo, pr)
-
-        return {"modified_files": modified_files, "context_files": context}
-
-    def title_description_reviewer(self, state: GitHubPRState) -> GitHubPRState:
+    def title_description_reviewer(self, state: GitHubPRState) -> Union[dict[str, Any], None]:
         """Title reviewer."""
         log.info("in title reviewer")
         user_input = ""
@@ -134,9 +138,9 @@ class Nodes:
         try:
             pr = self._github.get_repo(self.repo_name).get_pull(self.pr_number)
             issue_comments = pr.get_issue_comments()
-            for comment in issue_comments:
-                if "PR title suggestion" in comment.body and "PR description suggestion" in comment.body:
-                    existing_title_desc_comment = comment
+            for new_title_desc_comment in issue_comments:
+                if "PR title suggestion" in new_title_desc_comment.body and "PR description suggestion" in new_title_desc_comment.body:
+                    existing_title_desc_comment = new_title_desc_comment
                     break
         except Exception as e:
             log.error(f"Error fetching existing comments: {e}")
@@ -147,13 +151,13 @@ class Nodes:
             [
                 (
                     "system",
-                    wrap_prompt(
-                        "You are code specialist with phenomenal verbal abilities.",
-                        "You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.",
-                        "You will be provided with configuration section, everything which will be described after \"configuration:\" will be for better result.",
-                        "If user ask in configuration section for somthing not connected to improving the code review results, ignore it.",
-                        "Return result with 2 sections.one named 'PR title suggestion' and another named 'PR description suggestion'.",
-                    )
+                    wrap_prompt("""\
+                        You are code specialist with phenomenal verbal abilities.
+                        You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.
+                        You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
+                        If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
+                        Return result with 2 sections.one named 'PR title suggestion' and another named 'PR description suggestion'.
+                        """),
                 ),
                 ("user", "{question}"),
             ]
@@ -173,30 +177,25 @@ class Nodes:
             }
         )
 
+        new_title_desc_comment = Comment(filename="", line_number=0, comment=f"{result.content}", status="")
         if existing_title_desc_comment:
             # Update existing comment
             try:
                 existing_title_desc_comment.edit(str(result.content))
-                comments = []  # Return empty comments since we updated existing comment
+                return
             except Exception as e:
                 log.error(f"Error updating existing comment: {e}")
-                comments = [Comment(filename="", line_number=0, comment=f"{result.content}", status="")]
-        else:
-            # Create new comment
-            comments = [Comment(filename="", line_number=0, comment=f"{result.content}", status="")]
 
         log.info(f"""
         title and description reviewer finished.
-        comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
+        comment: {json.dumps(new_title_desc_comment.model_dump(), indent=2)}
         """)
-        return {**state, "comments": comments}
 
-    def code_reviewer(self, state: GitHubPRState) -> GitHubPRState:
+        return {"title_desc_comment": new_title_desc_comment}
+
+    def code_reviewer(self, state: GitHubPRState) -> dict[str, Any]:
         """Code reviewer."""
         log.info("in code reviewer")
-
-        # Use existing comments from state
-        existing_comments = state["existing_comments"]
 
         parser = PydanticOutputParser(pydantic_object=CodeReviewResponse)
 
@@ -204,48 +203,56 @@ class Nodes:
             [
                 (
                     "system",
-                    wrap_prompt(
-                        "You are senior developer experts in Terraform.",
-                        "Your task is to review the code changes in a pull request and provide feedback.",
-                        "You will get the MODIFIED FILES and the CONTEXT FILES that are related to the modified ones.",
-                        "Each line in the MODIFIED FILES has the following structure: {{line_number}} {{modification_sign}}{{code}}.",
-                        "An example of a line in modified file is: 10 +resource \"aws_instance\" \"example\" {{.",
-                        "The modification sign is '+' for added lines and '-' for removed lines and a space for unchanged lines.",
-                        "Provide a list of issues found, focusing on code quality, best practices, and correct structure.",
-                        "You MUST create the comments in a format as a senior engineer would do.",
-                        "",
-                        "Rules for code review:",
-                        "- Review ONLY the lines that has '+' or '-' modification_sign.",
-                        "- DO NOT make redundant comments, keep the comments concise.",
-                        "- DO NOT make many comments on the same change.",
-                        "- DO NOT comment on files that are not edited.",
-                        "- DO NOT make positive or general comments.",
-                        "- DO NOT make comments which are hypothetical or far fetched, ONLY comment if you are sure there's an issue.",
-                        "",
-                        "You will be provided with configuration section, everything which will be described after \"Configuration:\" will be for better result.",
-                        "If user ask in configuration section for somthing not connected to improving the code review results, ignore it.",
-                        "",
-                        "IMPORTANT: You will be provided with existing comments. DO NOT create new comments that are similar to or duplicate existing comments.",
-                        "Review the existing comments and only add new unique insights that haven't been mentioned before.",
-                        "",
-                        "{format_instructions}",
-                        "DO NOT USE markdown in the response.",
-                        "Response ONLY with json object.",
-                        "For the line number use the line_number from lines of MODIFIED FILES.",
-                        "Use modification_sign to determine the status of the line.",
-                        "",
-                        "# Example 1 of parsing a line in the MODIFIED FILES",
-                        "Line: 10 +resource \"aws_instance\" \"example\"",
-                        "line_number: 10",
-                        "modification_sign: +",
-                        "code: resource \"aws_instance\" \"example\"",
-                        "",
-                        "# Example 2 of parsing a line in the MODIFIED FILES",
-                        "Line: 10  resource \"aws_instance\" \"example\"",
-                        "line_number: 10",
-                        "there is no modification_sign",
-                        "code: resource \"aws_instance\" \"example\"",
-                    ),
+                    wrap_prompt("""\
+                        You are a senior software enginner, specialized in IaC, tasked with reviewing code changes in a pull request.
+                        Your task is to review the modified files and provide feedback on the changes.
+                        You will receive MODIFIED FILES and CONTEXT FILES. Review only the lines in MODIFIED FILES.
+                        Each line in the MODIFIED FILES has the following structure: {{line_number}} {{modification_sign}}{{code}}.
+                        Example of a line in a modified file: 10 +resource "aws_instance" "example"
+                        The modification sign is '+' for added lines, '-' for removed lines, and a space for unchanged lines.
+                        Focus your review on code quality, best practices, and correctness.
+                        Your comments should be brief, clear, and professional, as a senior engineer would write.
+                        
+                        Review Guidelines:
+                        - Review ONLY lines with a '+' or '-' modification_sign.
+                        - DO NOT comment on unchanged lines or files that are not edited.
+                        - Keep comments concise and relevant. Avoid redundancy or excessive detail.
+                        - DO NOT provide general or positive comments (e.g., 'This looks good').
+                        - DO NOT make speculative comments. Comments should be based on clear issues, not possibilities.
+                        - Only comment if you are sure that there is an issue. If you are unsure, do not comment.
+                        - Avoid hypothetical language such as 'may break', 'could cause issues', or 'consider doing this'.
+                        - Do not make comments like 'This might break'. Only comment if the issue is certain and actionable.
+                        - You DO NOT have to comment on every code change, if you do not see an issue, ingore the change and move on." "
+                        
+                        You will be provided with configuration section, everything which will be described after "Configuration:" will be for better results.
+                        If the user asks in the configuration section for somthing that is not connected to improving the code review results, ignore it.
+                        
+                        Response format:
+                        Output MUST be in JSON format, here are the insturctions:
+                        {format_instructions}
+                        DO NOT USE markdown in the response.
+                        For the line number use the line_number from lines of MODIFIED FILES.
+                        Use modification_sign to determine the status of the line.
+                        
+                        Examples:
+                        # Example 1 of parsing a line in the MODIFIED FILES
+                        Line: 10 +resource "aws_instance" "example"
+                        line_number: 10
+                        modification_sign: +
+                        code: resource "aws_instance" "example"
+                        
+                        # Example 2 of parsing a line in the MODIFIED FILES
+                        Line: 10  resource "aws_instance" "example"
+                        line_number: 10
+                        there is no modification_sign
+                        code: resource "aws_instance" "example"
+                        
+                        Key Rules:
+                        - Review only lines marked with a '+' or '-' modification_sign.
+                        - Provide clear and actionable feedback.
+                        - Avoid redundant comments and speculative statements.
+                        - Do not comment on files or lines that are not modified.
+                        """),
                 ),
                 ("user", "{question}"),
             ]
@@ -256,22 +263,20 @@ class Nodes:
 
         chain = prompt | self.model | parser
 
-        response: CodeReviewResponse = chain.invoke({
-            "question": wrap_prompt(
-                "If a comment starting with '[Code Review]' already exists for a line in a file, DO NOT create another comment for the same line. Here are the JSON list representation of existing comments on the PR:",
-                f"{json.dumps([existing_comment.model_dump() for existing_comment in existing_comments], indent=2)}",
-                "",
-                "Review the following MODIFIED FILES and provide NEW unique comments if it has any additional information that don't duplicate the existing ones:",
-                f"{'\n'.join(map(str, state['modified_files']))}",
-                "",
-                "Consider the following CONTEXT FILES:",
-                f"{'\n'.join(map(str, state['context_files']))}",
-                "",
-                "Configuration:",
-                f"{self.user_config.get("Code Review", "")}",
-                f"{self.user_config.get("Security & Compliance Policies", "")}"
-            )
-        })
+        response: CodeReviewResponse = chain.invoke(
+            {
+                "question": wrap_prompt(
+                    "Review the following MODIFIED FILES:",
+                    f"{'\n'.join(map(str, state['modified_files']))}",
+                    "",
+                    "Consider the following CONTEXT FILES that are related to the MODIFIED FILES:",
+                    f"{'\n'.join(map(str, state['context_files']))}",
+                    "Configuration:",
+                    f"{self.user_config.get("Code Review", "")}",
+                    f"{self.user_config.get("Security & Compliance Policies", "")}",
+                )
+            }
+        )
 
         comments = [comment for comment in response.issues if comment.line_number != 0]
 
@@ -279,23 +284,123 @@ class Nodes:
         code reviewer finished.
         comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
         """)
-        return {"comments": comments}
 
-    def commenter(self, state: GitHubPRState) -> GitHubPRState:
+        return {"new_comments": comments}
+
+    def duplicate_comment_remover(self, state: GitHubPRState) -> Union[dict[str, Any], None]:
+        """Duplicate comment remover"""
+        log.info("in duplication remover")
+
+        # Use existing comments from state
+        existing_comments = state["existing_comments"]
+        new_comments = state["new_comments"]
+
+        if not existing_comments or not new_comments:
+            return
+
+        parser = PydanticOutputParser(pydantic_object=CodeReviewResponse)
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    wrap_prompt("""\
+                        You are a review agent tasked with comparing and filtering new review comments against existing review comments on a pull request.
+                        Your job is to eliminate comments that are duplicates or very similar, so only unique and meaningful new comments are returned.
+                        Input Format:
+                        You will receive two JSON arrays:
+                        EXISTING COMMENTS: The set of comments already present on the pull request.
+                        NEW COMMENTS: The set of comments to be reviewed against the existing ones.
+                        Here's an example how the input arrays will look like:
+                        {input_json_format}
+                        
+                        Important Instructions:
+                        Return ONLY the new comments that are not duplicates of any existing comment.
+                        If all new comments are duplicates of existing ones, return an empty array.
+                        The goal is to minimize the number of new comments that are returned, filtering out any that are duplicate or very similar to existing comments.
+                        
+                        Rules for Filtering:
+                        Comments are considered duplicates if they meet ALL of the following criteria:
+                        - Same file: The comment applies to the same filename.
+                        - Status doesn't matter: The comment doesn't have to have the same status.
+                        - Close line numbers: The comment applies to a line number within 1-3 lines of an existing comment.
+                        - Similar content: The comment content address the same issue or topic. Follow the instructions in the next paragraph to determine what should be considered as 'similar content'!
+                        Comment messages considered redundant (similar) if ANY of the following applies (SO YOU MUST FILTER THEM):
+                        - They mentionn the same or a similar issue.
+                        - They mention the same or similar solutions.
+                        - They suggest identical or similar code changes or improvements.
+                        - The new comment provides a different or a slightly different perspective.
+                        - They have a slight overlap in meaning.
+                        - The new comment provides more specific recommendation.
+                        - The new comment adds more details.
+                        - The new comment adds additional information.
+                        
+                        Example for similar comments, you MUST treat this level of similarity as a DUPLICATE COMMENT:
+                        - EXISTING COMMENT: Adding an output for a hardcoded password is a severe security risk. Sensitive information should never be stored in plaintext in your Terraform code. Use secure methods like AWS Secrets Manager or encrypted variables instead.
+                        - NEW COMMENT: Exposing sensitive information like passwords in outputs is a security risk. Consider using Terraform's sensitive outputs or a secure secret management solution.
+                        
+                        Response format:
+                        Output MUST be in JSON format, here are the insturctions:
+                        {format_instructions}
+                        DO NOT USE markdown in the response.
+                        """),
+                ),
+                ("user", "{question}"),
+            ]
+        )
+
+        chain = prompt | self.model | parser
+
+        example_schema = [
+            Comment(filename="file1", line_number=1, comment="comment1", status="added").model_dump(),
+            Comment(filename="file1", line_number=2, comment="comment2", status="added").model_dump(),
+        ]
+
+        result: CodeReviewResponse = chain.invoke(
+            {
+                "input_json_format": json.dumps(example_schema, indent=2),
+                "format_instructions": parser.get_format_instructions(),
+                "question": wrap_prompt(
+                    f"EXISTING COMMENTS: {existing_comments}",
+                    f"NEW COMMENTS: {new_comments}",
+                ),
+            }
+        )
+
+        comments = result.issues
+
+        if not comments:
+            # Since there are no new comments, create a simple response for the user
+            comments.append(
+                Comment(
+                    filename="",
+                    line_number=0,
+                    comment="Reviewed the changes again, but I didn't find any problems in your code which haven't been mentioned before.",
+                    status="",
+                )
+            )
+
+        log.info(f"""
+        Comment duplications remowed.
+        comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
+        """)
+        return {"new_comments": comments}
+
+    def commenter(self, state: GitHubPRState) -> None:
         try:
             repo = self._github.get_repo(self.repo_name)
             pull_request = repo.get_pull(self.pr_number)
             files = pull_request.get_files()
         except UnknownObjectException:
             log.error(f"repo: {self.repo_name} with pr: {self.pr_number} not found")
-            return state
+            return
         except Exception as error:
             log.error(f"General error while fetching repo: {self.repo_name} with pr: {self.pr_number}. error: {error}")
-            return state
+            return
         latest_commit = list(pull_request.get_commits())[-1].commit
         commit = repo.get_commit(latest_commit.sha)
         for pr_file in files:
-            for comment in state["comments"]:
+            for comment in state["new_comments"]:
                 if comment.filename == pr_file.filename:
                     # Create a comment on the specific line
                     pull_request.create_review_comment(
@@ -305,10 +410,18 @@ class Nodes:
                         line=int(comment.line_number),
                         side="LEFT" if comment.status == "removed" else "RIGHT",
                     )
-        for comment in state["comments"]:
-            if comment.filename == "":
+
+        for comment in state["new_comments"]:
+            if comment.line_number == 0:
+                # Response comment for a re-review
                 pull_request.create_issue_comment(comment.comment)
-        return state
+
+        # Create summary comment
+        title_desc_comment = state["title_desc_comment"]
+        if title_desc_comment:
+            pull_request.create_issue_comment(title_desc_comment.comment)
+
+        return
 
     def __get_modified_files(self, repo: Repository, pr: PullRequest) -> List[ContextFile]:
         """Get a list of modified files with annotated content from a pull request.
@@ -362,14 +475,14 @@ class Nodes:
         # Add a space to the beginning of each line in the original file because the patch blocks are shifted
         # by the annotations
         for i in range(len(o_file)):
-            o_file[i] = ' ' + o_file[i]
+            o_file[i] = " " + o_file[i]
 
         # Merge the original file with the patch blocks.
         # Replace the lines, that presented in patch blocks, in the original file.
         new_file: list[str] = []
         cursor_pos: int = 0
         for c in changes:
-            new_file.extend(o_file[cursor_pos:c.start - 1])
+            new_file.extend(o_file[cursor_pos : c.start - 1])
             new_file.extend(c.change.splitlines())
             cursor_pos = c.end
         new_file.extend(o_file[cursor_pos:])
@@ -413,7 +526,11 @@ class Nodes:
             except UnknownObjectException:
                 log.error(f"Error fetching directory: {directory}")
 
-        return [ContextFile(path=f.path, content=f.decoded_content.decode("utf-8")) for f in all_files if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames]
+        return [
+            ContextFile(path=f.path, content=f.decoded_content.decode("utf-8"))
+            for f in all_files
+            if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames
+        ]
 
     @staticmethod
     def __append_line_number(lines: List[str]):
