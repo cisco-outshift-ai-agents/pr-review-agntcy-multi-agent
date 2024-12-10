@@ -195,9 +195,7 @@ class GitHubOperations:
             body=comment,
         )
 
-    def create_pending_pull_request_comment(
-        self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list
-    ):
+    def create_pending_pull_request_comment(self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list):
         self.delete_pending_pull_request(pull_request)
 
         # NOTE: event prop needs to be undefined for pending PR state
@@ -209,14 +207,14 @@ class GitHubOperations:
         except Exception as e:
             log.error(f"Error during create a new pending pull request: {e}")
 
-    def submit_pending_pull_request(self, pull_request: github.PullRequest.PullRequest, pr_comment: str):
+    def submit_pending_pull_request(self, pull_request: github.PullRequest.PullRequest):
         review, review_url = self._get_alfred_pending_pull_request(pull_request)
 
         if review is None and review_url is None:
             return
 
         # NOTE: Can not use review.edit() due to only body is allowed as post_parameter
-        post_parameters = {"body": pr_comment, "event": "COMMENT"}
+        post_parameters = {"body": "", "event": "COMMENT"}
 
         try:
             headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{review_url}/reviews/{review.id}/events", input=post_parameters)

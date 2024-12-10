@@ -421,11 +421,11 @@ class Nodes:
         # Create summary comment
         title_desc_comment = state["title_desc_comment"]
         if title_desc_comment:
-            pr_comment = title_desc_comment.comment
+            pull_request.create_issue_comment(title_desc_comment.comment)
 
         if len(comments_transformed) > 0:
             self._github.create_pending_pull_request_comment(pull_request, commit, comments_transformed)
-            self._github.submit_pending_pull_request(pull_request, pr_comment)
+            self._github.submit_pending_pull_request(pull_request)
 
         return
 
