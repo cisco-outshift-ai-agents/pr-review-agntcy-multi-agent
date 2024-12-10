@@ -1,0 +1,23 @@
+{
+	"deployment": [
+		{
+			"configfile_arg": "--configfile",
+			"config_envvars": {
+				"azure_openai_api_key": {
+					"varname": "AZURE_OPENAI_API_KEY",
+					"required": true
+				}
+			},
+			"input": {
+				"type": "FILE_IO_ARG",
+				"argname": "--inputfile"
+			},
+			"output": {
+				"type": "FILE_IO_ARG",
+				"argname": "--outputfile"
+			},
+			"type": "CONTAINER",
+			"image": "commenter:latest"
+		}
+	]
+}

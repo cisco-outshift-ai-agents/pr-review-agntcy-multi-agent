@@ -1,0 +1,430 @@
+{
+  "metadata": {
+    "id": "cbe33170-000e-44bd-b248-50cfe508d494",
+    "name": "",
+    "version": "0.0.1",
+    "owner": "unknown@unknow.unknown",
+    "description": "",
+    "status": "draft"
+  },
+  "spec": {
+    "input": {
+      "properties": {
+        "git_conf": {
+          "properties": {
+            "installation_id": {
+              "type": "string",
+              "description": ""
+            },
+            "repo_name": {
+              "type": "string",
+              "description": ""
+            },
+            "branch_name": {
+              "type": "string",
+              "description": ""
+            },
+            "pr_number": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "type": "object",
+          "required": [
+            "installation_id",
+            "repo_name",
+            "branch_name",
+            "pr_number"
+          ]
+        },
+        "state": {
+          "properties": {
+            "messages": {
+              "type": "null",
+              "description": ""
+            },
+            "changes": {
+              "items": {
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "start_line": {
+                    "type": "number",
+                    "description": ""
+                  },
+                  "changed_code": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": ""
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "filename",
+                  "start_line",
+                  "changed_code",
+                  "status"
+                ],
+                "description": ""
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "modified_files": {
+              "items": {
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": ""
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "path",
+                  "content"
+                ]
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "context_files": {
+              "items": {
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": ""
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "path",
+                  "content"
+                ]
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "new_comments": {
+              "items": {
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "description": "The name of the file where the issue was found. Can be found at the beginning of the file. MUST BE the full path to the file."
+                  },
+                  "line_number": {
+                    "type": "number",
+                    "description": "The line number where the issue was found."
+                  },
+                  "comment": {
+                    "type": "string",
+                    "description": "The review comment describing the issue. Must be placed here without markdown formatting."
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Status of the line - must be either 'added' (for lines added in the PR, marked with '+') or 'removed' (for lines removed in the PR, marked with '-'). Can be found at the beginning of the line after the line number."
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "filename",
+                  "line_number",
+                  "comment",
+                  "status"
+                ]
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "existing_comments": {
+              "items": {
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "description": "The name of the file where the issue was found. Can be found at the beginning of the file. MUST BE the full path to the file."
+                  },
+                  "line_number": {
+                    "type": "number",
+                    "description": "The line number where the issue was found."
+                  },
+                  "comment": {
+                    "type": "string",
+                    "description": "The review comment describing the issue. Must be placed here without markdown formatting."
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Status of the line - must be either 'added' (for lines added in the PR, marked with '+') or 'removed' (for lines removed in the PR, marked with '-'). Can be found at the beginning of the line after the line number."
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "filename",
+                  "line_number",
+                  "comment",
+                  "status"
+                ]
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "title_desc_comment": {
+              "type": "null",
+              "description": ""
+            },
+            "sender": {
+              "type": "string",
+              "description": ""
+            },
+            "title": {
+              "type": "string",
+              "description": ""
+            },
+            "description": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "type": "object",
+          "required": [
+            "messages",
+            "changes",
+            "modified_files",
+            "context_files",
+            "new_comments",
+            "existing_comments",
+            "sender",
+            "title",
+            "description"
+          ],
+          "description": ""
+        }
+      },
+      "required": [
+        "git_conf",
+        "state"
+      ]
+    },
+    "output": {
+      "properties": {
+        "return": {
+          "properties": {
+            "messages": {
+              "type": "null",
+              "description": ""
+            },
+            "changes": {
+              "items": {
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "start_line": {
+                    "type": "number",
+                    "description": ""
+                  },
+                  "changed_code": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": ""
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "filename",
+                  "start_line",
+                  "changed_code",
+                  "status"
+                ],
+                "description": ""
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "modified_files": {
+              "items": {
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": ""
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "path",
+                  "content"
+                ]
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "context_files": {
+              "items": {
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": ""
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "path",
+                  "content"
+                ]
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "new_comments": {
+              "items": {
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "description": "The name of the file where the issue was found. Can be found at the beginning of the file. MUST BE the full path to the file."
+                  },
+                  "line_number": {
+                    "type": "number",
+                    "description": "The line number where the issue was found."
+                  },
+                  "comment": {
+                    "type": "string",
+                    "description": "The review comment describing the issue. Must be placed here without markdown formatting."
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Status of the line - must be either 'added' (for lines added in the PR, marked with '+') or 'removed' (for lines removed in the PR, marked with '-'). Can be found at the beginning of the line after the line number."
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "filename",
+                  "line_number",
+                  "comment",
+                  "status"
+                ]
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "existing_comments": {
+              "items": {
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "description": "The name of the file where the issue was found. Can be found at the beginning of the file. MUST BE the full path to the file."
+                  },
+                  "line_number": {
+                    "type": "number",
+                    "description": "The line number where the issue was found."
+                  },
+                  "comment": {
+                    "type": "string",
+                    "description": "The review comment describing the issue. Must be placed here without markdown formatting."
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Status of the line - must be either 'added' (for lines added in the PR, marked with '+') or 'removed' (for lines removed in the PR, marked with '-'). Can be found at the beginning of the line after the line number."
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "filename",
+                  "line_number",
+                  "comment",
+                  "status"
+                ]
+              },
+              "type": "array",
+              "required": [],
+              "description": ""
+            },
+            "title_desc_comment": {
+              "type": "null",
+              "description": ""
+            },
+            "sender": {
+              "type": "string",
+              "description": ""
+            },
+            "title": {
+              "type": "string",
+              "description": ""
+            },
+            "description": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "type": "object",
+          "required": [
+            "messages",
+            "changes",
+            "modified_files",
+            "context_files",
+            "new_comments",
+            "existing_comments",
+            "sender",
+            "title",
+            "description"
+          ],
+          "description": ""
+        }
+      }
+    },
+    "examples": []
+  },
+  "dependencies": {},
+  "deployment": [
+    {
+      "configfile_arg": "--configfile",
+      "config_envvars": {
+        "azure_openai_api_key": {
+          "varname": "AZURE_OPENAI_API_KEY",
+          "required": true
+        }
+      },
+      "input": {
+        "type": "FILE_IO_ARG",
+        "argname": "--inputfile"
+      },
+      "output": {
+        "type": "FILE_IO_ARG",
+        "argname": "--outputfile"
+      },
+      "type": "CONTAINER",
+      "image": "pr_fetcher:latest"
+    }
+  ]
+}
