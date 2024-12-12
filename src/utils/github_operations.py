@@ -28,6 +28,9 @@ class GitHubOperations:
             app_id = self._get_app_id()
 
             git_integration = GithubIntegration(auth=github.Auth.AppAuth(app_id, private_key))
+
+            self._app_name = git_integration.get_app().name
+
             github_token = git_integration.get_access_token(int(installation_id)).token
             return Github(github_token)
         except Exception as e:
@@ -232,9 +235,12 @@ class GitHubOperations:
 
     def _get_alfred_pending_pull_request(self, pull_request: github.PullRequest.PullRequest):
         reviews = pull_request.get_reviews()
+
+        app_login_name = self._app_name.lower() + "[bot]"
+
         if reviews.totalCount != 0:
             for r in reviews:
-                if r.user.login == "alfred-dev-app[bot]" and r.state == "PENDING":
+                if r.user.login == app_login_name and r.state == "PENDING":
                     review = r
                     review_url = pull_request.get_review(r.id).pull_request_url
 
