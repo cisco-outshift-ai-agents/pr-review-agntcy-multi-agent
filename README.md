@@ -48,8 +48,10 @@ TBD
    - GITHUB_APP_PRIVATE_KEY_FILE
    - GITHUB_WEBHOOK_SECRET
    - GCP_SERVICE_ACCOUNT - this should point to a local file with the GCP service account where the model is hosted
-   - VERTEXAI_MODEL
-   - VERTEXAI_GCP_REGION
+   - AZURE_OPENAI_ENDPOINT
+   - AZURE_OPENAI_DEPLOYMENT
+   - AZURE_OPENAI_API_KEY
+   - AZURE_OPENAI_API_VERSION
 
 ##### Automatic way to install python environment with dependecies
 

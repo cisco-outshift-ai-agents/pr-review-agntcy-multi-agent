@@ -11,7 +11,7 @@ from github.Repository import Repository
 from langchain_core.messages import BaseMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_vertexai.model_garden import ChatAnthropicVertex
+from langchain_openai import AzureChatOpenAI
 from pydantic import BaseModel
 
 from pr_graph.state import FileChange, GitHubPRState, Comment, ContextFile, CodeReviewResponse
@@ -21,7 +21,7 @@ from utils.wrap_prompt import wrap_prompt
 
 
 class Nodes:
-    def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: ChatAnthropicVertex, user_config: Dict):
+    def __init__(self, installation_id: int, repo_name: str, pr_number: int, model: AzureChatOpenAI, user_config: Dict):
         self._github = GitHubOperations(str(installation_id))
         self.repo_name = repo_name
         self.pr_number = pr_number

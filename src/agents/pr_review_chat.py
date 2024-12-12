@@ -32,7 +32,7 @@ class PRReviewChatAgent(Agent):
         super(PRReviewChatAgent, self).__init__()
 
         self.__github_ops = github_operations
-        self.__model = models.get_vertexai()
+        self.__model = models.get_azure_openai()
         self.__parser = PydanticOutputParser(pydantic_object=PRReviewChatResponse)
 
     def invoke(self, repo_full_name: str, pr_number: int, comment: dict[str, Any]):

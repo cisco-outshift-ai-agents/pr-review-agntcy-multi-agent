@@ -15,7 +15,7 @@ class WorkFlow:
         if user_config is None:
             raise ValueError("User config is None")
 
-        self.nodes = Nodes(installation_id, repo_name, pr_number, models.get_vertexai(), user_config)
+        self.nodes = Nodes(installation_id, repo_name, pr_number, models.get_azure_openai(), user_config)
 
     def run(self):
         workflow = StateGraph(GitHubPRState)
