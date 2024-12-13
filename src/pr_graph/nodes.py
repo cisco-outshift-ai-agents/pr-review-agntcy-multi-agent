@@ -15,7 +15,7 @@ from langchain_openai import AzureChatOpenAI
 from pydantic import BaseModel
 
 from pr_graph.state import CodeReviewResponse, Comment, ContextFile, FileChange, GitHubPRState
-from utils.github_operations import GitHubOperations
+from utils.github_operations import GitHubOperations, GitHubReviewComment
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
 
@@ -400,19 +400,16 @@ class Nodes:
         latest_commit = list(pull_request.get_commits())[-1].commit
         commit = repo.get_commit(latest_commit.sha)
 
-        comments_transformed = list()
+        comments_transformed: list[GitHubReviewComment] = []
 
         for pr_file in files:
             for comment in state["new_comments"]:
                 if comment.filename == pr_file.filename:
-                    comments_transformed.append(
-                        {
-                            "body": comment.comment,
-                            "path": pr_file.filename,
-                            "line": int(comment.line_number),
-                            "side": "LEFT" if comment.status == "removed" else "RIGHT",
-                        }
+                    c = GitHubReviewComment(
+                        comment.comment, pr_file.filename, int(comment.line_number), "LEFT" if comment.status == "removed" else "RIGHT"
                     )
+
+                    comments_transformed.append(c)
         for comment in state["new_comments"]:
             if comment.line_number == 0:
                 # Response comment for a re-review

@@ -1,5 +1,6 @@
 import base64
 import os
+from dataclasses import asdict, dataclass
 from typing import Optional, Tuple
 
 import github.Auth
@@ -10,6 +11,14 @@ from github.PullRequestComment import PullRequestComment
 from github.Repository import Repository
 
 from utils.logging_config import logger as log
+
+
+@dataclass
+class GitHubReviewComment:
+    body: str
+    path: str
+    line: int
+    side: str
 
 
 class GitHubOperations:
@@ -198,12 +207,16 @@ class GitHubOperations:
             body=comment,
         )
 
-    def create_pull_request_review_comments(self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list):
+    def create_pull_request_review_comments(
+        self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list[GitHubReviewComment]
+    ):
+        comments_as_dict = [asdict(c) for c in comments]
+
         post_parameters = {
             "body": "Reviewed your changes, here is what I found:",
             "event": "COMMENT",
             "commit_id": commit._identity,
-            "comments": comments,
+            "comments": comments_as_dict,
         }
 
         try:
