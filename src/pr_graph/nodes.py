@@ -424,8 +424,7 @@ class Nodes:
             pull_request.create_issue_comment(title_desc_comment.comment)
 
         if len(comments_transformed) > 0:
-            self._github.create_pending_pull_request_comment(pull_request, commit, comments_transformed)
-            self._github.submit_pending_pull_request(pull_request)
+            self._github.create_pull_request_review_comments(pull_request, commit, comments_transformed)
 
         return
 
