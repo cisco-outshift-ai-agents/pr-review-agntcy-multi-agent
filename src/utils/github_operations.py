@@ -199,7 +199,12 @@ class GitHubOperations:
         )
 
     def create_pull_request_review_comments(self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list):
-        post_parameters = {"event": "COMMENT", "commit_id": commit._identity, "comments": comments}
+        post_parameters = {
+            "body": "Reviewed your changes, here is what I found:",
+            "event": "COMMENT",
+            "commit_id": commit._identity,
+            "comments": comments,
+        }
 
         try:
             headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{pull_request.url}/reviews", input=post_parameters)
