@@ -1,15 +1,24 @@
 import base64
 import os
+from dataclasses import asdict, dataclass
 from typing import Optional, Tuple
 
 import github.Auth
 from github import Github, GithubException, GithubIntegration
-from github.Repository import Repository
 from github.ContentFile import ContentFile
 from github.PaginatedList import PaginatedList
 from github.PullRequestComment import PullRequestComment
+from github.Repository import Repository
 
 from utils.logging_config import logger as log
+
+
+@dataclass
+class GitHubReviewComment:
+    body: str
+    path: str
+    line: int
+    side: str
 
 
 class GitHubOperations:
@@ -28,6 +37,9 @@ class GitHubOperations:
             app_id = self._get_app_id()
 
             git_integration = GithubIntegration(auth=github.Auth.AppAuth(app_id, private_key))
+
+            self._app_name = git_integration.get_app().name
+
             github_token = git_integration.get_access_token(int(installation_id)).token
             return Github(github_token)
         except Exception as e:
@@ -194,3 +206,21 @@ class GitHubOperations:
             comment_id,
             body=comment,
         )
+
+    def create_pull_request_review_comments(
+        self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list[GitHubReviewComment]
+    ):
+        comments_as_dict = [asdict(c) for c in comments]
+
+        post_parameters = {
+            "body": "Reviewed your changes, here is what I found:",
+            "event": "COMMENT",
+            "commit_id": commit._identity,
+            "comments": comments_as_dict,
+        }
+
+        try:
+            headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{pull_request.url}/reviews", input=post_parameters)
+            github.PullRequestComment.PullRequestComment(pull_request._requester, headers, data, completed=True)
+        except Exception as e:
+            log.error(f"Error during create a new pending pull request: {e}")
