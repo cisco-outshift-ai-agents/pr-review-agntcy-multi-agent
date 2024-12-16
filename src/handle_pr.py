@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from config import ConfigManager
 from graphs import CodeReviewerWorkflow, ReviewChatWorkflow
 from utils.constants import ALFRED_CONFIG_BRANCH
-from utils.github_operations import GitHubOperations
+from utils.github_operations import CheckRunConclusion, GitHubOperations
 from utils.logging_config import logger as log
 
 
@@ -44,6 +44,9 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
 
 
 def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
+    github_ops = GitHubOperations(str(installation_id), repo_name, pr_number)
+    check_run = github_ops.create_pull_request_check_run()
+
     try:
         log.debug(f"repo: {repo_name}, pr number:{pr_number}, installation id:{installation_id}")
         agency_provider = os.environ.get("agency_provider")
@@ -52,7 +55,11 @@ def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
             print(graph.run())
     except Exception as e:
         log.error("Error handling pull request", e)
+        github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure)
+
         raise
+
+    github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success)
 
 
 def handle_installation(payload, repositories_key):
@@ -86,8 +93,13 @@ def handle_pull_request_comment(payload):
     if installation_id is None:
         raise ValueError("Installation ID is missing in the payload")
 
+    github_ops = GitHubOperations(str(installation_id), repo_name, pr_number)
+    check_run = github_ops.create_pull_request_check_run()
+
     graph = ReviewChatWorkflow(installation_id, pr_number, repo_name, comment)
     print(graph.run())
+
+    github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success)
 
 
 def __is_commented_by_human(payload: dict[str, Any]) -> bool:

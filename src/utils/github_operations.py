@@ -1,6 +1,7 @@
 import base64
 import os
 from dataclasses import asdict, dataclass
+from enum import Enum
 from typing import Optional
 
 import github.Auth
@@ -29,6 +30,11 @@ class InvalidGitHubInitialization(Exception):
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
+
+
+class CheckRunConclusion(Enum):
+    success = "success"
+    failure = "failure"
 
 
 class GitHubOperations:
@@ -152,3 +158,12 @@ class GitHubOperations:
             github.PullRequestComment.PullRequestComment(self.pr._requester, headers, data, completed=True)
         except Exception as e:
             log.error(f"Error during create a new pending pull request: {e}")
+
+    def create_pull_request_check_run(self) -> github.CheckRun.CheckRun:
+        return self._repo.create_check_run(name="Alfred review", head_sha=self._pr.head.sha, status="in_progress")
+
+    def complete_pull_request_check_run(self, check_run: github.CheckRun.CheckRun, conclusion: CheckRunConclusion):
+        try:
+            check_run.edit(status="completed", conclusion=conclusion.name)
+        except Exception as e:
+            log.error(f"Unable to edit pull request check run: {e}")
