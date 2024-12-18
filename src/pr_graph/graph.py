@@ -21,6 +21,7 @@ class WorkFlow:
         workflow = StateGraph(GitHubPRState)
 
         workflow.add_node("fetch_pr", self.nodes.fetch_pr)
+        workflow.add_node("static_analysis", self.nodes.static_analysis)
         workflow.add_node("code_reviewer", self.nodes.code_reviewer)
         workflow.add_node("title_description_reviewer", self.nodes.title_description_reviewer)
         workflow.add_node("duplicate_comment_remover", self.nodes.duplicate_comment_remover)
@@ -28,7 +29,8 @@ class WorkFlow:
 
         workflow.set_entry_point("fetch_pr")
 
-        workflow.add_edge("fetch_pr", "code_reviewer")
+        workflow.add_edge("fetch_pr", "static_analysis")
+        workflow.add_edge("static_analysis", "code_reviewer")
         workflow.add_edge("fetch_pr", "title_description_reviewer")
         workflow.add_edge("code_reviewer", "duplicate_comment_remover")
         workflow.add_edge(["duplicate_comment_remover", "title_description_reviewer"], "commenter")

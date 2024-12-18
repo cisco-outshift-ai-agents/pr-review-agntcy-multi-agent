@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Annotated, Sequence
 from typing import Optional
 from typing import List
@@ -41,6 +42,12 @@ class ContextFile(BaseModel):
         return self.__str__()
 
 
+@dataclass
+class StaticAnalysisOutput:
+    terraform_validate_out: str
+    tflint_out: str
+
+
 class GitHubPRState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     changes: list[FileChange]
@@ -52,6 +59,7 @@ class GitHubPRState(TypedDict):
     sender: str
     title: str
     description: str
+    static_analysis_output: Optional[StaticAnalysisOutput]
 
 
 def create_default_github_pr_state() -> GitHubPRState:
@@ -66,4 +74,5 @@ def create_default_github_pr_state() -> GitHubPRState:
         sender="",
         title="",
         description="",
+        static_analysis_output=None,
     )

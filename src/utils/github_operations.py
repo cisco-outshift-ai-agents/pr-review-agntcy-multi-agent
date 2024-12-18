@@ -1,7 +1,9 @@
 import base64
+import io
 import os
 from dataclasses import asdict, dataclass
 from typing import Optional, Tuple
+import zipfile
 
 import github.Auth
 from github import Github, GithubException, GithubIntegration
@@ -9,6 +11,7 @@ from github.ContentFile import ContentFile
 from github.PaginatedList import PaginatedList
 from github.PullRequestComment import PullRequestComment
 from github.Repository import Repository
+import requests
 
 from utils.logging_config import logger as log
 
@@ -38,9 +41,9 @@ class GitHubOperations:
 
             git_integration = GithubIntegration(auth=github.Auth.AppAuth(app_id, private_key))
 
-            self._app_name = git_integration.get_app().name
-
             github_token = git_integration.get_access_token(int(installation_id)).token
+            self.__github_token = github_token
+
             return Github(github_token)
         except Exception as e:
             log.error(f"Failed to initialize GitHub client: {e}")
@@ -180,6 +183,37 @@ class GitHubOperations:
     def get_repo(self, repo_name: str) -> Repository:
         """Gets a repository from the GitHub API"""
         return self._github.get_repo(repo_name)
+
+    def clone_repo(self, repo_name: str, pr_number: int, destination_folder: str) -> str:
+        """Clone the PR's branch content into a folder, returns the path to the repo"""
+
+        log.debug("Cloning the repo into a local folder...")
+
+        repo = self.get_repo(repo_name)
+        pr = repo.get_pull(pr_number)
+
+        zip_link = repo.get_archive_link("zipball", pr.head.ref)
+
+        response = requests.get(zip_link, headers={"Authorization": f"token {self.__github_token}"})
+
+        if response.status_code != 200:
+            raise ValueError(f"Error while downloading the repo as ZIP, status code: {response.status_code}")
+
+        log.debug("Repo downloaded successfully")
+
+        zip_file_in_memory = io.BytesIO(response.content)
+        with zipfile.ZipFile(zip_file_in_memory, "r") as zip_ref:
+            file_list = zip_ref.namelist()
+            if not file_list:
+                raise ValueError("Cloned repo is empty or the zip is cossupted")
+
+            # Inside the zip there's a folder named (repo-name-<commit-hash>), we would like to return this folder name
+            folder_name = file_list[0].split("/")[0]
+
+            zip_ref.extractall(destination_folder)
+            log.debug("Repo extracted successfully")
+
+            return f"{destination_folder}/{folder_name}"
 
     def list_comments_from_pr(self, repo_full_name: str, pr_number: int) -> PaginatedList[PullRequestComment]:
         repo = self._github.get_repo(repo_full_name)
