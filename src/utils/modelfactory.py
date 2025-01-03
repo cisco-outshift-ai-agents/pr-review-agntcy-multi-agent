@@ -33,7 +33,7 @@ class ChatModelFactory:
             credentials = self.__get_gcp_credentials()
         except Exception as e:
             log.error(f"Error while getting GCP credentials for VertexAI: {e}")
-            raise EnvironmentError(f"Invalid enviroment config for getting GCP credentials: {e}")
+            raise EnvironmentError(f"Invalid environment config for getting GCP credentials: {e}") from e
 
         return ChatAnthropicVertex(
             model=os.getenv("VERTEXAI_MODEL"), location=os.getenv("VERTEXAI_GCP_REGION"), credentials=credentials, temperature=0

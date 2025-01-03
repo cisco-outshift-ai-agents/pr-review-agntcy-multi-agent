@@ -11,7 +11,7 @@ class MarkdownParser(ParserMixin):
             # Example parsing logic for markdown-style content
             sections = re.split(r"^##\s+", content, flags=re.MULTILINE)
             sections = sections[1:] if len(sections) > 1 else sections
-            structured_content = {}
+            structured_content: dict[str, str] = {}
 
             for section in sections:
                 lines = section.strip().split("\n")
@@ -20,19 +20,19 @@ class MarkdownParser(ParserMixin):
                 # Split content by subtitles (-)
                 subsections = re.split(r"^-\s+\*\*(.*?):?\*\*", content, flags=re.MULTILINE)
                 if len(subsections) > 1:
-                    structured_content[main_title] = {}
+                    structured_content[main_title] = ""  # Initialize as an empty string
                     for i in range(1, len(subsections), 2):
                         subtitle = subsections[i].strip()
                         subcontent = subsections[i + 1].strip() if i + 1 < len(subsections) else ""
                         if i == 1:
                             structured_content[main_title] = f"{subtitle}: {subcontent}"
                         else:
-                            structured_content[main_title] = structured_content[main_title] + f"\n{subtitle}: {subcontent}"
+                            structured_content[main_title] += f"\n{subtitle}: {subcontent}"
                 else:
                     structured_content[main_title] = content
             return structured_content
         except Exception as e:
-            raise ParseContentError(f"Error parsing markdown content. {e}", content)
+            raise ParseContentError(f"Error parsing markdown content. {e}", content) from e
 
     # Validate the structure of the markdown content.
     # TODO: Implement the validation logic into the config.Config class instead of the parser.

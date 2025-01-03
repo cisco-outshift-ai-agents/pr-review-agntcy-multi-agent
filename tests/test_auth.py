@@ -1,10 +1,12 @@
 from http import HTTPStatus
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
-from webbrowser import get
-from fastapi import HTTPException, Request
+
 import pytest
-from src.auth import create_signature, fastapi_validate_github_signature, lambda_validate_github_signature, valid_github_signature
+from fastapi import HTTPException, Request
+
+from src.auth import create_signature, fastapi_validate_github_signature, lambda_validate_github_signature, \
+    valid_github_signature
 from src.utils.constants import GITHUB_SIGNATURE_HEADER
 
 
