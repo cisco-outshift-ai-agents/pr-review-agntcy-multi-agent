@@ -24,7 +24,7 @@ class WorkFlow:
         workflow.add_node("static_analyzer", self.nodes.static_analyzer)
         workflow.add_node("code_reviewer", self.nodes.code_reviewer)
         workflow.add_node("title_description_reviewer", self.nodes.title_description_reviewer)
-        workflow.add_node("duplicate_comment_remover", self.nodes.duplicate_comment_remover)
+        workflow.add_node("comment_filter", self.nodes.comment_filter)
         workflow.add_node("commenter", self.nodes.commenter)
 
         workflow.set_entry_point("fetch_pr")
@@ -32,8 +32,8 @@ class WorkFlow:
         workflow.add_edge("fetch_pr", "static_analyzer")
         workflow.add_edge("fetch_pr", "title_description_reviewer")
         workflow.add_edge("static_analyzer", "code_reviewer")
-        workflow.add_edge("code_reviewer", "duplicate_comment_remover")
-        workflow.add_edge(["duplicate_comment_remover", "title_description_reviewer"], "commenter")
+        workflow.add_edge("code_reviewer", "comment_filter")
+        workflow.add_edge(["comment_filter", "title_description_reviewer"], "commenter")
 
         init_state = create_default_github_pr_state()
         graph = workflow.compile()
