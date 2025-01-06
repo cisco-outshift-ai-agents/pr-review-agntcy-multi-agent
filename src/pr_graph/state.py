@@ -22,8 +22,8 @@ class Comment(BaseModel):
     )
     line_number: int = Field(description="The line number where the issue was found.")
     comment: str = Field(description="The review comment describing the issue. Must be placed here without markdown formatting.")
-    status: str = Field(
-        description="Status of the line - must be either 'added' (for lines added in the PR, marked with '+') or 'removed' (for lines removed in the PR, marked with '-'). Can be found at the beginning of the line after the line number."
+    line_status: str = Field(
+        description="Should be 'added' if the line was added by the user in the PR and 'removed' if it has been deleted (use the modification_sign to determine this)."
     )
 
 
@@ -59,7 +59,7 @@ class GitHubPRState(TypedDict):
     sender: str
     title: str
     description: str
-    static_analysis_output: Optional[StaticAnalysisOutput]
+    static_analyzer_output: str
 
 
 def create_default_github_pr_state() -> GitHubPRState:
@@ -74,5 +74,5 @@ def create_default_github_pr_state() -> GitHubPRState:
         sender="",
         title="",
         description="",
-        static_analysis_output=None,
+        static_analyzer_output="",
     )

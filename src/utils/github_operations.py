@@ -1,4 +1,5 @@
 import base64
+from http import HTTPStatus
 import io
 import os
 from dataclasses import asdict, dataclass
@@ -196,7 +197,7 @@ class GitHubOperations:
 
         response = requests.get(zip_link, headers={"Authorization": f"token {self.__github_token}"})
 
-        if response.status_code != 200:
+        if response.status_code != HTTPStatus.OK:
             raise ValueError(f"Error while downloading the repo as ZIP, status code: {response.status_code}")
 
         log.debug("Repo downloaded successfully")
