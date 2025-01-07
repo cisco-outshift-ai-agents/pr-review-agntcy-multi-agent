@@ -6,7 +6,7 @@ ifeq ($(shell test -d .venv && echo 1 || echo 0), 1)
 endif
 
 PYTHON = $(VENV_DIR)/bin/python
-PIP = $(VENV_DIR)/bin/pip
+PIP = $(VENV_DIR)/bin/pip3
 POETRY = $(VENV_DIR)/bin/poetry
 PYTEST = $(VENV_DIR)/bin/pytest
 
@@ -51,8 +51,8 @@ setup:
 	~/.pyenv/versions/3.12.6/bin/python3 -m venv .venv && \
 	source .venv/bin/activate
 
-	pip install -U pip setuptools; \
-	pip install poetry && \
+	$(PIP) install -U pip setuptools; \
+	$(PIP) install poetry && \
 	poetry install
 
 	npm install --global smee-client

@@ -25,13 +25,13 @@ TBD
    - Save the `GitHub App ID` for later use
 4. Go to `Permissions & events` and set the followings up
    - Under `Repository permissions`:
-     - Contents read access
-     - Pull requests read and write access
+     - Contents: read and write access
+     - Pull requests: read and write access
+     - Issues: read
    - Under `Subscribe to events`:
      - Pull request
      - Pull request review
-     - Pull request review comment
-     - Pull request review thread
+     - Issues
 
 #### Install your own Alfred GitHub App to a repository
 
@@ -86,10 +86,11 @@ Run `make setup` in this project folder
    ```bash
    npx smee -u https://smee.io/{YOUR_WEBHOOK_PATH} -t http://localhost:5500/api/webhook
     ```
+    (note that it seems that in newer versions you just need to specify the webhook path only)
 2.	Activate virtual environment and start alfred:
    ```bash
    source .venv/bin/activate &&
-   python3 main_local.py
+   python3 src/main_local.py
    ```
 3. Create an event on your PR (like new commit)
 
