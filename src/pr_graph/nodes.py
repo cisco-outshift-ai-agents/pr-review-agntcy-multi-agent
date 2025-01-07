@@ -17,7 +17,7 @@ from langchain_openai import AzureChatOpenAI
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 
-from pr_graph.state import CodeReviewResponse, Comment, ContextFile, FileChange, GitHubPRState, StaticAnalysisOutput
+from pr_graph.state import CodeReviewResponse, Comment, ContextFile, FileChange, GitHubPRState
 from utils.github_operations import GitHubOperations, GitHubReviewComment
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
@@ -31,7 +31,7 @@ class Nodes:
         self.model = model
         self.user_config = user_config
 
-    def fetch_pr(self, state: GitHubPRState) -> dict[str, Any]:
+    def fetch_pr(self, _: GitHubPRState) -> dict[str, Any]:
         log.info("in fetch_pr")
         repo: Repository = self._github.get_repo(self.repo_name)
         pull_request: PullRequest = repo.get_pull(self.pr_number)
@@ -278,7 +278,7 @@ class Nodes:
         log.info("in code reviewer")
 
         comments = []
-        for _ in range(3):
+        for _ in range(5):
             comments += self.__code_review(state)
 
         log.debug(f"""
@@ -505,9 +505,9 @@ class Nodes:
 
     @staticmethod
     def __remove_duplicate_comments(existing_comments: list[Comment], new_comments: list[Comment]) -> list[Comment]:
-        # We use a simple embeding model to create a multi dimensional vector embedings
-        # We calculate the embedings and then the similarities.
-        # The similarities are the cosine of the angle between the vectors, [-1, 1], the closer to 1 the more similar two sentences are.
+        # We use a simple embeding model to create vector embedings
+        # We calculate the embedings first and then the similarities
+        # The similarities are the cosine of the angle between the vectors, [-1, 1], the closer to 1 the more similar two sentences are
         model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
         # First we remove the duplications from the new_comments:
@@ -515,9 +515,9 @@ class Nodes:
         new_message_embeddings = model.encode(new_messages)
         new_message_similarity = model.similarity(new_message_embeddings, new_message_embeddings)
 
-        # We have the following similarity matrix.
-        # We only need to iterate over either the top or the bottom triangle, this code uses the top.
-        # In each line if we find that there's a comment with a similar meaning, close line number and same file, we exlude that comment.
+        # We have the following similarity matrix
+        # We only need to iterate over either the top or the bottom triangle, this code uses the top
+        # In each line if we find that there's a comment with a similar meaning, close line number and same file, we exlude that comment
 
         #   0  1   2   3   4
         # 0 1 0.1 0.3 0.8 0.1 -- The comment with index 3 is similar to index 0, so it's removed
@@ -545,6 +545,9 @@ class Nodes:
                     and new_comments[j].filename == new_comments[i].filename
                 ):
                     to_exclude.append(j)
+
+        if not existing_comments:
+            return new_comments_filtered
 
         # Now filter new comments against the existing ones
         # This time the matrix will be a bit different, the rows are the filtered new comments and the columns are the existing ones.

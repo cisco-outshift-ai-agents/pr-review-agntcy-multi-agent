@@ -23,7 +23,7 @@ class Comment(BaseModel):
     line_number: int = Field(description="The line number where the issue was found.")
     comment: str = Field(description="The review comment describing the issue. Must be placed here without markdown formatting.")
     line_status: str = Field(
-        description="Should be 'added' if the line was added by the user in the PR and 'removed' if it has been deleted (use the modification_sign to determine this)."
+        description="Determine this field based on the modification_sign of the selected line (line_number). If the modification_sign is '+' write 'added' if '-' then write 'removed'."
     )
 
 
