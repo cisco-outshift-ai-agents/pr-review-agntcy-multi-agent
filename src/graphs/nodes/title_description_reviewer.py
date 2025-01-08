@@ -7,7 +7,7 @@ from utils.models import Comment
 from langchain_core.runnables import RunnableSerializable
 
 
-class TitleDescriptionReviewerNode:
+class TitleDescriptionReviewer:
     def __init__(self, context: DefaultContext, name: str = "title_description_reviewer"):
         self.context = context
         self.name = name

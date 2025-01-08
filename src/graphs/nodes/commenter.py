@@ -3,8 +3,8 @@ from .contexts import DefaultContext
 from utils.logging_config import logger as log
 
 
-class CommenterNode:
-    """CommenterNode creates GitHub issue comments for a given PR"""
+class Commenter:
+    """Commenter creates GitHub issue comments for a given PR"""
 
     def __init__(self, context: DefaultContext, name: str = "commenter"):
         self.context = context

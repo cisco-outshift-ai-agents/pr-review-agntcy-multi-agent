@@ -5,12 +5,12 @@ from langgraph.graph import StateGraph
 
 from graphs.chains import create_review_chat_assistant_chain
 from graphs.nodes import (
-    CommentsFetcherNode,
-    CommentsToThreadConverterNode,
-    CommentsToMessagesConverterNode,
-    CommentRelatedPatchFetcherNode,
-    ReviewChatAssistantNode,
-    CommentReplierNode,
+    CommentsFetcher,
+    CommentsToThreadConverter,
+    CommentsToMessagesConverter,
+    CommentRelatedPatchFetcher,
+    ReviewChatAssistant,
+    CommentReplier,
 )
 from graphs.nodes.contexts import DefaultContext
 from graphs.states import ReviewChatAssistantState
@@ -26,6 +26,7 @@ COMMENT_REPLIER_NODE = "comment_replier"
 
 BOT_USER_TYPE = "Bot"
 
+
 class ReviewChatWorkflow:
     def __init__(self, installation_id: int, pr_number: int, repo_name: str, comment: Dict[str, Any]):
         self.__repo_name = repo_name
@@ -33,8 +34,7 @@ class ReviewChatWorkflow:
         self.__comment = comment
 
         github = GitHubOperations(str(installation_id), self.__repo_name, self.__pr_number)
-        self.__context = DefaultContext(github=github,
-                                        chain=create_review_chat_assistant_chain(models.get_azure_openai()))
+        self.__context = DefaultContext(github=github, chain=create_review_chat_assistant_chain(models.get_azure_openai()))
 
         self.__graph = self.__create_graph()
 
@@ -52,12 +52,12 @@ class ReviewChatWorkflow:
     def __create_graph(self):
         workflow = StateGraph(ReviewChatAssistantState)
 
-        workflow.add_node(COMMENTS_FETCHER_NODE, CommentsFetcherNode(self.__context))
-        workflow.add_node(COMMENTS_TO_THREAD_CONVERTER_NODE, CommentsToThreadConverterNode())
-        workflow.add_node(COMMENTS_TO_MESSAGES_CONVERTER_NODE, CommentsToMessagesConverterNode())
-        workflow.add_node(COMMENT_RELATED_PATCH_FETCHER_NODE, CommentRelatedPatchFetcherNode(self.__context))
-        workflow.add_node(REVIEW_CHAT_ASSISTANT_NODE, ReviewChatAssistantNode(self.__context))
-        workflow.add_node(COMMENT_REPLIER_NODE, CommentReplierNode(self.__context))
+        workflow.add_node(COMMENTS_FETCHER_NODE, CommentsFetcher(self.__context))
+        workflow.add_node(COMMENTS_TO_THREAD_CONVERTER_NODE, CommentsToThreadConverter())
+        workflow.add_node(COMMENTS_TO_MESSAGES_CONVERTER_NODE, CommentsToMessagesConverter())
+        workflow.add_node(COMMENT_RELATED_PATCH_FETCHER_NODE, CommentRelatedPatchFetcher(self.__context))
+        workflow.add_node(REVIEW_CHAT_ASSISTANT_NODE, ReviewChatAssistant(self.__context))
+        workflow.add_node(COMMENT_REPLIER_NODE, CommentReplier(self.__context))
 
         workflow.add_conditional_edges(
             COMMENTS_FETCHER_NODE,
@@ -65,8 +65,7 @@ class ReviewChatWorkflow:
             [COMMENTS_TO_THREAD_CONVERTER_NODE, COMMENT_RELATED_PATCH_FETCHER_NODE, END],
         )
         workflow.add_edge(COMMENTS_TO_THREAD_CONVERTER_NODE, COMMENTS_TO_MESSAGES_CONVERTER_NODE)
-        workflow.add_edge([COMMENTS_TO_MESSAGES_CONVERTER_NODE, COMMENT_RELATED_PATCH_FETCHER_NODE],
-                          REVIEW_CHAT_ASSISTANT_NODE)
+        workflow.add_edge([COMMENTS_TO_MESSAGES_CONVERTER_NODE, COMMENT_RELATED_PATCH_FETCHER_NODE], REVIEW_CHAT_ASSISTANT_NODE)
         workflow.add_conditional_edges(REVIEW_CHAT_ASSISTANT_NODE, self.is_skipped_router, [COMMENT_REPLIER_NODE, END])
 
         workflow.set_entry_point(COMMENTS_FETCHER_NODE)

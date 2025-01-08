@@ -11,13 +11,13 @@ from utils.logging_config import logger as log
 NOT_RELATED_MESSAGE = "I apologize but your question or instruction is not related to the code so I cannot provide a response."
 
 
-class ReviewChatAssistantNode:
-    def __init__(self, context: DefaultContext, name: str = "review_chat_assistant_node"):
+class ReviewChatAssistant:
+    def __init__(self, context: DefaultContext, name: str = "review_chat_assistant"):
         self.context = context
         self.name = name
 
     def __call__(self, state: ReviewChatAssistantState) -> dict:
-        log.info(f"{self.name} called with state: {state}")
+        log.info(f"{self.name} called")
 
         if not self.context.chain:
             raise ValueError("Chain not found")
@@ -32,18 +32,15 @@ class ReviewChatAssistantNode:
         except Exception as e:
             raise ValueError(f"Error invoking LLM model: {e}") from e
 
-        if (not response.is_addressed_to_alfred and not self.get_num_of_participants(
-                state["messages"][:-1]) == 2) or self.is_comment_tagged(
+        if (not response.is_addressed_to_alfred and not self.get_num_of_participants(state["messages"][:-1]) == 2) or self.is_comment_tagged(
             state["messages"][-1]
         ):
             return {"is_skipped": True}
 
         if not response.is_related_to_code:
-            return {"is_skipped": False,
-                    "messages": AIMessage(content=NOT_RELATED_MESSAGE, response_meta={"author": "alfred-bot"})}
+            return {"is_skipped": False, "messages": AIMessage(content=NOT_RELATED_MESSAGE, response_meta={"author": "alfred-bot"})}
 
-        return {"is_skipped": False,
-                "messages": AIMessage(content=response.message, response_meta={"author": "alfred-bot"})}
+        return {"is_skipped": False, "messages": AIMessage(content=response.message, response_meta={"author": "alfred-bot"})}
 
     @staticmethod
     def get_num_of_participants(thread: Sequence[BaseMessage]) -> int:

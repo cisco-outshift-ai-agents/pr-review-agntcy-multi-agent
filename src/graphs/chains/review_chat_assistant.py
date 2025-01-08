@@ -15,10 +15,9 @@ class ReviewChatResponse(BaseModel):
     is_related_to_code: bool = Field(description="Indicates if the question or instruction is related to the code.")
     message: str = Field(description="Your answer must be placed here.")
 
-def create_review_chat_assistant_chain(model: BaseChatModel) \
-        -> Callable[[Sequence[BaseMessage]], RunnableSerializable]:
-    def review_chat_assistant_chain(message_history: Sequence[BaseMessage]) -> RunnableSerializable[
-        dict, dict | ReviewChatResponse]:
+
+def create_review_chat_assistant_chain(model: BaseChatModel) -> Callable[[Sequence[BaseMessage]], RunnableSerializable]:
+    def review_chat_assistant_chain(message_history: Sequence[BaseMessage]) -> RunnableSerializable[dict, dict | ReviewChatResponse]:
         structured_output_model = model.with_structured_output(ReviewChatResponse)
 
         system_prompt = wrap_prompt("""\

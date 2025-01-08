@@ -3,13 +3,13 @@ from utils.logging_config import logger as log
 from .contexts import DefaultContext
 
 
-class CommentRelatedPatchFetcherNode:
-    def __init__(self, context: DefaultContext, name: str = "comment_related_patch_fetcher_node"):
+class CommentRelatedPatchFetcher:
+    def __init__(self, context: DefaultContext, name: str = "comment_related_patch_fetcher"):
         self.context = context
         self.name = name
 
     def __call__(self, state: ReviewChatAssistantState) -> dict:
-        log.info(f"{self.name} called with state: {state}")
+        log.info(f"{self.name} called")
 
         if not self.context.github:
             raise ValueError("GitHub operations not found")

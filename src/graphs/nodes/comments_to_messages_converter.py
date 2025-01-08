@@ -12,12 +12,12 @@ HUMAN_USER_TYPE = "User"
 MessageType = Union[HumanMessage, AIMessage]
 
 
-class CommentsToMessagesConverterNode:
-    def __init__(self, name: str = "comments_to_messages_converter_node"):
+class CommentsToMessagesConverter:
+    def __init__(self, name: str = "comments_to_messages_converter"):
         self.name = name
 
     def __call__(self, state: ReviewChatAssistantState) -> dict:
-        log.info(f"{self.name} called with state: {state}")
+        log.info(f"{self.name} called")
 
         messages: List[MessageType] = []  # Use the union type for the list
         for comment in state["thread"]:

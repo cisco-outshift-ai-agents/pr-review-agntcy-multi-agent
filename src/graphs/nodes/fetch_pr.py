@@ -15,7 +15,7 @@ from utils.models import ContextFile
 from .contexts import DefaultContext
 
 
-class FetchPRNode:
+class FetchPR:
     def __init__(self, context: DefaultContext, name: str = "fetch_pr"):
         self.context = context
         self.name = name

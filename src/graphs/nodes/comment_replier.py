@@ -3,13 +3,13 @@ from graphs.states import ReviewChatAssistantState
 from utils.logging_config import logger as log
 
 
-class CommentReplierNode:
-    def __init__(self, context: DefaultContext, name="comment_replier_node"):
+class CommentReplier:
+    def __init__(self, context: DefaultContext, name="comment_replier"):
         self.context = context
         self.name = name
 
     def __call__(self, state: ReviewChatAssistantState) -> dict:
-        log.info(f"{self.name} called with state: {state}")
+        log.info(f"{self.name} called")
 
         if not self.context.github:
             raise ValueError("GitHub operations not found")

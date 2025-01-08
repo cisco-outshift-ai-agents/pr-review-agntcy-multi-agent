@@ -1,27 +1,27 @@
-from .code_reviewer import CodeReviewerNode
-from .comment_related_patch_fetcher import CommentRelatedPatchFetcherNode
-from .comment_replier import CommentReplierNode
-from .commenter import CommenterNode
-from .comments_fetcher import CommentsFetcherNode
-from .comments_to_messages_converter import CommentsToMessagesConverterNode
-from .comments_to_thread_converter import CommentsToThreadConverterNode
+from .code_reviewer import CodeReviewer
+from .comment_related_patch_fetcher import CommentRelatedPatchFetcher
+from .comment_replier import CommentReplier
+from .commenter import Commenter
+from .comments_fetcher import CommentsFetcher
+from .comments_to_messages_converter import CommentsToMessagesConverter
+from .comments_to_thread_converter import CommentsToThreadConverter
 from .contexts import DefaultContext
-from .duplicate_comment_remover import DuplicateCommentRemoverNode
-from .fetch_pr import FetchPRNode
-from .review_chat_assistant import ReviewChatAssistantNode
-from .title_description_reviewer import TitleDescriptionReviewerNode
+from .duplicate_comment_remover import DuplicateCommentRemover
+from .fetch_pr import FetchPR
+from .review_chat_assistant import ReviewChatAssistant
+from .title_description_reviewer import TitleDescriptionReviewer
 
 __all__ = [
-    "CodeReviewerNode",
-    "FetchPRNode",
-    "TitleDescriptionReviewerNode",
-    "CommenterNode",
-    "DuplicateCommentRemoverNode",
-    "ReviewChatAssistantNode",
-    "CommentsFetcherNode",
-    "CommentRelatedPatchFetcherNode",
-    "CommentReplierNode",
-    "CommentsToMessagesConverterNode",
-    "CommentsToThreadConverterNode",
+    "CodeReviewer",
+    "FetchPR",
+    "TitleDescriptionReviewer",
+    "Commenter",
+    "DuplicateCommentRemover",
+    "ReviewChatAssistant",
+    "CommentsFetcher",
+    "CommentRelatedPatchFetcher",
+    "CommentReplier",
+    "CommentsToMessagesConverter",
+    "CommentsToThreadConverter",
     "DefaultContext",
 ]

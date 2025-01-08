@@ -7,7 +7,7 @@ from .contexts import DefaultContext
 from langchain_core.runnables import RunnableSerializable
 
 
-class DuplicateCommentRemoverNode:
+class DuplicateCommentRemover:
     def __init__(self, context: DefaultContext, name: str = "duplicate_comment_remover"):
         self.context = context
         self.name = name
