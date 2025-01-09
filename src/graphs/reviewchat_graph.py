@@ -42,8 +42,8 @@ class ReviewChatWorkflow:
         state = ReviewChatAssistantState(
             comment=self.__comment,
             messages=[],
-            comments=[],
-            thread=[],
+            review_comments=[],
+            review_comment_thread=[],
             reviewed_patch=None,
             is_skipped=False,
         )
@@ -79,10 +79,10 @@ class ReviewChatWorkflow:
 
     @staticmethod
     def is_replied_to_bot_router(state: ReviewChatAssistantState):
-        if len(state["comments"]) == 0:
+        if len(state["review_comments"]) == 0:
             return END
 
-        if state["comments"][0].user.type != BOT_USER_TYPE:
+        if state["review_comments"][0].user.type != BOT_USER_TYPE:
             return END
 
         return [COMMENTS_TO_THREAD_CONVERTER_NODE, COMMENT_RELATED_PATCH_FETCHER_NODE]

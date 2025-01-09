@@ -20,7 +20,7 @@ class CommentsToMessagesConverter:
         log.info(f"{self.name} called")
 
         messages: List[MessageType] = []  # Use the union type for the list
-        for comment in state["thread"]:
+        for comment in state["review_comment_thread"]:
             if comment.user.type == HUMAN_USER_TYPE:
                 messages.append(HumanMessage(content=comment.body, response_metadata={"author": comment.user.id}))
             elif comment.user.type == BOT_USER_TYPE:

@@ -21,8 +21,8 @@ class CommentsFetcher:
 
         try:
             comments_paginated: PaginatedList[PullRequestComment] = self.context.github.pr.get_comments()
-            comments: Sequence[PullRequestComment] = list(comments_paginated)
+            review_comments: Sequence[PullRequestComment] = list(comments_paginated)
         except Exception as e:
             raise ValueError(f"Error getting comments from GitHub: {e}") from e
 
-        return {"comments": comments}
+        return {"review_comments": review_comments}

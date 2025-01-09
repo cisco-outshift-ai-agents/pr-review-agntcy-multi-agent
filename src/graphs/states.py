@@ -46,7 +46,7 @@ def create_default_github_pr_state() -> GitHubPRState:
 class ReviewChatAssistantState(TypedDict):
     comment: Dict[str, Any]
     messages: Annotated[Sequence[BaseMessage], add_messages]
-    comments: Sequence[PullRequestComment]
-    thread: Sequence[PullRequestComment]
+    review_comments: Sequence[PullRequestComment]
+    review_comment_thread: Sequence[PullRequestComment]
     reviewed_patch: Optional[str]
     is_skipped: Optional[bool]
