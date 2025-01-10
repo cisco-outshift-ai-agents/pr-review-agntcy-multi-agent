@@ -178,20 +178,27 @@ class Nodes:
         #     log.error(f"An error occured while removing the local copy of the repo: {e}")
         #     return
 
-        prompt = ChatPromptTemplate(
-            (
-                "system",
-                wrap_prompt("""\
-                    Your are an experienced software egineer who's task is to review Terraform related linter outputs and summarize them.
-                    You will get different linter outputs from the user (tflint, tfsec, terraform validate etc.).
-                    Review them and organize them as a list of issues.
-                    Remove the line numbers, only keep the error message (unchanged) and the file name.
-                    Each item in the list should have the following format: {{file name}}: {{error message}}
-                    Only return the list of issues in your response, nothing else.
-                    Don't change anything in the issues or the error messages, just organize them in a list. 
-                """),
+        # TODO The below agent is not perfect, sometimes it removes important details from the errors, fix this!
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    wrap_prompt("""\
+                        Your are an experienced software egineer who's task is to organize Terraform related linter outputs.
+                        You will get different linter outputs from the user (tflint, tfsec, terraform validate etc.).
+                        
+                        Organize the issues into a list, but keep every detail!
+                        Remove ONLY the line numbers but keep everything else as it is, don't change the issue message or the details at all just copy them.
+                        DO NOT remove any information from the issues, keep every detail! You are only allowed to delete the line numbers, nothing else!
+                        Each item in the list should have the following format: {{file name}}: {{full issue description}}
+                        Remove the warnings completely, only keep errors.
+                        
+                        Only return the list of issues in your response, nothing else.
+                        """),
+                ),
                 ("user", "{linter_outputs}"),
-            )
+            ]
         )
 
         chain = prompt | self.model
@@ -200,10 +207,12 @@ class Nodes:
             {
                 "linter_outputs": wrap_prompt(
                     "terraform validate output:",
-                    f"{tf_validate_out}",
+                    f"{tf_validate_out.stderr}",
+                    f"{tf_validate_out.stdout}",
                     "",
                     "tflint output:",
-                    f"{tflint_out}",
+                    f"{tflint_out.stderr}",
+                    f"{tflint_out.stdout}",
                 )
             }
         )
@@ -293,8 +302,6 @@ class Nodes:
         return {"new_comments": comments}
 
     def __code_review(self, state: GitHubPRState) -> list[Comment]:
-        parser = PydanticOutputParser(pydantic_object=CodeReviewResponse)
-
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -315,7 +322,9 @@ class Nodes:
                             - status: indicates if the changed_code was added/removed
                         - Changes with "removed" status mean that the code in that change was deleted from the codebase, it's not part of the code anymore.
                         - Changes with "added" status mean that the code in that change was added the codebase.
-                        - Sometimes the changes are in pairs, one change with a 'removed' status and one with 'added', but they belong together, even when their line numbers are far apart. 
+                        - Always focus on wether a change was added or removed from the codebase. If it was removed then that code is not part of the codebase anuymore.
+                        - Sometimes the changes are in pairs, one change with a 'removed' status and one with 'added', but they belong together, even when their line numbers are far apart.
+                          Identify these pairs and DO NOT add the same comment to the removed and added part twice!
                         - You have to review these changes and only the changes and make comments on them.
                         - Sometimes the changes are in pairs
                         - You will also recieve a summary of multiple static code analyzers (tflint, tfsec, etc.) on the new code, after STATIC_ANALYZER_OUTPUT.
@@ -346,12 +355,14 @@ class Nodes:
 
                         Review Guidelines:
                         - Review all the files to understand the current state of the codebase.
-                        - Then review the changes to understand what was changed in this PR to arrive at the current state.
+                        - Review the changes to understand what was changed in this PR to arrive at the current state of the files.
                         - Add your comments to the changes and only to the changes.
                         - You MUST NOT comment on unchanged code.
+                        - Always check which change was added and which was removed. The removed lines are not part of the codebase anymore. Use the list of files to understand the changes.
+                        - Use the STATIC_ANALYZER_OUTPUT to identify potential errors in the new code.
                         - Check the status of the changes, if it's 'added' then that code was added if it's 'removed' then it was deleted from the codebase. Make your comments accordingly to this status.
-                        - You DO NOT have to comment on every code change block, if you do not see an issue, ingore the change and move on.
-                        - Your comments should be brief, clear, and professional, as a senior engineer would write.
+                        - You DO NOT have to comment on every code change block, if you do not see an issue, or if you already commented on the other pair of the change, ingore and move on.
+                        - Your comments should be brief, clear and professional, as a senior engineer would write.
                         - DO NOT COMMENT on lines which haven't been changed: only comment on the changes in the CHANGES list.
                         - Each comment MUST refer to a change and the change must be associated with the issue that the comment is mentioning.
                         - ONLY comment on changes that have actual code changes (e.g., variable definitions, resource definitions, etc.)
