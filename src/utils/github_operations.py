@@ -5,7 +5,6 @@ import os
 from dataclasses import asdict, dataclass
 from typing import Optional, Tuple
 import zipfile
-from typing import Optional
 
 import github.Auth
 from github import Github, GithubException, GithubIntegration, UnknownObjectException
@@ -209,13 +208,13 @@ class GitHubOperations:
         """Gets a repository from the GitHub API"""
         return self._github.get_repo(repo_name)
 
-    def clone_repo(self, repo_name: str, pr_number: int, destination_folder: str) -> str:
+    def clone_repo(self, destination_folder: str) -> str:
         """Clone the PR's branch content into a folder, returns the path to the repo"""
 
         log.debug("Cloning the repo into a local folder...")
 
-        repo = self.get_repo(repo_name)
-        pr = repo.get_pull(pr_number)
+        repo = self._repo
+        pr = self._pr
 
         zip_link = repo.get_archive_link("zipball", pr.head.ref)
 
@@ -266,9 +265,6 @@ class GitHubOperations:
             body=comment,
         )
 
-    def create_pull_request_review_comments(
-        self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list[GitHubReviewComment]
-    ):
     def create_pull_request_review_comments(self, commit: Commit, comments: list[GitHubReviewComment]):
         comments_as_dict = [asdict(c) for c in comments]
 
