@@ -1,6 +1,6 @@
 def wrap_prompt(*args):
     lines = []
-    min_indent = float("inf")
+    min_indent = 999999  # arbitrary large number
 
     for arg in args:
         for line in arg.split("\n"):

@@ -1,10 +1,12 @@
-from functools import wraps
 import hashlib
 import hmac
-from http import HTTPStatus
 import os
+from functools import wraps
+from http import HTTPStatus
 from typing import Any, Awaitable, Callable
+
 from fastapi import HTTPException, Request
+
 from utils.constants import GITHUB_SIGNATURE_HEADER
 from utils.lambda_helpers import lambdaResponse
 from utils.logging_config import logger as log
@@ -53,7 +55,7 @@ def lambda_validate_github_signature(handler: Callable[[dict[str, Any], Any], di
         headers: dict[str, Any] = event.get("headers", {})
         # Sometimes headers come with camel case, sometimes they are lowercase, depending on the Lambda trigger runtime
         # sam preserves the case while AWS API GW or Function URLs in AWS don't, they send lowercase header keys
-        # This makes our funtction compatible with any env
+        # This makes our function compatible with any env
         headers = {key.lower(): value for key, value in headers.items()}
         event["headers"] = headers
 

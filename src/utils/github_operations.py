@@ -5,16 +5,19 @@ import os
 from dataclasses import asdict, dataclass
 from typing import Optional, Tuple
 import zipfile
+from typing import Optional
 
 import github.Auth
-from github import Github, GithubException, GithubIntegration
-from github.ContentFile import ContentFile
-from github.PaginatedList import PaginatedList
-from github.PullRequestComment import PullRequestComment
+from github import Github, GithubException, GithubIntegration, UnknownObjectException
+from github.Commit import Commit
+from github.PullRequest import PullRequest
 from github.Repository import Repository
 import requests
 
 from utils.logging_config import logger as log
+from utils.models import Comment
+
+GithubOperationException = GithubException
 
 
 @dataclass
@@ -25,14 +28,40 @@ class GitHubReviewComment:
     side: str
 
 
+class InvalidGitHubInitialization(Exception):
+    """Exception raised for invalid GitHub initialization"""
+
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+
+
 class GitHubOperations:
     """
     GitHubOperations class provides generic GitHub operations for managing repositories,
     branches, files, and pull requests.
     """
 
-    def __init__(self, installation_id: str):
-        self._github = self._init_github(installation_id)
+    def __init__(self, installation_id: str, repo_name: str, pr_number: Optional[int] = None):
+        if not isinstance(installation_id, str) or not isinstance(repo_name, str) or not isinstance(pr_number, int):
+            raise InvalidGitHubInitialization("Invalid input parameters")
+
+        try:
+            self._github: Github = self._init_github(installation_id)
+            self._repo: Repository = self._github.get_repo(repo_name)
+            if pr_number:
+                self._pr: PullRequest = self._repo.get_pull(pr_number)
+        except Exception as e:
+            log.error(f"Failed to initialize GitHub client: {e}")
+            raise InvalidGitHubInitialization(f"Failed to initialize GitHub client: {e}") from e
+
+    @property
+    def repo(self) -> Repository:
+        return self._repo
+
+    @property
+    def pr(self) -> PullRequest:
+        return self._pr
 
     def _init_github(self, installation_id: str) -> Github:
         """Initialize GitHub client with app credentials"""
@@ -47,7 +76,7 @@ class GitHubOperations:
 
             return Github(github_token)
         except Exception as e:
-            log.error(f"Failed to initialize GitHub client: {e}")
+            log.error(f"Invalid GitHub credentials: {e}")
             raise
 
     def _get_private_key(self) -> str:
@@ -79,44 +108,39 @@ class GitHubOperations:
             raise ValueError("GITHUB_APP_ID environment variable is not set")
         return app_id
 
-    def create_branch(self, repo_name: str, branch_name: str, base_branch: Optional[str] = None) -> bool:
-        """Creates a new branch in the repository"""
+    def create_comments(self, new_comments: list[Comment], title_desc_comment: Optional[Comment] = None) -> None:
         try:
-            repo = self._github.get_repo(repo_name)
-            if base_branch is None:
-                base_branch = repo.default_branch
+            files = self.pr.get_files()
+        except UnknownObjectException:
+            log.error(f"repo: {self.repo._name} with pr: {self.pr._number} not found")
+            return
+        except Exception as error:
+            log.error(f"General error while fetching repo: {self.repo._name} with pr: {self.pr._number}. error: {error}")
+            return
+        latest_commit = list(self.pr.get_commits())[-1].commit
+        commit = self.repo.get_commit(latest_commit.sha)
 
-            base_ref = repo.get_git_ref(f"heads/{base_branch}")
-            repo.create_git_ref(ref=f"refs/heads/{branch_name}", sha=base_ref.object.sha)
-            log.info(f"Branch {branch_name} created successfully.")
-            return True
-        except GithubException as e:
-            if "Reference already exists" in e.data.get("message", ""):
-                log.info("Branch already exists")
-                return True
-            log.error(f"Failed to create branch: {e.data}")
-            return False
+        comments_transformed: list[GitHubReviewComment] = []
 
-    def create_file(self, repo_name: str, branch_name: str, file_path: str, content: str, commit_message: str) -> bool:
-        """Creates or updates a file in the repository"""
-        try:
-            repo: Repository = self._github.get_repo(repo_name)
-            file_exists, file_contents = self.get_file(repo_name, file_path, branch_name)
+        for pr_file in files:
+            for comment in new_comments:
+                if comment.filename == pr_file.filename:
+                    c = GitHubReviewComment(
+                        comment.comment, pr_file.filename, int(comment.line_number), "LEFT" if comment.status == "removed" else "RIGHT"
+                    )
 
-            if file_exists:
-                if file_contents is None:
-                    raise ValueError("File contents are None")
+                    comments_transformed.append(c)
+        for comment in new_comments:
+            if comment.line_number == 0:
+                # Response comment for a re-review
+                self.pr.create_issue_comment(comment.comment)
 
-                log.info(f"File {file_path} already exists in branch {branch_name}.")
-                repo.update_file(path=file_path, message=commit_message, content=content, branch=branch_name, sha=file_contents.sha)
-                return True
+        # Create summary comment
+        if title_desc_comment:
+            self.pr.create_issue_comment(title_desc_comment.comment)
 
-            repo.create_file(path=file_path, message=commit_message, content=content, branch=branch_name)
-            log.info(f"File {file_path} created successfully.")
-            return True
-        except GithubException as e:
-            log.error(f"Failed to create file: {e.data}")
-            return False
+        if len(comments_transformed) > 0:
+            self.create_pull_request_review_comments(commit, comments_transformed)
 
     def create_pull_request(self, repo_name: str, branch_name: str, base_branch: str, title: str, body: str) -> bool:
         """Creates a pull request in the repository"""
@@ -245,6 +269,7 @@ class GitHubOperations:
     def create_pull_request_review_comments(
         self, pull_request: github.PullRequest.PullRequest, commit: github.Commit.Commit, comments: list[GitHubReviewComment]
     ):
+    def create_pull_request_review_comments(self, commit: Commit, comments: list[GitHubReviewComment]):
         comments_as_dict = [asdict(c) for c in comments]
 
         post_parameters = {
@@ -255,7 +280,7 @@ class GitHubOperations:
         }
 
         try:
-            headers, data = pull_request._requester.requestJsonAndCheck("POST", f"{pull_request.url}/reviews", input=post_parameters)
-            github.PullRequestComment.PullRequestComment(pull_request._requester, headers, data, completed=True)
+            headers, data = self.pr._requester.requestJsonAndCheck("POST", f"{self.pr.url}/reviews", input=post_parameters)
+            github.PullRequestComment.PullRequestComment(self.pr._requester, headers, data, completed=True)
         except Exception as e:
             log.error(f"Error during create a new pending pull request: {e}")
