@@ -39,7 +39,7 @@ def create_code_review_chain(model: BaseChatModel) -> RunnableSerializable[dict,
         
         Your output format:
         - Output MUST be in JSON, with the following insturctions:
-        - You have to return a list of comments
+        - You have to return a list of comments.
         - Each comment has to belong to a change object from the changes list.
         - A Comment has the following properties:
             - filename: The 'filename' property of the change object.

@@ -6,6 +6,7 @@ from graphs.chains import (
     create_title_description_review_chain,
     create_duplicate_comment_remove_chain,
 )
+from graphs.chains.static_analysis import create_static_analyzer_chain
 from graphs.nodes import (
     CodeReviewer,
     TitleDescriptionReviewer,
@@ -34,6 +35,11 @@ class CodeReviewerWorkflow:
             github=github_ops,
         )
 
+        self.static_analyzer_context = DefaultContext(
+            chain=create_static_analyzer_chain(model),
+            github=github_ops,
+        )
+
         self.code_review_context = DefaultContext(
             chain=create_code_review_chain(model),
             user_config=user_config,
@@ -51,7 +57,7 @@ class CodeReviewerWorkflow:
         workflow = StateGraph(GitHubPRState)
 
         workflow.add_node("fetch_pr", FetchPR(self.github_context))
-        workflow.add_node("static_analyzer", StaticAnalyzer(self.github_context))
+        workflow.add_node("static_analyzer", StaticAnalyzer(self.static_analyzer_context))
         workflow.add_node("code_reviewer", CodeReviewer(self.code_review_context))
         workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_context))
         workflow.add_node("commenter", Commenter(self.github_context))

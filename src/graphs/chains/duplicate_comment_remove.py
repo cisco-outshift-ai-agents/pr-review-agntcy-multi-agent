@@ -26,10 +26,9 @@ def create_duplicate_comment_remove_chain(model: BaseChatModel) -> RunnableSeria
         - It doesn't mention an actionable issue.
 
         Response format:
-        Return ONLY the remaining comments in the following format.
-        DO NOT return anything else then what's required here.
-        Output MUST be in JSON format, here are the insturctions:
-        {format_instructions}
+        Return ONLY the remaining comments.
+        DO NOT change anything in the returned comments.
+        Output MUST be in JSON format, keep the format of the original comments:
         DO NOT USE markdown in the response.
         """)
 

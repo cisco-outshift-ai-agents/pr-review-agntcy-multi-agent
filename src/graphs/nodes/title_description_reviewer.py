@@ -1,3 +1,4 @@
+from typing import Any, Union
 from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
 from .contexts import DefaultContext
@@ -12,7 +13,7 @@ class TitleDescriptionReviewer:
         self.context = context
         self.name = name
 
-    def __call__(self, state: GitHubPRState) -> dict:
+    def __call__(self, state: GitHubPRState) -> Union[dict[str, Any], None]:
         log.info(f"{self.name} called")
 
         if self.context.github is None:
@@ -56,7 +57,7 @@ class TitleDescriptionReviewer:
             # Update existing comment
             try:
                 existing_title_desc_comment.edit(result_content)
-                return {}
+                return
             except Exception as e:
                 log.error(f"Error updating existing comment: {e}")
 

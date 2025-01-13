@@ -10,7 +10,7 @@ class Commenter:
         self.context = context
         self.name = name
 
-    def __call__(self, state: GitHubPRState) -> dict:
+    def __call__(self, state: GitHubPRState) -> None:
         log.info(f"{self.name}: called")
 
         if self.context.github is None:
@@ -21,5 +21,3 @@ class Commenter:
         except Exception as e:
             log.error(f"{self.name}: Error creating comments: {e}")
             raise
-
-        return {}

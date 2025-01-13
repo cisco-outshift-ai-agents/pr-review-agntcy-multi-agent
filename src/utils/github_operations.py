@@ -3,13 +3,14 @@ from http import HTTPStatus
 import io
 import os
 from dataclasses import asdict, dataclass
-from typing import Optional, Tuple
+from typing import Optional
 import zipfile
 
 import github.Auth
 from github import Github, GithubException, GithubIntegration, UnknownObjectException
 from github.Commit import Commit
 from github.PullRequest import PullRequest
+from github.PullRequestComment import PullRequestComment
 from github.Repository import Repository
 import requests
 
@@ -141,72 +142,21 @@ class GitHubOperations:
         if len(comments_transformed) > 0:
             self.create_pull_request_review_comments(commit, comments_transformed)
 
-    def create_pull_request(self, repo_name: str, branch_name: str, base_branch: str, title: str, body: str) -> bool:
-        """Creates a pull request in the repository"""
+    def create_pull_request_review_comments(self, commit: Commit, comments: list[GitHubReviewComment]):
+        comments_as_dict = [asdict(c) for c in comments]
+
+        post_parameters = {
+            "body": "Reviewed your changes, here is what I found:",
+            "event": "COMMENT",
+            "commit_id": commit._identity,
+            "comments": comments_as_dict,
+        }
+
         try:
-            repo = self._github.get_repo(repo_name)
-            if base_branch is None:
-                base_branch = repo.default_branch
-
-            pulls = repo.get_pulls(state="open")
-            pr_exists = any(pr.head.ref == branch_name for pr in pulls)
-
-            if pr_exists:
-                log.info("Pull request already exists.")
-                return True
-
-            repo.create_pull(title=title, body=body, head=branch_name, base=base_branch)
-            log.info("Pull request created successfully.")
-            return True
-        except GithubException as e:
-            log.error(f"Failed to create pull request: {e.data}")
-            return False
-
-    def get_file(self, repo_name: str, file_path: str, ref: Optional[str] = None) -> Tuple[bool, Optional[ContentFile]]:
-        """Gets a file from the repository"""
-        try:
-            repo: Repository = self._github.get_repo(repo_name)
-            if ref is None:
-                ref = repo.default_branch
-            contents: list[ContentFile] | ContentFile = repo.get_contents(file_path, ref=ref)
-
-            if isinstance(contents, list):
-                raise ValueError("Expected a single file, but got multiple files")
-
-            return True, contents
-        except GithubException as e:
-            if e.status == 404:
-                return False, None
-            raise e
-
-    def get_file_content(self, repo_name: str, file_path: str, ref: Optional[str] = None) -> Optional[str]:
-        """Gets the decoded content of a file from the repository"""
-        try:
-            repo: Repository = self._github.get_repo(repo_name)
-            if ref is None:
-                ref = repo.default_branch
-
-            file: ContentFile | list[ContentFile] = repo.get_contents(file_path, ref=ref)
-            if isinstance(file, list):
-                raise ValueError("Expected a single file, but got multiple files")
-
-            return base64.b64decode(file.content).decode("utf-8")
+            headers, data = self.pr._requester.requestJsonAndCheck("POST", f"{self.pr.url}/reviews", input=post_parameters)
+            PullRequestComment(self.pr._requester, headers, data, completed=True)
         except Exception as e:
-            log.error(f"Error getting file content: {e}")
-            return None
-
-    def get_default_branch(self, repo_name: str) -> str:
-        """Gets the default branch name of a repository"""
-        try:
-            repo = self._github.get_repo(repo_name)
-            return repo.default_branch
-        except GithubException as e:
-            log.error(f"Failed to get default branch: {e.data}")
-            raise
-
-    def get_repo(self, repo_name: str) -> Repository:
-        """Gets a repository from the GitHub API"""
-        return self._github.get_repo(repo_name)
+            log.error(f"Error during create a new pending pull request: {e}")
 
     def clone_repo(self, destination_folder: str) -> str:
         """Clone the PR's branch content into a folder, returns the path to the repo"""
@@ -238,45 +188,3 @@ class GitHubOperations:
             log.debug("Repo extracted successfully")
 
             return f"{destination_folder}/{folder_name}"
-
-    def list_comments_from_pr(self, repo_full_name: str, pr_number: int) -> PaginatedList[PullRequestComment]:
-        repo = self._github.get_repo(repo_full_name)
-        pull_request = repo.get_pull(pr_number)
-        return pull_request.get_review_comments()
-
-    def reply_on_pr_comment(self, repo_full_name: str, pr_number: int, comment_id: int, comment: str) -> None:
-        if (
-            repo_full_name is None
-            or repo_full_name == ""
-            or pr_number is None
-            or pr_number == 0
-            or comment_id is None
-            or comment_id == 0
-            or comment is None
-            or comment == ""
-        ):
-            raise ValueError("Invalid input parameters")
-
-        repo = self._github.get_repo(repo_full_name)
-        pull_request = repo.get_pull(pr_number)
-
-        pull_request.create_review_comment_reply(
-            comment_id,
-            body=comment,
-        )
-
-    def create_pull_request_review_comments(self, commit: Commit, comments: list[GitHubReviewComment]):
-        comments_as_dict = [asdict(c) for c in comments]
-
-        post_parameters = {
-            "body": "Reviewed your changes, here is what I found:",
-            "event": "COMMENT",
-            "commit_id": commit._identity,
-            "comments": comments_as_dict,
-        }
-
-        try:
-            headers, data = self.pr._requester.requestJsonAndCheck("POST", f"{self.pr.url}/reviews", input=post_parameters)
-            github.PullRequestComment.PullRequestComment(self.pr._requester, headers, data, completed=True)
-        except Exception as e:
-            log.error(f"Error during create a new pending pull request: {e}")
