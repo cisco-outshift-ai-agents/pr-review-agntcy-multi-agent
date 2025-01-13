@@ -53,12 +53,15 @@ jobs:
       # Only needed if with:ecr-enabled or with:gar-enabled is true below
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+      ghcr-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-token: ${{ secrets.GHCR_TOKEN }}
+      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
 
     with:
       ### REQUIRED
       runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
       ### Docker image name
-      image-name: "${{ vars.ALFRED_ECR_REPOSITORY }}"
+      image-name: "${{ vars.ALFRED_ECR_REPOSITORY }}:{{ github.sha }}"
 
       ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
       dockerfile: alfred/docker/Dockerfile
