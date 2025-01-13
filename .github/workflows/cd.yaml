@@ -33,15 +33,6 @@ jobs:
         run: ls -la
     runs-on:
       group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
-
-
-  pwd:
-    name: Print working directory
-    runs-on:
-      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
-    steps:
-      - name: List files in working directory
-        run: cd pwd && ls -la
   
   ################################## Docker build & push ##########################
   #################################################################################################
