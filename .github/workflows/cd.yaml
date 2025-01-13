@@ -14,7 +14,6 @@ jobs:
   #################################################################################################
   call-docker-build-push:
     name: Call Docker Build & Push
-    needs: [ checkout ]
     uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
 
     secrets:
