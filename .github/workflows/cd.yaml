@@ -11,28 +11,29 @@ on:
 
 jobs:
   checkout:
-    name: Checkout repository
-    uses: actions/checkout@v4
-    with:
-      repository: ${{ github.event.repository }}
-      # The branch, tag or SHA to checkout, otherwise, uses the default branch.
-      ref: ${{ github.ref }}
-      # token default value is {{ github.token }}
-      token: ${{ secrets.ghcr-org-token }}
-      # Relative path under $GITHUB_WORKSPACE to place the repository
-      path: ''
-      # Whether to execute `git clean -ffdx && git reset --hard HEAD` before fetching
-      # Default: true
-      clean: true
-      # Whether to download Git-LFS files
-      # Default: false
-      lfs: ''
-      # Whether to checkout submodules: `true` to checkout submodules or `recursive` to
-      # recursively checkout submodules.
-      # Default: false
-      submodules: ''
-      # Whether to fetch tags, even if fetch-depth > 0.
-      # Default: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # The branch, tag or SHA to checkout, otherwise, uses the default branch.
+          ref: ${{ github.ref }}
+          # Relative path under $GITHUB_WORKSPACE to place the repository
+          path: ''
+          # Whether to execute `git clean -ffdx && git reset --hard HEAD` before fetching
+          # Default: true
+          clean: true
+          # Whether to download Git-LFS files
+          # Default: false
+          lfs: ''
+          # Whether to checkout submodules: `true` to checkout submodules or `recursive` to
+          # recursively checkout submodules.
+          # Default: false
+          submodules: ''
+      - name: List files in working directory
+        run: ls -la
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+
 
   pwd:
     name: Print working directory
