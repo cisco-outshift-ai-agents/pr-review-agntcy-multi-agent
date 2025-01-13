@@ -10,37 +10,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  checkout:
-    container:
-      image: ${{ vars.SRE_BUILD_IMAGE }}
-      options: --user root
-      credentials:
-        username: ${{ secrets.GHCR_USERNAME }}
-        password: ${{ secrets.GHCR_TOKEN }}
-    runs-on:
-      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          # The branch, tag or SHA to checkout, otherwise, uses the default branch.
-          ref: ${{ github.ref }}
-          # Relative path under $GITHUB_WORKSPACE to place the repository
-          path: ''
-          # Whether to execute `git clean -ffdx && git reset --hard HEAD` before fetching
-          # Default: true
-          clean: false
-          # Whether to download Git-LFS files
-          # Default: false
-          lfs: ''
-          # Whether to checkout submodules: `true` to checkout submodules or `recursive` to
-          # recursively checkout submodules.
-          # Default: false
-          submodules: ''
-      - name: List files in working directory
-        run: ls -la
-  
   ################################## Docker build & push ##########################
   #################################################################################################
   call-docker-build-push:
@@ -72,6 +41,71 @@ jobs:
       artifactory-devhub-enabled: false
       ghcr-enabled: false
       private-ecr-region: ${{ vars.AWS_REGION }}
+
+  ################################## Deploy Lambda #######################################
+  ########################################################################################
+  deploy-lambda:
+    name: Deploy Lambda
+    needs: [ call-docker-build-push ]
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+    container:
+      image: ${{ vars.SRE_BUILD_IMAGE }}
+      options: --user root
+      credentials:
+        username: ${{ secrets.GHCR_USERNAME }}
+        password: ${{ secrets.GHCR_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          # Relative path under $GITHUB_WORKSPACE to place the repository
+          path: ''
+          # Whether to execute `git clean -ffdx && git reset --hard HEAD` before fetching
+          # Default: true
+          clean: false
+          # Whether to download Git-LFS files
+          # Default: false
+          lfs: ''
+          # Whether to checkout submodules: `true` to checkout submodules or `recursive` to
+          # recursively checkout submodules.
+          # Default: false
+          submodules: ''
+
+      - name: Set path environment variables
+        run: |
+          echo "AZURE_SECRET_PATH=${{ vars.ALFRED_VAULT_SECRET_PATH }}/azure-ai/gpt-4o" >> $GITHUB_ENV
+          echo "GITHUB_SECRET_PATH=${{ vars.ALFRED_VAULT_SECRET_PATH }}/gh" >> $GITHUB_ENV
+          echo "LANGSMITH_SECRET_PATH=${{ vars.ALFRED_VAULT_SECRET_PATH }}/langsmith" >> $GITHUB_ENV
+
+      - name: Set secrets as environment variables
+        uses: hashicorp/vault-action@v2.7.5
+        with:
+          url: ${{ vars.KEEPER_URL }}
+          method: approle
+          roleId: ${{ secrets.VAULT_PHOENIX_APPROLE_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_PHOENIX_APPROLE_SECRET_ID }}
+          namespace: "${{ vars.VAULT_NAMESPACE }}/outshift-users"
+          secrets: |
+            ${{ env.AZURE_SECRET_PATH }}  key1                                 | AZURE_OPENAI_API_KEY
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+        with:
+          role-to-assume: arn:aws:iam::471112537430:role/gha-alfred-role
+          aws-region: eu-west-1
+
+      - name: Display AWS Identity
+        run: aws sts get-caller-identity
+
+      - name: Terraform Init
+        run: |
+          terraform -chdir=terraform init
+
+      - name: Terraform Plan
+        run: |
+          terraform -chdir=terraform plan -var 'image_name=
 
   ################################## Send Status for PR Checks ###########################
   ########################################################################################
