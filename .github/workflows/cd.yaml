@@ -4,7 +4,85 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  build-and-push:
+  ################################## checkout & unit tests ######################
+  ###############################################################################
+  checkout:
+    name: checkout & unit test
     runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+    container:
+      image: ${{ vars.SRE_BUILD_IMAGE }}
+      options: --user root
+      credentials:
+        username: ${{ secrets.GHCR_USERNAME }}
+        password: ${{ secrets.GHCR_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # The branch, tag or SHA to checkout, otherwise, uses the default branch.
+          ref: ${{ github.ref }}
+          # Relative path under $GITHUB_WORKSPACE to place the repository
+          path: ''
+          # Whether to execute `git clean -ffdx && git reset --hard HEAD` before fetching
+          # Default: true
+          clean: true
+          # Whether to download Git-LFS files
+          # Default: false
+          lfs: ''
+          # Whether to checkout submodules: `true` to checkout submodules or `recursive` to
+          # recursively checkout submodules.
+          # Default: false
+          submodules: ''
+
+  ################################## Docker build & push ##########################
+  #################################################################################################
+  call-docker-build-push:
+    name: Call Docker Build & Push
+    needs: [ checkout ]
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+
+    secrets:
+      # Only needed if with:ecr-enabled or with:gar-enabled is true below
+      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+
+    with:
+      ### REQUIRED
+      runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+      ### Docker image name
+      image-name: "${{ vars.ALFRED_ECR_REPOSITORY }}"
+
+      ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
+      dockerfile: alfred/docker/Dockerfile
+      ### REQUIRED
+      ### ENABLE ONE OR BOTH REGISTRIES
+      ### tell docker where to push.
+      ecr-enabled: true
+      artifactory-devhub-enabled: false
+      ghcr-enabled: false
+
+  ################################## Send Status for PR Checks ###########################
+  ########################################################################################
+  # This Job is REQUIRED, it is what allwos for the WHOLE workflow to show up in the PR status checks as a requirement for branch rules
+  reusable-workflow-ci-status:
+    name: CD Status
+    # This should be an array of ALL active jobs that are used/run
+    needs: [ checkout, call-docker-build-push ]
+    if: always()
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+    steps:
+      - name: report success
+        if: ${{ cancelled() || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'failure') }}
+        run: |
+          echo -e "\033[31m*** WORKFLOW FAILED ***\033[0m"
+          exit 1
+      - name: report success
+        run: |
+          echo -e "\033[1;36m*** WORKFLOW SUCCEDED ***\033[0m"
+          exit 0
