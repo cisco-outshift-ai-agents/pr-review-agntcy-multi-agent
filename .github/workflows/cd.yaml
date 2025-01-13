@@ -21,7 +21,7 @@ jobs:
           path: ''
           # Whether to execute `git clean -ffdx && git reset --hard HEAD` before fetching
           # Default: true
-          clean: true
+          clean: false
           # Whether to download Git-LFS files
           # Default: false
           lfs: ''
