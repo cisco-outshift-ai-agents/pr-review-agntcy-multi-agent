@@ -133,7 +133,7 @@ jobs:
   reusable-workflow-ci-status:
     name: CD Status
     # This should be an array of ALL active jobs that are used/run
-    needs: [ call-docker-build-push ]
+    needs: [ call-docker-build-push, deploy-lambda ]
     if: always()
     runs-on:
       group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
