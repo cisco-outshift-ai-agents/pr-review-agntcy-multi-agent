@@ -64,7 +64,7 @@ jobs:
       image-name: "${{ vars.ALFRED_ECR_REPOSITORY }}"
       context: .
       ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
-      dockerfile: alfred/docker/Dockerfile
+      dockerfile: docker/Dockerfile
       ### REQUIRED
       ### ENABLE ONE OR BOTH REGISTRIES
       ### tell docker where to push.
