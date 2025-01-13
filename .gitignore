@@ -171,3 +171,8 @@ requirements.txt
 
 *.png
 gcp_service_account.json
+
+*.terraform.lock.hcl
+*/.terraform
+*/.aws-sam-iacs
+
