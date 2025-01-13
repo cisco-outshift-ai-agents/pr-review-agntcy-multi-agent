@@ -14,7 +14,7 @@ from utils.models import Comment
 from utils.models import ContextFile
 from .contexts import DefaultContext
 
-terraform_file_types = (".tf", ".tfvars", ".tfplan", "tfstate")
+terraform_file_types = (".tf", ".tfvars", ".tfplan", ".tfstate")
 
 
 class FetchPR:
@@ -29,7 +29,7 @@ class FetchPR:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
         files = self.context.github.pr.get_files()
-        files = [file for file in files if not file.filename.endswith(terraform_file_types)]
+        files = [file for file in files if file.filename.endswith(terraform_file_types)]
         title = self.context.github.pr.title
         description = self.context.github.pr.body
         changes = []
