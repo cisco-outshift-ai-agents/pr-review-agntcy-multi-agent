@@ -61,7 +61,7 @@ jobs:
       ### REQUIRED
       runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
       ### Docker image name
-      image-name: "${{ vars.ALFRED_ECR_REPOSITORY }}"
+      image-name: vars.ECR_REGISTRY_NAME
       context: .
       ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
       dockerfile: docker/Dockerfile
