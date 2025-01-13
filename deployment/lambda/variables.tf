@@ -3,6 +3,12 @@ variable "lambda_function_name" {
   description = "Name of the lambda function"
 }
 
+variable "aws_region" {
+  type        = string
+  description = "AWS region"
+  default     = "eu-west-1"
+}
+
 variable "image_repo" {
   type        = string
   description = "ECR repository URI"
@@ -35,6 +41,11 @@ variable "azure_openai_api_key" {
   type        = string
   description = "Set AZURE_OPENAI_API_KEY environment variable"
   default     = ""
+
+  validation {
+    condition     = var.azure_openai_api_key == ""
+    error_message = "AZURE_OPENAI_API_KEY is required"
+  }
 }
 
 variable "github_app_id" {
@@ -46,6 +57,11 @@ variable "github_app_private_key" {
   type        = string
   description = "Set GITHUB_APP_PRIVATE_KEY environment variable"
   default     = ""
+
+  validation {
+    condition     = var.github_app_private_key == ""
+    error_message = "GITHUB_APP_PRIVATE_KEY is required"
+  }
 }
 
 variable "github_webhook_secret" {

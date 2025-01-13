@@ -2,22 +2,6 @@ provider "aws" {
   region = "eu-west-1"
 }
 
-data "aws_secretsmanager_secret" "openapi-secret-metadata" {
-  arn = "arn:aws:secretsmanager:eu-west-1:471112537430:secret:alfred-dev-azure-openai-EWEaNW"
-}
-
-data "aws_secretsmanager_secret_version" "openai-secret" {
-  secret_id = data.aws_secretsmanager_secret.openapi-secret-metadata.id
-}
-
-data "aws_secretsmanager_secret" "gh-secret-metadata" {
-  arn = "arn:aws:secretsmanager:eu-west-1:471112537430:secret:alfred-dev-gh-tf78gN"
-}
-
-data "aws_secretsmanager_secret_version" "gh-secret" {
-  secret_id = data.aws_secretsmanager_secret.gh-secret-metadata.id
-}
-
 resource "aws_iam_role" "alfred-exec-role" {
   name = "alfred-exec-role"
 
@@ -50,7 +34,7 @@ resource "aws_lambda_function" "alfred-lambda" {
 
   environment {
     variables = {
-      AZURE_OPENAI_API_KEY = coalesce(var.azure_openai_api_key, jsondecode(data.aws_secretsmanager_secret_version.openai-secret.secret_string)["key_1"])
+      AZURE_OPENAI_API_KEY = var.azure_openai_api_key
       AZURE_OPENAI_API_VERSION = var.azure_openai_version
       AZURE_OPENAI_DEPLOYMENT  = var.azure_openai_deployment
       AZURE_OPENAI_ENDPOINT    = var.azure_openai_endpoint

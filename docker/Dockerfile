@@ -18,11 +18,11 @@ RUN poetry install --no-root && \
 
 FROM public.ecr.aws/lambda/python:3.12 as runtime
 
-ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
+ENV VIRTUAL_ENV=.venv \
+    PATH=".venv/bin:$PATH"
 
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=builder app/${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
-COPY src ./app
+COPY src .
 
-CMD ["app.main.handle_event"]
+CMD ["main.handle_event"]

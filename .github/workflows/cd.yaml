@@ -103,9 +103,27 @@ jobs:
         run: |
           terraform -chdir=terraform init
 
+      - name: Set Terraform Variables
+        run: |
+          echo "export TF_VAR_aws_region=eu-west-1" >> $GITHUB_ENV
+          echo "export TF_VAR_image_name=471112537430.dkr.ecr.eu-west-1.amazonaws.com/alfred" >> $GITHUB_ENV
+          echo "export TF_VAR_image_tag=main" >> $GITHUB_ENV
+          echo "export TF_VAR_lambda_function_name=alfred-dev-cd" >> $GITHUB_ENV
+          echo "export TF_VAR_github_app_id=1065077" >> $GITHUB_ENV
+          echo "export TF_VAR_github_app_private_key=pvk" >> $GITHUB_ENV
+          echo "export TF_VAR_github_webhook_secret=secret" >> $GITHUB_ENV
+          echo "export TF_VAR_azure_openai_endpoint=https://api.openai.com/v1/engines/gpt-4o/completions" >> $GITHUB_ENV
+          echo "export TF_VAR_azure_openai_deployment=prod" >> $GITHUB_ENV
+          echo "export TF_VAR_azure_openai_api_key=$AZURE_OPENAI_API_KEY" >> $GITHUB_ENV
+          echo "export TF_VAR_azure_openai_api_version=2020-05-06" >> $GITHUB_ENV
+
       - name: Terraform Plan
         run: |
-          terraform -chdir=terraform plan -var 'image_name=
+          terraform -chdir=terraform plan
+
+      - name: Terraform Apply
+        run: |
+          terraform -chdir=terraform apply -auto-approve
 
   ################################## Send Status for PR Checks ###########################
   ########################################################################################
