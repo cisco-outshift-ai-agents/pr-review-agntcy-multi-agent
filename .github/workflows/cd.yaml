@@ -11,6 +11,15 @@ on:
 
 jobs:
   checkout:
+    container:
+      image: ${{ vars.SRE_BUILD_IMAGE }}
+      options: --user root
+      credentials:
+        username: ${{ secrets.GHCR_USERNAME }}
+        password: ${{ secrets.GHCR_TOKEN }}
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,8 +40,6 @@ jobs:
           submodules: ''
       - name: List files in working directory
         run: ls -la
-    runs-on:
-      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
   
   ################################## Docker build & push ##########################
   #################################################################################################
