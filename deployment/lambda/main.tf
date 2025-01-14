@@ -28,6 +28,7 @@ resource "aws_lambda_function" "alfred-lambda" {
   function_name = var.lambda_function_name
   package_type  = "Image"
   image_uri     = "${var.image_repo}:${var.image_tag}"
+  architectures = ["arm64"]
   description   = "Alfred code reviewer lambda function"
   role          = aws_iam_role.alfred-exec-role.arn
 
