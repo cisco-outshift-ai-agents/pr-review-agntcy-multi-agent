@@ -145,11 +145,11 @@ jobs:
 
       - name: Terraform Plan
         run: |
-          terraform -chdir=deployment/lambda plan
+          terraform -chdir=deployment/lambda plan -input=false
 
       - name: Terraform Apply
         run: |
-          terraform -chdir=deployment/lambda apply -auto-approve
+          terraform -chdir=deployment/lambda apply -input=false -auto-approve
 
   ################################## Send Status for PR Checks ###########################
   ########################################################################################
