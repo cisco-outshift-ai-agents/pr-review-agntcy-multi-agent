@@ -82,16 +82,16 @@ jobs:
           echo "GITHUB_SECRET_PATH=${{ vars.ALFRED_VAULT_SECRET_PATH }}/gh" >> $GITHUB_ENV
           echo "LANGSMITH_SECRET_PATH=${{ vars.ALFRED_VAULT_SECRET_PATH }}/langsmith" >> $GITHUB_ENV
 
-            - name: Set secrets as environment variables
-              uses: hashicorp/vault-action@v2.7.5
-              with:
-                url: ${{ vars.KEEPER_URL }}
-                method: approle
-                roleId: ${{ secrets.VAULT_PHOENIX_APPROLE_ROLE_ID }}
-                secretId: ${{ secrets.VAULT_PHOENIX_APPROLE_SECRET_ID }}
-                namespace: "${{ vars.VAULT_NAMESPACE }}/outshift-users"
-                secrets: |
-                  ${{ env.AZURE_SECRET_PATH }}  key1                                 | AZURE_OPENAI_API_KEY;
+      - name: Set secrets as environment variables
+        uses: hashicorp/vault-action@v2.7.5
+        with:
+          url: ${{ vars.KEEPER_URL }}
+          method: approle
+          roleId: ${{ secrets.VAULT_PHOENIX_APPROLE_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_PHOENIX_APPROLE_SECRET_ID }}
+          namespace: "${{ vars.VAULT_NAMESPACE }}/outshift-users"
+          secrets: |
+            ${{ env.AZURE_SECRET_PATH }}  key1                                 | AZURE_OPENAI_API_KEY;
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
