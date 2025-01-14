@@ -120,7 +120,7 @@ jobs:
 
       - name: Terraform Init
         run: |
-          terraform -chdir=deployment/lambda init
+          terraform -chdir=deployment/lambda init -migrate-state
 
       - name: Set Terraform Variables
         run: |
