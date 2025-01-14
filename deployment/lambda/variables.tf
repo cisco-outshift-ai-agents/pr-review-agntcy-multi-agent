@@ -46,7 +46,7 @@ variable "azure_openai_endpoint" {
 variable "azure_openai_api_key" {
   type        = string
   description = "Set AZURE_OPENAI_API_KEY environment variable"
-  default     = ""
+  default = "oak"
 
   validation {
     condition = var.azure_openai_api_key != ""
