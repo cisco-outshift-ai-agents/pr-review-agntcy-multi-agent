@@ -15,14 +15,14 @@ variable "image_repo" {
   type        = string
   description = "ECR repository URI"
 
-  default = "471112537430.dkr.ecr.eu-west-1.amazonaws.com/alfred"
+  default = "626007623524.dkr.ecr.eu-west-1.amazonaws.com/alfred"
 }
 
 variable "image_tag" {
   type        = string
   description = "ECR image tag"
 
-  default = "latest"
+  default = "alfred-40_create-cd-pipeline"
 }
 
 variable "azure_openai_version" {
