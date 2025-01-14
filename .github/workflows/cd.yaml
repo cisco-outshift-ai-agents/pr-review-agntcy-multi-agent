@@ -102,6 +102,14 @@ jobs:
       - name: Display AWS Identity
         run: aws sts get-caller-identity
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Node Version
+        run: node --version
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -109,9 +117,6 @@ jobs:
 
       - name: Terraform Version
         run: terraform version
-
-      - name: Node Version
-        run: node --version
 
       - name: Terraform Init
         run: |
