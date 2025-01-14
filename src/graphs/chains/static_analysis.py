@@ -14,11 +14,10 @@ def create_static_analyzer_chain(model: BaseChatModel) -> RunnableSerializable[d
                 You will get different linter outputs from the user (tflint, tfsec, terraform validate etc.).
                 
                 Organize the issues into a list, but keep every detail!
-                Remove ONLY the line numbers but keep everything else as it is, don't change the issue message or the details at all just copy them.
+                Remove ONLY the line numbers but keep everything else, don't remove any detail from the issue message.
                 DO NOT remove any information from the issues, keep every detail! You are only allowed to delete the line numbers, nothing else!
                 Each item in the list should have the following format: {{file name}}: {{full issue description}}
-                Remove the warnings completely, only keep errors.
-                
+                                
                 Only return the list of issues in your response, nothing else.
                 """)
 

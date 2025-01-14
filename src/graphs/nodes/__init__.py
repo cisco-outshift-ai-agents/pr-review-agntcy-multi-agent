@@ -6,7 +6,7 @@ from .comments_fetcher import CommentsFetcher
 from .comments_to_messages_converter import CommentsToMessagesConverter
 from .comments_to_thread_converter import CommentsToThreadConverter
 from .contexts import DefaultContext
-from .duplicate_comment_remover import DuplicateCommentRemover
+from .comment_filterer import CommentFilterer
 from .fetch_pr import FetchPR
 from .review_chat_assistant import ReviewChatAssistant
 from .title_description_reviewer import TitleDescriptionReviewer
@@ -16,7 +16,7 @@ __all__ = [
     "FetchPR",
     "TitleDescriptionReviewer",
     "Commenter",
-    "DuplicateCommentRemover",
+    "CommentFilterer",
     "ReviewChatAssistant",
     "CommentsFetcher",
     "CommentRelatedPatchFetcher",

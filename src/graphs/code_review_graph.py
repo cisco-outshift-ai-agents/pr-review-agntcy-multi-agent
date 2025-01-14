@@ -4,14 +4,14 @@ from config import ConfigManager
 from graphs.chains import (
     create_code_review_chain,
     create_title_description_review_chain,
-    create_duplicate_comment_remove_chain,
+    create_comment_filter_chain,
 )
 from graphs.chains.static_analysis import create_static_analyzer_chain
 from graphs.nodes import (
     CodeReviewer,
     TitleDescriptionReviewer,
     Commenter,
-    DuplicateCommentRemover,
+    CommentFilterer,
     FetchPR,
     DefaultContext,
 )
@@ -51,7 +51,7 @@ class CodeReviewerWorkflow:
             github=github_ops,
         )
 
-        self.duplicate_comment_remover_context = DefaultContext(chain=create_duplicate_comment_remove_chain(model))
+        self.comment_filterer_context = DefaultContext(chain=create_comment_filter_chain(model))
 
     def run(self):
         workflow = StateGraph(GitHubPRState)
@@ -61,13 +61,13 @@ class CodeReviewerWorkflow:
         workflow.add_node("code_reviewer", CodeReviewer(self.code_review_context))
         workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_context))
         workflow.add_node("commenter", Commenter(self.github_context))
-        workflow.add_node("duplicate_comment_remover", DuplicateCommentRemover(self.duplicate_comment_remover_context))
+        workflow.add_node("comment_filterer", CommentFilterer(self.comment_filterer_context))
 
         workflow.add_edge("fetch_pr", "static_analyzer")
         workflow.add_edge("fetch_pr", "title_description_reviewer")
         workflow.add_edge("static_analyzer", "code_reviewer")
-        workflow.add_edge("code_reviewer", "duplicate_comment_remover")
-        workflow.add_edge(["duplicate_comment_remover", "title_description_reviewer"], "commenter")
+        workflow.add_edge("code_reviewer", "comment_filterer")
+        workflow.add_edge(["comment_filterer", "title_description_reviewer"], "commenter")
 
         workflow.set_entry_point("fetch_pr")
 

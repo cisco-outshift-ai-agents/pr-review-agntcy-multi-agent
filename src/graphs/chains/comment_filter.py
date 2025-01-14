@@ -7,7 +7,7 @@ from utils.models import Comments
 from typing import cast
 
 
-def create_duplicate_comment_remove_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | Comments]:
+def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | Comments]:
     llm_with_structured_output = cast(RunnableSerializable[dict, dict | Comments], model.with_structured_output(Comments))
     system_message = wrap_prompt("""\
         You are a review agent tasked with filtering a list of PR review comments.

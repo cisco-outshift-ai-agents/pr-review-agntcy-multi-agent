@@ -10,7 +10,7 @@ from .contexts import DefaultContext
 from langchain_core.runnables import RunnableSerializable
 
 
-class DuplicateCommentRemover:
+class CommentFilterer:
     def __init__(self, context: DefaultContext, name: str = "duplicate_comment_remover"):
         self.context = context
         self.name = name
@@ -69,9 +69,7 @@ class DuplicateCommentRemover:
 
         return {"new_comments": new_comments}
 
-    @staticmethod
-    def __remove_duplicate_comments(existing_comments: list[Comment], new_comments: list[Comment]) -> list[Comment]:
-        similarity_limit = 0.65
+    def __remove_duplicate_comments(self, existing_comments: list[Comment], new_comments: list[Comment]) -> list[Comment]:
         # We use a simple embeding model to create vector embedings
         # We calculate the embedings first and then the similarities
         # The similarities are the cosine of the angle between the vectors, [-1, 1], the closer to 1 the more similar two sentences are
@@ -106,11 +104,7 @@ class DuplicateCommentRemover:
 
             # If there's another comment with a similar message, a close line number and the same file, add that one to the exlusion list
             for j in range(i + 1, new_comment_count):
-                if (
-                    similarities[j] > similarity_limit
-                    and abs(new_comments[j].line_number - new_comments[i].line_number) < 5
-                    and new_comments[j].filename == new_comments[i].filename
-                ):
+                if self.__comments_similar(new_comments[i], new_comments[j], similarities[j].item()):
                     to_exclude.append(j)
 
         if not existing_comments:
@@ -141,11 +135,7 @@ class DuplicateCommentRemover:
         for i, similarities in enumerate(new_and_existing_similarity):
             comment_exists = False
             for j in range(len(similarities)):
-                if (
-                    similarities[j] > similarity_limit
-                    and abs(existing_comments[j].line_number - new_comments_filtered[i].line_number) < 5
-                    and existing_comments[j].filename == new_comments_filtered[i].filename
-                ):
+                if self.__comments_similar(new_comments_filtered[i], existing_comments[j], similarities[j].item()):
                     comment_exists = True
                     break
 
@@ -153,3 +143,12 @@ class DuplicateCommentRemover:
                 new_comments.append(new_comments_filtered[i])
 
         return new_comments
+
+    @staticmethod
+    def __comments_similar(comment1: Comment, comment2: Comment, similarity: float) -> bool:
+        similarity_limit = 0.5
+        total_similarity_limit = 0.9
+
+        return (similarity > total_similarity_limit and comment1.filename == comment2.filename) or (
+            similarity > similarity_limit and abs(comment1.line_number - comment2.line_number) < 5 and comment1.filename == comment2.filename
+        )
