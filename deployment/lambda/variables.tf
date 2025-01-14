@@ -43,7 +43,7 @@ variable "azure_openai_api_key" {
   default     = ""
 
   validation {
-    condition     = var.azure_openai_api_key == ""
+    condition = var.azure_openai_api_key != ""
     error_message = "AZURE_OPENAI_API_KEY is required"
   }
 }
@@ -59,7 +59,7 @@ variable "github_app_private_key" {
   default     = ""
 
   validation {
-    condition     = var.github_app_private_key == ""
+    condition = var.github_app_private_key != ""
     error_message = "GITHUB_APP_PRIVATE_KEY is required"
   }
 }
@@ -82,7 +82,7 @@ variable "langchain_api_key" {
   default     = ""
 
   validation {
-    condition     = var.is_langsmith_enabled && var.langchain_api_key == ""
+    condition = !var.is_langsmith_enabled || var.langchain_api_key != ""
     error_message = "LANGCHAIN_API_KEY is required when is_langsmith_enabled is true"
   }
 }
@@ -93,7 +93,7 @@ variable "langchain_endpoint" {
   default     = "https://langsmith.outshift.io/api/v1"
 
   validation {
-    condition     = var.is_langsmith_enabled && var.langchain_endpoint == ""
+    condition = !var.is_langsmith_enabled || var.langchain_endpoint != ""
     error_message = "LANGCHAIN_ENDPOINT is required when is_langsmith_enabled is true"
   }
 }
@@ -104,7 +104,7 @@ variable "langchain_project" {
   default     = ""
 
   validation {
-    condition     = var.is_langsmith_enabled && var.langchain_project == ""
+    condition = !var.is_langsmith_enabled || var.langchain_project != ""
     error_message = "LANGCHAIN_PROJECT is required when is_langsmith_enabled is true"
   }
 }
