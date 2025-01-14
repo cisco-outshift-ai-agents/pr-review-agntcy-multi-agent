@@ -122,23 +122,23 @@ jobs:
         run: |
           terraform -chdir=deployment/lambda init -reconfigure
 
-      - name: Set Terraform Variables
-        run: |
-          echo "TF_VAR_aws_region=eu-west-1" >> $GITHUB_ENV
-          echo "TF_VAR_image_name=471112537430.dkr.ecr.eu-west-1.amazonaws.com/alfred" >> $GITHUB_ENV
-          echo "TF_VAR_image_tag=main" >> $GITHUB_ENV
-          echo "TF_VAR_lambda_function_name=alfred-dev-cd" >> $GITHUB_ENV
-          echo "TF_VAR_azure_openai_version=2024-08-01-preview" >> $GITHUB_ENV
-          echo "TF_VAR_azure_openai_deployment=gpt-4o" >> $GITHUB_ENV
-          echo "TF_VAR_azure_openai_endpoint=https://prcoach-project-agents.openai.azure.com" >> $GITHUB_ENV
-          echo "TF_VAR_azure_openai_api_key=secret" >> $GITHUB_ENV
-          echo "TF_VAR_github_app_id=1065077" >> $GITHUB_ENV
-          echo "TF_VAR_github_app_private_key=gapk" >> $GITHUB_ENV
-          echo "TF_VAR_github_webhook_secret=secret" >> $GITHUB_ENV
-          echo "TF_VAR_langchain_api_key=lak" >> $GITHUB_ENV
-          echo "TF_VAR_langchain_endpoint=https://langsmith.outshift.io/api/v1" >> $GITHUB_ENV
-          echo "TF_VAR_langchain_project=alfred-dev-cd" >> $GITHUB_ENV
-          echo "TF_VAR_langchain_tracing_v2=true" >> $GITHUB_ENV
+      #      - name: Set Terraform Variables
+      #        run: |
+      #          echo "TF_VAR_aws_region=eu-west-1" >> $GITHUB_ENV
+      #          echo "TF_VAR_image_name=471112537430.dkr.ecr.eu-west-1.amazonaws.com/alfred" >> $GITHUB_ENV
+      #          echo "TF_VAR_image_tag=main" >> $GITHUB_ENV
+      #          echo "TF_VAR_lambda_function_name=alfred-dev-cd" >> $GITHUB_ENV
+      #          echo "TF_VAR_azure_openai_version=2024-08-01-preview" >> $GITHUB_ENV
+      #          echo "TF_VAR_azure_openai_deployment=gpt-4o" >> $GITHUB_ENV
+      #          echo "TF_VAR_azure_openai_endpoint=https://prcoach-project-agents.openai.azure.com" >> $GITHUB_ENV
+      #          echo "TF_VAR_azure_openai_api_key=secret" >> $GITHUB_ENV
+      #          echo "TF_VAR_github_app_id=1065077" >> $GITHUB_ENV
+      #          echo "TF_VAR_github_app_private_key=gapk" >> $GITHUB_ENV
+      #          echo "TF_VAR_github_webhook_secret=secret" >> $GITHUB_ENV
+      #          echo "TF_VAR_langchain_api_key=lak" >> $GITHUB_ENV
+      #          echo "TF_VAR_langchain_endpoint=https://langsmith.outshift.io/api/v1" >> $GITHUB_ENV
+      #          echo "TF_VAR_langchain_project=alfred-dev-cd" >> $GITHUB_ENV
+      #          echo "TF_VAR_langchain_tracing_v2=true" >> $GITHUB_ENV
 
       - name: Check variable
         run: echo ${{ env.TF_VAR_aws_region }}

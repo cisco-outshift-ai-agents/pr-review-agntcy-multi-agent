@@ -1,6 +1,8 @@
 variable "lambda_function_name" {
   type        = string
   description = "Name of the lambda function"
+
+  default = "alfred-cd-test"
 }
 
 variable "aws_region" {
@@ -12,29 +14,33 @@ variable "aws_region" {
 variable "image_repo" {
   type        = string
   description = "ECR repository URI"
+
+  default = "471112537430.dkr.ecr.eu-west-1.amazonaws.com/alfred"
 }
 
 variable "image_tag" {
   type        = string
   description = "ECR image tag"
+
+  default = "latest"
 }
 
 variable "azure_openai_version" {
   type        = string
-  default     = "2024-08-01-preview"
   description = "Set AZURE_OPENAI_API_VERSION environment variable"
+  default     = "2024-08-01-preview"
 }
 
 variable "azure_openai_deployment" {
   type        = string
-  default     = "gpt-4o"
   description = "Set AZURE_OPENAI_DEPLOYMENT environment variable"
+  default     = "gpt-4o"
 }
 
 variable "azure_openai_endpoint" {
   type        = string
-  default     = "https://prcoach-project-agents.openai.azure.com"
   description = "Set AZURE_OPENAI_ENDPOINT environment variable"
+  default     = "https://prcoach-project-agents.openai.azure.com"
 }
 
 variable "azure_openai_api_key" {
@@ -51,12 +57,14 @@ variable "azure_openai_api_key" {
 variable "github_app_id" {
   type        = number
   description = "Set GITHUB_APP_ID environment variable"
+
+  default = 1065077
 }
 
 variable "github_app_private_key" {
   type        = string
   description = "Set GITHUB_APP_PRIVATE_KEY environment variable"
-  default     = ""
+  default = "gapk"
 
   validation {
     condition = var.github_app_private_key != ""
@@ -67,19 +75,19 @@ variable "github_app_private_key" {
 variable "github_webhook_secret" {
   type        = string
   description = "Set GITHUB_WEBHOOK_SECRET environment variable"
-  default     = ""
+  default = "gws"
 }
 
 variable "is_langsmith_enabled" {
   type        = bool
-  default     = true
   description = "Enable langsmith"
+  default     = true
 }
 
 variable "langchain_api_key" {
   type        = string
   description = "Set LANGCHAIN_API_KEY environment variable"
-  default     = ""
+  default = "lak"
 
   validation {
     condition = !var.is_langsmith_enabled || var.langchain_api_key != ""
@@ -101,7 +109,7 @@ variable "langchain_endpoint" {
 variable "langchain_project" {
   type        = string
   description = "Set LANGCHAIN_PROJECT environment variable"
-  default     = ""
+  default = "alfred-cd-test"
 
   validation {
     condition = !var.is_langsmith_enabled || var.langchain_project != ""
@@ -117,6 +125,6 @@ variable "langchain_tracing_v2" {
 
 variable "log_level" {
   type        = string
-  default     = "INFO"
   description = "Set LOG_LEVEL environment variable"
+  default     = "INFO"
 }
