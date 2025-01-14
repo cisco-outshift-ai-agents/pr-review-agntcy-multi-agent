@@ -102,6 +102,11 @@ jobs:
       - name: Display AWS Identity
         run: aws sts get-caller-identity
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.3"
+
       - name: Terraform Init
         run: |
           ls -la
