@@ -1,28 +1,21 @@
 # Use the official Python image from the Docker Hub
-FROM public.ecr.aws/lambda/python:3.12 as builder
+FROM public.ecr.aws/lambda/python:3.12 as base
 
 WORKDIR /app
 
 RUN pip install poetry
 
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
-
 COPY pyproject.toml poetry.lock ./
-RUN touch README.md
 
-RUN poetry install --no-root && \
-    rm -rf $POETRY_CACHE_DIR
+RUN poetry config virtualenvs.create true
+RUN poetry config virtualenvs.in-project true
+RUN poetry install --no-root
 
-FROM public.ecr.aws/lambda/python:3.12 as runtime
+FROM public.ecr.aws/lambda/python:3.12 as build
 
-ENV VIRTUAL_ENV=.venv \
-    PATH=".venv/bin:$PATH"
+WORKDIR ${LAMBDA_TASK_ROOT}
 
-COPY --from=builder app/${VIRTUAL_ENV} ${VIRTUAL_ENV}
-
-COPY src .
+COPY --from=base /app/.venv/lib/python3.12/site-packages/ ${LAMBDA_TASK_ROOT}/
+COPY src/ ${LAMBDA_TASK_ROOT}/
 
 CMD ["main.handle_event"]
