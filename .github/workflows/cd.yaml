@@ -9,6 +9,11 @@ on:
       - "main"
   workflow_dispatch:
 
+permissions:
+    contents: read
+    id-token: write
+    packages: write # needed to push docker image ecr
+      
 jobs:
   ################################## Docker build & push ##########################
   #################################################################################################
