@@ -140,6 +140,9 @@ jobs:
           echo "TF_VAR_langchain_project=alfred-dev-cd" >> $GITHUB_ENV
           echo "TF_VAR_langchain_tracing_v2=true" >> $GITHUB_ENV
 
+      - name: Check variable
+        run: echo ${{ env.TF_VAR_aws_region }}
+
       - name: Terraform Plan
         run: |
           terraform -chdir=deployment/lambda plan
