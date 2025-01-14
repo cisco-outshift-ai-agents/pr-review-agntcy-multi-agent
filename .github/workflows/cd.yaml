@@ -87,7 +87,7 @@ jobs:
         with:
           url: ${{ vars.KEEPER_URL }}
           method: approle
-          roleId: ${{ secrets.VAULT_OUTSHIFT_USERS_PHOENIX_APPROLE_SECRET_ID }}
+          roleId: ${{ secrets.VAULT_OUTSHIFT_USERS_PHOENIX_APPROLE_ROLE_ID }}
           secretId: ${{ secrets.VAULT_OUTSHIFT_USERS_PHOENIX_APPROLE_SECRET_ID }}
           namespace: "${{ vars.VAULT_NAMESPACE }}/outshift-users"
           secrets: |
