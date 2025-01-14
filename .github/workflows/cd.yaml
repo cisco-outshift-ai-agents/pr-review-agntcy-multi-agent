@@ -109,8 +109,6 @@ jobs:
 
       - name: Terraform Init
         run: |
-          ls -la
-          ls -la deployment/lambda
           terraform -chdir=deployment/lambda init
 
       - name: Set Terraform Variables
