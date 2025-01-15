@@ -22,33 +22,34 @@ env:
   ECR_PRIVATE_REGISTRY_URI: 626007623524.dkr.ecr.eu-west-1.amazonaws.com
 
 jobs:
-  #  ####################################### Docker build & push #####################################
-  #  #################################################################################################
-  #  call-docker-build-push:
-  #    name: Call Docker Build & Push
-  #    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
-  #    secrets:
-  #      # Only needed if with:ecr-enabled or with:gar-enabled is true below
-  #      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-  #      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-  #      ghcr-username: ${{ secrets.GHCR_USERNAME }}
-  #      ghcr-token: ${{ secrets.GHCR_TOKEN }}
-  #      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
-  #    with:
-  #      ### REQUIRED
-  #      runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
-  #      ### Docker image name
-  #      image-name: alfred
-  #      context: .
-  #      ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
-  #      dockerfile: docker/Dockerfile
-  #      ### REQUIRED
-  #      ### ENABLE ONE OR BOTH REGISTRIES
-  #      ### tell docker where to push.
-  #      ecr-enabled: true
-  #      artifactory-devhub-enabled: false
-  #      ghcr-enabled: false
-  #      private-ecr-region: eu-west-1
+  ####################################### Docker build & push #####################################
+  #################################################################################################
+  call-docker-build-push:
+    name: Call Docker Build & Push
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+    secrets:
+      # Only needed if with:ecr-enabled or with:gar-enabled is true below
+      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+      ghcr-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-token: ${{ secrets.GHCR_TOKEN }}
+      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+    with:
+      ### REQUIRED
+      runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+      ### Docker image name
+      image-name: alfred
+      context: .
+      ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
+      dockerfile: docker/Dockerfile
+      ### REQUIRED
+      ### ENABLE ONE OR BOTH REGISTRIES
+      ### tell docker where to push.
+      ecr-enabled: true
+      artifactory-devhub-enabled: false
+      ghcr-enabled: false
+      private-ecr-region: eu-west-1
+      build-args: "--platform=linux/arm64"
 
   ################################## Deploy Lambda #######################################
   ########################################################################################
@@ -126,7 +127,7 @@ jobs:
 
       - name: Terraform Init
         run: |
-          terraform -chdir=deployment/lambda init -backend-config="key=dev/terraform.tfstate"
+          terraform -chdir=deployment/lambda init -backend-config="key=dev/terraform.tfstate" -reconfigure
 
       - name: Set Terraform Variables
         run: |
