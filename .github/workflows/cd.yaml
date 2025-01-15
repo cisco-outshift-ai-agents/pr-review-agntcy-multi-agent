@@ -19,6 +19,7 @@ env:
   IMG_TAG: latest
   AWS_REGION: eu-west-1
   ALFRED_VAULT_SECRET_PATH: "prcoach/data"
+  ECR_PRIVATE_REGISTRY_URI: "626007623524.dkr.ecr.eu-west-1.amazonaws.com"
 
 jobs:
   #  ####################################### Docker build & push #####################################
@@ -130,7 +131,7 @@ jobs:
       - name: Set Terraform Variables
         run: |
           echo "TF_VAR_azure_openai_api_key=$AZURE_OPENAI_API_KEY" >> $GITHUB_ENV
-          echo "TF_VAR_image_name=$IMG_REPOSITORY" >> $GITHUB_ENV
+          echo "TF_VAR_image_repo=${{ env.ECR_PRIVATE_REGISTRY_URI }}/${{ IMG_NAME }}" >> $GITHUB_ENV
           echo "TF_VAR_image_tag=$IMG_TAG" >> $GITHUB_ENV
           echo "TF_VAR_lambda_function_name=alfred-dev-cd" >> $GITHUB_ENV
 
