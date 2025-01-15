@@ -24,6 +24,31 @@ resource "aws_iam_role_policy_attachment" "alfred_lambda_basic_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_iam_policy" "sm_policy" {
+  name = "sm_access_permissions"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "secretsmanager:GetSecretValue",
+        ]
+        Effect = "Allow"
+        Resource = [
+          "arn:aws:secretsmanager:eu-west-1:471112537430:secret:alfred-dev-gcp-TjjTrK",
+          "arn:aws:secretsmanager:eu-west-1:471112537430:secret:alfred-dev-Q8Xy8B"
+        ],
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "alfred_lambda_sm_access" {
+  role       = aws_iam_role.alfred-exec-role.name
+  policy_arn = aws_iam_policy.sm_policy.arn
+}
+
 resource "aws_lambda_function" "alfred-lambda" {
   function_name = var.lambda_function_name
   package_type  = "Image"
