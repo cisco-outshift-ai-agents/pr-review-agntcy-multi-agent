@@ -178,4 +178,7 @@ gcp_service_account.json
 
 *.dot
 
+*.tfvars
+*.tfstate
+
 

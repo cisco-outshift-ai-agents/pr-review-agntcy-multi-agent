@@ -1,8 +1,6 @@
 variable "lambda_function_name" {
   type        = string
   description = "Name of the lambda function"
-
-  default = "alfred-cd-test"
 }
 
 variable "aws_region" {
@@ -14,27 +12,22 @@ variable "aws_region" {
 variable "image_repo" {
   type        = string
   description = "ECR repository URI"
-
-  default = "471112537430.dkr.ecr.eu-west-1.amazonaws.com/alfred/lambda"
 }
 
 variable "image_tag" {
   type        = string
   description = "ECR image tag"
-
-  default = "build-test-4"
+  default = "latest"
 }
 
 variable "azure_openai_version" {
   type        = string
   description = "Set AZURE_OPENAI_API_VERSION environment variable"
-  default     = "2024-08-01-preview"
 }
 
 variable "azure_openai_deployment" {
   type        = string
   description = "Set AZURE_OPENAI_DEPLOYMENT environment variable"
-  default     = "gpt-4o"
 }
 
 variable "azure_openai_endpoint" {
@@ -46,36 +39,24 @@ variable "azure_openai_endpoint" {
 variable "azure_openai_api_key" {
   type        = string
   description = "Set AZURE_OPENAI_API_KEY environment variable"
-  default = "oak"
-
-  validation {
-    condition = var.azure_openai_api_key != ""
-    error_message = "AZURE_OPENAI_API_KEY is required"
-  }
+  default = ""
 }
 
 variable "github_app_id" {
   type        = number
   description = "Set GITHUB_APP_ID environment variable"
-
-  default = 1065077
 }
 
 variable "github_app_private_key" {
   type        = string
   description = "Set GITHUB_APP_PRIVATE_KEY environment variable"
-  default = "gapk"
-
-  validation {
-    condition = var.github_app_private_key != ""
-    error_message = "GITHUB_APP_PRIVATE_KEY is required"
-  }
+  default = ""
 }
 
 variable "github_webhook_secret" {
   type        = string
   description = "Set GITHUB_WEBHOOK_SECRET environment variable"
-  default = "gws"
+  default = ""
 }
 
 variable "is_langsmith_enabled" {
@@ -87,18 +68,13 @@ variable "is_langsmith_enabled" {
 variable "langchain_api_key" {
   type        = string
   description = "Set LANGCHAIN_API_KEY environment variable"
-  default = "lak"
-
-  validation {
-    condition = !var.is_langsmith_enabled || var.langchain_api_key != ""
-    error_message = "LANGCHAIN_API_KEY is required when is_langsmith_enabled is true"
-  }
+  default = ""
 }
 
 variable "langchain_endpoint" {
   type        = string
   description = "Set LANGCHAIN_ENDPOINT environment variable"
-  default     = "https://langsmith.outshift.io/api/v1"
+  default = "https://langsmith.io/api/v1"
 
   validation {
     condition = !var.is_langsmith_enabled || var.langchain_endpoint != ""
@@ -109,7 +85,7 @@ variable "langchain_endpoint" {
 variable "langchain_project" {
   type        = string
   description = "Set LANGCHAIN_PROJECT environment variable"
-  default = "alfred-cd-test"
+  default = ""
 
   validation {
     condition = !var.is_langsmith_enabled || var.langchain_project != ""
