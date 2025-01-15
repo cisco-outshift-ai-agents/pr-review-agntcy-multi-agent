@@ -15,8 +15,8 @@ permissions:
     packages: write # needed to push docker image ecr
 
 env:
-  IMG_REPOSITORY: 471112537430.dkr.ecr.eu-west-1.amazonaws.com/alfred
-  IMG_TAG: ${{ github.ref }}
+  IMG_NAME: alfred
+  IMG_TAG: latest
   AWS_REGION: eu-west-1
   ALFRED_VAULT_SECRET_PATH: "prcoach/data"
 
@@ -37,7 +37,7 @@ jobs:
       ### REQUIRED
       runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
       ### Docker image name
-      image-name: ${{ vars.IMG_REPOSITORY }}
+      image-name: ${{ env.IMAGE_NAME }}
       context: .
       ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
       dockerfile: docker/Dockerfile
@@ -47,7 +47,7 @@ jobs:
       ecr-enabled: true
       artifactory-devhub-enabled: false
       ghcr-enabled: false
-      private-ecr-region: ${{ vars.AWS_REGION }}
+      private-ecr-region: ${{ env.AWS_REGION }}
 
   ################################## Deploy Lambda #######################################
   ########################################################################################
