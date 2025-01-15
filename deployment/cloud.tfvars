@@ -1,4 +1,3 @@
-aws_region              = "eu-west-1"
 azure_openai_version    = "2024-08-01-preview"
 azure_openai_deployment = "gpt-4o"
 azure_openai_endpoint   = "https://prcoach-project-agents.openai.azure.com"
