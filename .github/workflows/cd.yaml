@@ -134,6 +134,7 @@ jobs:
           echo "TF_VAR_image_repo=${{ env.ECR_PRIVATE_REGISTRY_URI }}/${{ env.IMG_NAME }}" >> $GITHUB_ENV
           echo "TF_VAR_image_tag=$IMG_TAG" >> $GITHUB_ENV
           echo "TF_VAR_lambda_function_name=alfred-dev-cd" >> $GITHUB_ENV
+          echo "TF_VAR_langchain_project=$IMG_NAME" >> $GITHUB_ENV
 
       - name: Check variable
         run: |
