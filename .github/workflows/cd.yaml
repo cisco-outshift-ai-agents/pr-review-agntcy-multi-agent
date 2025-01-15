@@ -55,7 +55,7 @@ jobs:
   ########################################################################################
   deploy-lambda:
     name: Deploy Lambda
-    #    needs: [ call-docker-build-push ]
+    needs: [ call-docker-build-push ]
     runs-on:
       group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
     container:
@@ -157,7 +157,7 @@ jobs:
   reusable-workflow-ci-status:
     name: CD Status
     # This should be an array of ALL active jobs that are used/run
-    needs: [ deploy-lambda ]
+    needs: [ deploy-lambda, call-docker-build-push ]
     if: always()
     runs-on:
       group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
