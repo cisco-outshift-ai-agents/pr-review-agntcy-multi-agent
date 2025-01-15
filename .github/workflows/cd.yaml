@@ -95,8 +95,8 @@ jobs:
           secretId: ${{ secrets.VAULT_OUTSHIFT_USERS_PHOENIX_APPROLE_SECRET_ID }}
           namespace: "${{ vars.VAULT_NAMESPACE }}/outshift-users"
           secrets: |
-            ${{ env.AZURE_SECRET_PATH }}/azure-ai/gpt-4o  key1      |  AZURE_OPENAI_API_KEY;
-            ${{ env.AZURE_SECRET_PATH }}/azure-ai/gpt-4o  endpoint  |  AZURE_OPENAI_ENDPOINT;
+            ${{ env.AZURE_SECRET_PATH }}  key1      |  AZURE_OPENAI_API_KEY;
+            ${{ env.AZURE_SECRET_PATH }}  endpoint  |  AZURE_OPENAI_ENDPOINT;
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
