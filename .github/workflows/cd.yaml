@@ -15,11 +15,11 @@ permissions:
     packages: write # needed to push docker image ecr
 
 env:
-  IMG_NAME: alfred
-  IMG_TAG: alfred-40_create-cd-pipeline
+  IMG_NAME: alfred/lambda
+  IMG_TAG: build-test-4
   AWS_REGION: eu-west-1
-  ALFRED_VAULT_SECRET_PATH: "prcoach/data"
-  ECR_PRIVATE_REGISTRY_URI: "626007623524.dkr.ecr.eu-west-1.amazonaws.com"
+  ALFRED_VAULT_SECRET_PATH: prcoach/data
+  ECR_PRIVATE_REGISTRY_URI: 471112537430.dkr.ecr.eu-west-1.amazonaws.com
 
 jobs:
   #  ####################################### Docker build & push #####################################
