@@ -47,7 +47,7 @@ jobs:
       ecr-enabled: true
       artifactory-devhub-enabled: false
       ghcr-enabled: false
-      private-ecr-region: ${{ env.AWS_REGION }}
+      private-ecr-region: eu-west-1
 
   ################################## Deploy Lambda #######################################
   ########################################################################################
