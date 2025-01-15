@@ -131,7 +131,7 @@ jobs:
       - name: Set Terraform Variables
         run: |
           echo "TF_VAR_azure_openai_api_key=$AZURE_OPENAI_API_KEY" >> $GITHUB_ENV
-          echo "TF_VAR_image_repo=${{ env.ECR_PRIVATE_REGISTRY_URI }}/${{ IMG_NAME }}" >> $GITHUB_ENV
+          echo "TF_VAR_image_repo=${{ env.ECR_PRIVATE_REGISTRY_URI }}/${{ env.IMG_NAME }}" >> $GITHUB_ENV
           echo "TF_VAR_image_tag=$IMG_TAG" >> $GITHUB_ENV
           echo "TF_VAR_lambda_function_name=alfred-dev-cd" >> $GITHUB_ENV
 
