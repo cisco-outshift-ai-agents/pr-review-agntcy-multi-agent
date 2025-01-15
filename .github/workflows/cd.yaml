@@ -16,7 +16,7 @@ permissions:
 
 env:
   IMG_REPOSITORY: 471112537430.dkr.ecr.eu-west-1.amazonaws.com/alfred
-  IMG_TAG: ${{ env.GITHUB_REF }}
+  IMG_TAG: ${{ github.ref }}
   AWS_REGION: eu-west-1
   ALFRED_VAULT_SECRET_PATH: "prcoach/data"
 
