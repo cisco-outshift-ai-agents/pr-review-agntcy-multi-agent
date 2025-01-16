@@ -31,9 +31,13 @@ class FetchPR:
 
         total_files = self.context.github.pr.get_files()
         files_types_not_to_review: Set[str] = set()
+
         files_to_review: List[File] = []
         new_title_desc_comment = None
+        # print("--total_files--")
+
         for file in total_files:
+            # print(f"file: {file}")
             if file.filename.endswith(terraform_file_types_review_allowed):
                 # this file should be reviewed
                 files_to_review.append(file)
