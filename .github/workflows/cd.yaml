@@ -26,9 +26,11 @@ jobs:
     steps:
       - name: Set environment variables
         id: set-environment-variables
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+
         run: |
           set -e
-          export BRANCH=${GITHUB_REF##*/}
           
           export IMAGE_NAME=alfred
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
@@ -44,19 +46,17 @@ jobs:
           export SHA=${GITHUB_SHA::7}
           echo "SHA=$SHA" >> $GITHUB_ENV
           
-          export IMAGE_TAG=$BRANCH-$DATE-$SHA
+          export GIT_BRANCH=$(echo $BRANCH | sed 's/refs\/heads\///g')
+          export IMAGE_TAG=$GIT_BRANCH-$DATE-$SHA
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
           
-          echo "ECR_PRIVATE_REGISTRY_URI=471112537430.dkr.ecr.eu-west-1.amazonaws.com" >> $GITHUB_ENV
+          echo "ECR_PRIVATE_REGISTRY_URI=626007623524.dkr.ecr.eu-west-1.amazonaws.com" >> $GITHUB_ENV
           echo "ALFRED_VAULT_SECRET_PATH=secret/data/alfred" >> $GITHUB_ENV
 
       - name: Display Environment Variables
         run: |
-          echo "GITHUB_REF=$GITHUB_REF"
-          echo "GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
           echo "DATE=$DATE"
-          echo "BRANCH=$BRANCH"
           echo "SHA=$SHA"
           echo "IMAGE_NAME=$IMAGE_NAME"
           echo "IMAGE_TAG=$IMAGE_TAG"
