@@ -35,7 +35,7 @@ jobs:
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT
           
           export DATE=$(date +'%Y-%m-%d')
-          echo "$DATE" >> $GITHUB_ENV
+          echo "DATE=$DATE" >> $GITHUB_ENV
           
           export AWS_REGION=eu-west-1
           echo "AWS_REGION=$AWS_REGION" >> $GITHUB_ENV
