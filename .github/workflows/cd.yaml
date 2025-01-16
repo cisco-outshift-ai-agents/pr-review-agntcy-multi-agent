@@ -104,7 +104,7 @@ jobs:
   ########################################################################################
   deploy-lambda:
     name: Deploy Lambda
-    needs: [ setcall-docker-build-push ]
+    needs: [ call-docker-build-push, set-environment-variables ]
     runs-on:
       group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
     container:
@@ -162,11 +162,11 @@ jobs:
 
       - name: Set Terraform Variables
         env:
-          ECR_PRIVATE_REGISTRY_URI: ${{ jobs.set-environment-variables.outputs.ecr_private_registry_uri }}
-          IMAGE_NAME: ${{ jobs.set-environment-variables.outputs.image_name }}
-          IMAGE_TAG: ${{ jobs.set-environment-variables.outputs.image_tag }}
-          DATE: ${{ jobs.set-environment-variables.outputs.date }}
-          SHA: ${{ jobs.set-environment-variables.outputs.sha }}
+          ECR_PRIVATE_REGISTRY_URI: ${{ needs.set-environment-variables.outputs.ecr_private_registry_uri }}
+          IMAGE_NAME: ${{ needs.set-environment-variables.outputs.image_name }}
+          IMAGE_TAG: ${{ needs.set-environment-variables.outputs.image_tag }}
+          DATE: ${{ needs.set-environment-variables.outputs.date }}
+          SHA: ${{ needs.set-environment-variables.outputs.sha }}
         run: |
           echo "TF_VAR_image_repo=${{ env.ECR_PRIVATE_REGISTRY_URI }}/${{ env.IMAGE_NAME }}" >> $GITHUB_ENV
           echo "TF_VAR_image_tag=$IMAGE_TAG" >> $GITHUB_ENV
