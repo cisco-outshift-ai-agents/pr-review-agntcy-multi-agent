@@ -14,18 +14,29 @@ permissions:
     id-token: write
     packages: write # needed to push docker image ecr
 
-env:
-  IMG_NAME: alfred
-  IMG_TAG: alfred-40_create-cd-pipeline
-  AWS_REGION: eu-west-1
-  ALFRED_VAULT_SECRET_PATH: prcoach/data
-  ECR_PRIVATE_REGISTRY_URI: 626007623524.dkr.ecr.eu-west-1.amazonaws.com
-
 jobs:
+  set-environment-variables:
+    name: Set Environment Variables
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+    steps:
+      - name: Set environment variables
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          echo "IMAGE_NAME=alfred" >> $GITHUB_ENV
+          echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+          echo "AWS_REGION=eu-west-1" >> $GITHUB_ENV
+          echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$BRANCH-$DATE-$SHA" >> $GITHUB_ENV
+          echo "ECR_PRIVATE_REGISTRY_URI=471112537430.dkr.ecr.eu-west-1.amazonaws.com" >> $GITHUB_ENV
+          echo "ALFRED_VAULT_SECRET_PATH=secret/data/alfred" >> $GITHUB_ENV
+
   ####################################### Docker build & push #####################################
   #################################################################################################
   call-docker-build-push:
     name: Call Docker Build & Push
+    needs: [ set-environment-variables ]
     uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
     secrets:
       # Only needed if with:ecr-enabled or with:gar-enabled is true below
@@ -38,7 +49,8 @@ jobs:
       ### REQUIRED
       runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
       ### Docker image name
-      image-name: alfred
+      image-name: ${{ env.IMAGE_NAME }}
+      image-custom-tag: ${{ env.IMAGE_TAG }}
       context: .
       ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
       dockerfile: docker/Dockerfile
@@ -48,8 +60,8 @@ jobs:
       ecr-enabled: true
       artifactory-devhub-enabled: false
       ghcr-enabled: false
-      private-ecr-region: eu-west-1
-      build-args: "--platform=linux/arm64"
+      private-ecr-region: ${{ env.AWS_REGION }}
+      build-args: "--platform=linux/amd64"
 
   ################################## Deploy Lambda #######################################
   ########################################################################################
@@ -88,18 +100,6 @@ jobs:
           echo "GITHUB_SECRET_PATH=${{ env.ALFRED_VAULT_SECRET_PATH }}/gh" >> $GITHUB_ENV
           echo "LANGSMITH_SECRET_PATH=${{ env.ALFRED_VAULT_SECRET_PATH }}/langsmith" >> $GITHUB_ENV
 
-      - name: Set secrets as environment variables
-        uses: hashicorp/vault-action@v2.7.5
-        with:
-          url: ${{ vars.KEEPER_URL }}
-          method: approle
-          roleId: ${{ secrets.VAULT_OUTSHIFT_USERS_PHOENIX_APPROLE_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_OUTSHIFT_USERS_PHOENIX_APPROLE_SECRET_ID }}
-          namespace: "${{ vars.VAULT_NAMESPACE }}/outshift-users"
-          secrets: |
-            ${{ env.AZURE_SECRET_PATH }}  key1      |  AZURE_OPENAI_API_KEY;
-            ${{ env.AZURE_SECRET_PATH }}  endpoint  |  AZURE_OPENAI_ENDPOINT;
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
         with:
@@ -131,25 +131,25 @@ jobs:
 
       - name: Set Terraform Variables
         run: |
-          echo "TF_VAR_azure_openai_api_key=$AZURE_OPENAI_API_KEY" >> $GITHUB_ENV
-          echo "TF_VAR_image_repo=${{ env.ECR_PRIVATE_REGISTRY_URI }}/${{ env.IMG_NAME }}" >> $GITHUB_ENV
-          echo "TF_VAR_image_tag=$IMG_TAG" >> $GITHUB_ENV
+          echo "TF_VAR_image_repo=${{ env.ECR_PRIVATE_REGISTRY_URI }}/${{ env.IMAGE_NAME }}" >> $GITHUB_ENV
+          echo "TF_VAR_image_tag=$IMAGE_TAG" >> $GITHUB_ENV
           echo "TF_VAR_lambda_function_name=alfred-dev-cd" >> $GITHUB_ENV
-          echo "TF_VAR_langchain_project=$IMG_NAME" >> $GITHUB_ENV
+          echo "TF_VAR_langchain_project=$IMAGE_NAME-$IMAGE_TAG-$DATE-$SHA" >> $GITHUB_ENV
 
       - name: Check variable
         run: |
-          echo $TF_VAR_image_name
+          echo $TF_VAR_image_repo
           echo $TF_VAR_image_tag
           echo $TF_VAR_lambda_function_name
+          echo "TF_VAR_langchain_project=$IMAGE_NAME-$IMAGE_TAG-$DATE-$SHA" >> $GITHUB_ENV
 
       - name: Terraform Plan
         run: |
-          terraform -chdir=deployment/lambda plan -input=false -var-file=../cloud.tfvars
+          terraform -chdir=deployment/lambda plan -input=false -var-file=platforms/dev.tfvars
 
       - name: Terraform Apply
         run: |
-          terraform -chdir=deployment/lambda apply -input=false -auto-approve -var-file=../cloud.tfvars
+          terraform -chdir=deployment/lambda apply -input=false -auto-approve -var-file=platforms/dev.tfvars
 
   ################################## Send Status for PR Checks ###########################
   ########################################################################################
@@ -157,7 +157,7 @@ jobs:
   reusable-workflow-ci-status:
     name: CD Status
     # This should be an array of ALL active jobs that are used/run
-    needs: [ deploy-lambda, call-docker-build-push ]
+    needs: [ set-environment-variables, deploy-lambda, call-docker-build-push ]
     if: always()
     runs-on:
       group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}

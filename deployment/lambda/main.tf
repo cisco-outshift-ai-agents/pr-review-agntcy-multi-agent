@@ -1,5 +1,17 @@
+terraform {
+  required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = "2.5.1"
+    }
+  }
+}
 provider "aws" {
   region = var.aws_region
+}
+
+locals {
+  is_langsmith_enabled = var.environment != "dev" && var.is_langsmith_enabled
 }
 
 resource "aws_iam_role" "alfred-exec-role" {
@@ -53,7 +65,7 @@ resource "aws_lambda_function" "alfred-lambda" {
   function_name = var.lambda_function_name
   package_type  = "Image"
   image_uri     = "${var.image_repo}:${var.image_tag}"
-  architectures = ["arm64"]
+  architectures = ["amd64"]
   description   = "Alfred code reviewer lambda function"
   timeout     = 120
   memory_size = 2048
@@ -69,11 +81,12 @@ resource "aws_lambda_function" "alfred-lambda" {
       GITHUB_APP_ID            = var.github_app_id
       GITHUB_APP_PRIVATE_KEY   = var.github_app_private_key
       GITHUB_WEBHOOK_SECRET    = var.github_webhook_secret
-      LANGCHAIN_API_KEY        = var.is_langsmith_enabled ? var.langchain_api_key : null
-      LANGCHAIN_ENDPOINT       = var.is_langsmith_enabled ? var.langchain_endpoint : null
-      LANGCHAIN_PROJECT        = var.is_langsmith_enabled ? var.langchain_project : null
-      LANGCHAIN_TRACING_V2     = var.is_langsmith_enabled ? var.langchain_tracing_v2 : null
+      LANGCHAIN_API_KEY    = var.langchain_api_key
+      LANGCHAIN_ENDPOINT   = local.is_langsmith_enabled ? var.langchain_endpoint : null
+      LANGCHAIN_PROJECT    = local.is_langsmith_enabled ? var.langchain_project : null
+      LANGCHAIN_TRACING_V2 = local.is_langsmith_enabled ? var.langchain_tracing_v2 : null
       LOG_LEVEL                = var.log_level
+      ENVIRONMENT          = var.environment
     }
   }
 }

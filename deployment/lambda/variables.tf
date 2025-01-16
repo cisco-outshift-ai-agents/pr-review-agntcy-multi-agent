@@ -104,3 +104,9 @@ variable "log_level" {
   description = "Set LOG_LEVEL environment variable"
   default     = "INFO"
 }
+
+variable "environment" {
+  type        = string
+  description = "Set run environment type"
+  default     = "dev"
+}

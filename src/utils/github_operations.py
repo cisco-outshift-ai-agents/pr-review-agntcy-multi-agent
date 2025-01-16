@@ -12,6 +12,7 @@ from github.Repository import Repository
 
 from utils.logging_config import logger as log
 from utils.models import Comment
+from utils.secret_manager import secret_manager
 
 GithubOperationException = GithubException
 
@@ -80,20 +81,14 @@ class GitHubOperations:
             log.error(f"Invalid GitHub credentials: {e}")
             raise
 
-    def _get_private_key(self) -> str:
+    @staticmethod
+    def _get_private_key() -> str:
         """Get private key from file or environment variable"""
-        key_file_path = os.getenv("GITHUB_APP_PRIVATE_KEY_FILE")
-        if key_file_path:
-            try:
-                with open(key_file_path, "r") as key_file:
-                    return key_file.read()
-            except IOError as e:
-                log.error(f"Failed to read private key file: {e}")
-                raise
-
-        private_key = os.getenv("GITHUB_APP_PRIVATE_KEY")
-        if not private_key:
-            raise ValueError("Neither GITHUB_APP_PRIVATE_KEY_FILE nor GITHUB_APP_PRIVATE_KEY is set")
+        try:
+            private_key = secret_manager.get_github_app_private_key()
+        except Exception as e:
+            log.error(f"Failed to get private key: {e}")
+            raise
 
         try:
             private_key_bytes = base64.b64decode(private_key)
@@ -102,7 +97,8 @@ class GitHubOperations:
             log.error(f"Failed to decode private key: {e}")
             raise
 
-    def _get_app_id(self) -> str:
+    @staticmethod
+    def _get_app_id() -> str:
         """Get GitHub App ID from environment variable"""
         app_id = os.getenv("GITHUB_APP_ID")
         if not app_id:
@@ -162,7 +158,8 @@ class GitHubOperations:
     def create_pull_request_check_run(self) -> github.CheckRun.CheckRun:
         return self._repo.create_check_run(name="Alfred review", head_sha=self._pr.head.sha, status="in_progress")
 
-    def complete_pull_request_check_run(self, check_run: github.CheckRun.CheckRun, conclusion: CheckRunConclusion):
+    @staticmethod
+    def complete_pull_request_check_run(check_run: github.CheckRun.CheckRun, conclusion: CheckRunConclusion):
         try:
             check_run.edit(status="completed", conclusion=conclusion.name)
         except Exception as e:

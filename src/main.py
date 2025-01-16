@@ -12,6 +12,8 @@ from utils.logging_config import logger as log
 # TODO: Typed github event should be created with typed Payload, github.Event exists already.
 #  Worth to check: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parser/
 
+# Set langchain api key as env var
+if os[]
 
 @lambda_validate_github_signature
 def handle_event(event: dict[str, Any], context):

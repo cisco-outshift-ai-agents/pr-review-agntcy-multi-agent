@@ -5,4 +5,4 @@ github_app_id           = 1046901
 is_langsmith_enabled    = true
 langchain_endpoint      = "https://langsmith.outshift.io/api/v1"
 langchain_tracing_v2    = true
-log_level               = "INFO"
+log_level               = "DEBUG"

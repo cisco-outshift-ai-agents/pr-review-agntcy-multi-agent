@@ -1,11 +1,31 @@
+locals {
+  envs = {for tuple in regexall("(.*)=(.*)", file("../../.env")) : tuple[0] => sensitive(tuple[1])}
+}
+
+data "local_file" "github_app_private_key" {
+  filename = local.envs["GITHUB_APP_PRIVATE_KEY_FILE"]
+}
+
 module "aws_lambda" {
   source = "../lambda"
-  aws_region = "eu-west-1"
-  github_app_id        = 0
-  image_repo           = "alfred"
-  image_tag            = "local"
+
   lambda_function_name = "alfred_lambda_local"
-  is_langsmith_enabled = false
+  aws_region = "eu-west-1"
+
+  image_repo = "alfred"
+  image_tag  = "local"
+
+  azure_openai_deployment = local.envs["AZURE_OPENAI_DEPLOYMENT"]
+  azure_openai_version    = local.envs["AZURE_OPENAI_API_VERSION"]
+  azure_openai_api_key    = local.envs["AZURE_OPENAI_API_KEY"]
+  azure_openai_endpoint   = local.envs["AZURE_OPENAI_ENDPOINT"]
+
+  github_app_id         = local.envs["GITHUB_APP_ID"]
+  github_app_private_key = coalesce(local.envs["GITHUB_APP_PRIVATE_KEY"], data.local_file.github_app_private_key.content)
+  github_webhook_secret = local.envs["GITHUB_WEBHOOK_SECRET"]
+
+  log_level   = "DEBUG"
+  environment = "local"
 }
 
 resource "aws_apigatewayv2_api" "lambda_local_api" {
