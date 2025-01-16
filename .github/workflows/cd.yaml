@@ -26,9 +26,8 @@ jobs:
     steps:
       - name: Set environment variables
         id: set-environment-variables
-        env:
-          BRANCH: ${{ github.ref_name }}
         run: |
+          export BRANCH=${GITHUB_REF##*/}
           echo "IMAGE_NAME=alfred" >> $GITHUB_ENV
           echo "IMAGE_NAME=alfred" >> $GITHUB_OUTPUT
           echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
