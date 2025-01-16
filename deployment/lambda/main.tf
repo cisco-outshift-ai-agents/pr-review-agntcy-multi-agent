@@ -57,7 +57,7 @@ resource "aws_lambda_function" "alfred-lambda" {
   function_name = var.lambda_function_name
   package_type  = "Image"
   image_uri     = "${var.image_repo}:${var.image_tag}"
-  architectures = ["amd64"]
+  architectures = ["x86_64"]
   description   = "Alfred code reviewer lambda function"
   timeout     = 120
   memory_size = 2048
