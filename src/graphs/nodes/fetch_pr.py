@@ -14,8 +14,8 @@ from utils.models import Comment
 from utils.models import ContextFile
 from .contexts import DefaultContext
 
-terraform_file_types_review_allowed = ".tf"
-terraform_file_types_review_forbidden = (".tfvars", ".tfplan", ".tfstate")
+terraform_file_types_review_allowed = (".tf", ".tfvars")
+terraform_file_types_push_forbidden = (".tfplan", ".tfstate")
 
 
 class FetchPR:
@@ -30,26 +30,32 @@ class FetchPR:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
         total_files = self.context.github.pr.get_files()
-        files_types_not_to_review = set()
-        files_to_review = []
-
+        files_types_not_to_review: Set[str] = set()
+        files_to_review: List[File] = []
+        new_title_desc_comment = None
         for file in total_files:
             if file.filename.endswith(terraform_file_types_review_allowed):
                 # this file should be reviewed
                 files_to_review.append(file)
-            elif file.filename.endswith(terraform_file_types_review_forbidden):
+            elif file.filename.endswith(terraform_file_types_push_forbidden):
                 # this file should not be reviewed, but we should warn the user about the risks pushing it to the repo
                 files_types_not_to_review.add(file.filename.rsplit(".", 1)[1])
             else:
                 # this file should not be reviewed
                 pass
-        wrong_files_to_push_message = (
-            f"Please note that the following file types are not allowed to be pushed to the repository: {files_types_not_to_review}"
-        )
+
         title = self.context.github.pr.title
         description = self.context.github.pr.body
         changes = []
         existing_comments = []
+
+        if len(terraform_file_types_push_forbidden) > 0:
+            wrong_files_to_push_message = (
+                f"Please note that the following file types are not allowed to be pushed to the repository: {", ".join(files_types_not_to_review)}"
+            )
+
+            new_title_desc_comment = Comment(filename="", line_number=0, comment=wrong_files_to_push_message, status="")
+            existing_comments.append(new_title_desc_comment)
 
         # Fetch existing comments from PR
         try:
@@ -76,7 +82,7 @@ class FetchPR:
             log.error(f"Error fetching existing comments: {e}")
             pass
 
-        for file in files:
+        for file in files_to_review:
             filename = file.filename
             patch = file.patch
 

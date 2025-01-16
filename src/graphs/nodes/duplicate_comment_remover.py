@@ -28,9 +28,7 @@ class DuplicateCommentRemover:
             new_comments = state["new_comments"]
 
             if not existing_comments or not new_comments:
-                return {
-                    "messages": [],
-                }
+                return {}
 
             example_schema = [
                 Comment(filename="file1", line_number=1, comment="comment1", status="added").model_dump(),
