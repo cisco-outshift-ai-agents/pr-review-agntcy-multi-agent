@@ -57,8 +57,8 @@ jobs:
       ### REQUIRED
       runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
       ### Docker image name
-      image-name: ${{ needs.set-environment-variables.image_name }}
-      image-custom-tag: ${{ needs.set-environment-variables.image_tag }}
+      image-name: ${{ needs.set-environment-variables.outputs.image_name }}
+      image-custom-tag: ${{ needs.set-environment-variables.outputs.image_tag }}
       context: .
       ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
       dockerfile: docker/Dockerfile
