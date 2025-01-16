@@ -1,6 +1,6 @@
 import os
 from subprocess import CalledProcessError, run
-from typing import Any, Union
+from typing import Any
 
 from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
@@ -14,7 +14,7 @@ class StaticAnalyzer:
         self.context = context
         self.__name = name
 
-    def __call__(self, state: GitHubPRState) -> Union[dict[str, Any], None]:
+    def __call__(self, state: GitHubPRState) -> dict[str, Any]:
         log.info(f"{self.__name} called")
 
         if not self.context.chain:
@@ -62,7 +62,7 @@ class StaticAnalyzer:
 
         except CalledProcessError as e:
             log.error(f"Error while running static checks in the users repo: {e}")
-            return
+            return {}
 
         # TODO
         # try:
@@ -89,5 +89,10 @@ class StaticAnalyzer:
         except Exception as e:
             log.error(f"Error in {self.__name}: {e}")
             raise
+        
+        log.debug(f"""
+        static_analyzer finished.
+        output: {response.content}
+        """)
 
         return {"static_analyzer_output": response.content}

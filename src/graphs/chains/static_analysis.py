@@ -7,8 +7,6 @@ from utils.wrap_prompt import wrap_prompt
 
 
 def create_static_analyzer_chain(model: BaseChatModel) -> RunnableSerializable[dict, BaseMessage]:
-    # TODO The below prompt is not perfect, sometimes it removes important details from the errors, fix this!
-
     system_message = wrap_prompt("""\
                 Your are an experienced software egineer who's task is to organize Terraform related linter outputs.
                 You will get different linter outputs from the user (tflint, tfsec, terraform validate etc.).

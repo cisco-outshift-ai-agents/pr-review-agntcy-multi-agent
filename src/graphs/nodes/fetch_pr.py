@@ -105,7 +105,7 @@ class FetchPR:
         modified_files = self.__get_modified_files()
         context_files = self.__get_context_for_modified_files()
 
-        log.info(f"""
+        log.debug(f"""
         fetch pr finished.
         changes: {json.dumps(changes, indent=4)},
         title: {title},

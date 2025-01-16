@@ -2,6 +2,23 @@ FROM public.ecr.aws/lambda/python:3.12
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
+# Install Terraform, Alfred will use it to run static analysis
+RUN dnf update -y && \
+    dnf install -y \
+    unzip \
+    jq \
+    ca-certificates && \
+    dnf clean all
+
+# Install Terraform, Alfred will run static analyzers on the repo
+RUN curl -Lo /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.6.1/terraform_1.6.1_linux_amd64.zip && \
+    unzip /tmp/terraform.zip -d /usr/local/bin/ && \
+    rm -f /tmp/terraform.zip
+
+# Install tflint for the same reasons as above
+RUN curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+# Build Alfred
 COPY ./src/ .
 COPY pyproject.toml .
 COPY poetry.lock .
@@ -9,6 +26,6 @@ COPY poetry.lock .
 RUN pip install poetry
 # We don't need a virtual env, the image itself is an isolated env
 RUN poetry config virtualenvs.create false 
-RUN poetry install --no-dev
+RUN poetry install --only main
 
 CMD [ "main.handle_event" ]

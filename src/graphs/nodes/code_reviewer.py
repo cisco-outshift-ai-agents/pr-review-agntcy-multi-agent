@@ -25,7 +25,7 @@ class CodeReviewer:
             log.error(f"Error in {self.name}: {e}")
             raise
 
-        log.info(f"""
+        log.debug(f"""
         code reviewer finished.
         comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
         """)

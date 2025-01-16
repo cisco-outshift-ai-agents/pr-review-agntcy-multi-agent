@@ -1,5 +1,5 @@
 import json
-from typing import Any, Union
+from typing import Any
 
 from sentence_transformers import SentenceTransformer
 from graphs.states import GitHubPRState
@@ -15,7 +15,7 @@ class CommentFilterer:
         self.context = context
         self.name = name
 
-    def __call__(self, state: GitHubPRState) -> Union[dict[str, Any], None]:
+    def __call__(self, state: GitHubPRState) -> dict[str, Any]:
         log.info(f"{self.name}: called")
 
         if self.context.chain is None:
@@ -31,7 +31,7 @@ class CommentFilterer:
             new_comments = state["new_comments"]
 
             if not new_comments:
-                return
+                return {}
 
             new_comments = self.__remove_duplicate_comments(existing_comments, new_comments)
 
@@ -66,6 +66,11 @@ class CommentFilterer:
         except Exception as e:
             log.error(f"{self.name}: Error removing duplicate comments: {e}")
             raise
+
+        log.debug(f"""
+        comment filterer finished.
+        new comments: {json.dumps([comment.model_dump() for comment in new_comments], indent=4)}
+        """)
 
         return {"new_comments": new_comments}
 
@@ -146,8 +151,8 @@ class CommentFilterer:
 
     @staticmethod
     def __comments_similar(comment1: Comment, comment2: Comment, similarity: float) -> bool:
-        similarity_limit = 0.5
-        total_similarity_limit = 0.9
+        similarity_limit = 0.6
+        total_similarity_limit = 0.8
 
         return (similarity > total_similarity_limit and comment1.filename == comment2.filename) or (
             similarity > similarity_limit and abs(comment1.line_number - comment2.line_number) < 5 and comment1.filename == comment2.filename
