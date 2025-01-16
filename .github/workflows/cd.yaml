@@ -27,7 +27,6 @@ jobs:
       - name: Set environment variables
         id: set-environment-variables
         run: |
-          git config --global --add safe.directory .
           export BRANCH=${GITHUB_REF##*/}
           echo "IMAGE_NAME=alfred" >> $GITHUB_ENV
           echo "IMAGE_NAME=alfred" >> $GITHUB_OUTPUT
