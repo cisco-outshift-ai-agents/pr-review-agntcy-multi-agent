@@ -14,7 +14,8 @@ from utils.models import Comment
 from utils.models import ContextFile
 from .contexts import DefaultContext
 
-terraform_file_types = (".tf", ".tfvars", ".tfplan", ".tfstate")
+terraform_file_types_review_allowed = ".tf"
+terraform_file_types_review_forbidden = (".tfvars", ".tfplan", ".tfstate")
 
 
 class FetchPR:
@@ -28,8 +29,23 @@ class FetchPR:
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
-        files = self.context.github.pr.get_files()
-        files = [file for file in files if file.filename.endswith(terraform_file_types)]
+        total_files = self.context.github.pr.get_files()
+        files_types_not_to_review = set()
+        files_to_review = []
+
+        for file in total_files:
+            if file.filename.endswith(terraform_file_types_review_allowed):
+                # this file should be reviewed
+                files_to_review.append(file)
+            elif file.filename.endswith(terraform_file_types_review_forbidden):
+                # this file should not be reviewed, but we should warn the user about the risks pushing it to the repo
+                files_types_not_to_review.add(file.filename.rsplit(".", 1)[1])
+            else:
+                # this file should not be reviewed
+                pass
+        wrong_files_to_push_message = (
+            f"Please note that the following file types are not allowed to be pushed to the repository: {files_types_not_to_review}"
+        )
         title = self.context.github.pr.title
         description = self.context.github.pr.body
         changes = []
