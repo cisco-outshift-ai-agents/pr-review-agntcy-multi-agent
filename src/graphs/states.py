@@ -21,6 +21,7 @@ class GitHubPRState(TypedDict):
     modified_files: list[ContextFile]
     context_files: list[ContextFile]
     new_comments: list[Comment]
+    manually_added_comments: list[Comment]
     existing_comments: list[Comment]
     title_desc_comment: Optional[Comment]
     sender: str
@@ -35,6 +36,7 @@ def create_default_github_pr_state() -> GitHubPRState:
         modified_files=[],  # Default to an empty list of modified files
         context_files=[],  # Default to an empty list of context files
         new_comments=[],  # Default to an empty list of new comments
+        manually_added_comments=[],  # Default to an empty list of manually added comments
         existing_comments=[],  # Default to an empty list of existing comments
         title_desc_comment=None,  # Default to None
         sender="",  # Default to an empty string

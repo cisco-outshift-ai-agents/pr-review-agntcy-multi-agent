@@ -109,7 +109,9 @@ class GitHubOperations:
             raise ValueError("GITHUB_APP_ID environment variable is not set")
         return app_id
 
-    def create_comments(self, new_comments: list[Comment], title_desc_comment: Optional[Comment] = None) -> None:
+    def create_comments(
+        self, new_comments: list[Comment], title_desc_comment: Optional[Comment] = None, manually_added_comments: list[Comment] = None
+    ) -> None:
         try:
             files = self.pr.get_files()
         except UnknownObjectException:
@@ -135,6 +137,10 @@ class GitHubOperations:
             if comment.line_number == 0:
                 # Response comment for a re-review
                 self.pr.create_issue_comment(comment.comment)
+
+        if len(manually_added_comments) > 0:
+            for manual_comment in manually_added_comments:
+                self.pr.create_issue_comment(manual_comment.comment)
 
         # Create summary comment
         if title_desc_comment:

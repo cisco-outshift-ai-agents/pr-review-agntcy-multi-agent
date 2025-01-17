@@ -33,11 +33,8 @@ class FetchPR:
         files_types_not_to_review: Set[str] = set()
 
         files_to_review: List[File] = []
-        new_title_desc_comment = None
-        # print("--total_files--")
 
         for file in total_files:
-            # print(f"file: {file}")
             if file.filename.endswith(terraform_file_types_review_allowed):
                 # this file should be reviewed
                 files_to_review.append(file)
@@ -52,14 +49,26 @@ class FetchPR:
         description = self.context.github.pr.body
         changes = []
         existing_comments = []
+        manually_added_comments = []
 
         if len(terraform_file_types_push_forbidden) > 0:
-            wrong_files_to_push_message = (
-                f"Please note that the following file types are not allowed to be pushed to the repository: {", ".join(files_types_not_to_review)}"
-            )
+            file_type_warning_template = "Please note that the following file types are not allowed to be pushed to the repository: "
+            wrong_files_to_push_message = file_type_warning_template + ", ".join(files_types_not_to_review)
 
-            new_title_desc_comment = Comment(filename="", line_number=0, comment=wrong_files_to_push_message, status="")
-            existing_comments.append(new_title_desc_comment)
+            if len(state["manually_added_comments"]) > 0:
+                for manual_comment in state["manually_added_comments"]:
+                    if file_type_warning_template in manual_comment.comment:
+                        manual_comment["comment"] = wrong_files_to_push_message
+
+            else:
+                manually_added_comments.append(
+                    Comment(
+                        filename="",
+                        line_number=0,
+                        comment=wrong_files_to_push_message,
+                        status="",
+                    )
+                )
 
         # Fetch existing comments from PR
         try:
@@ -137,6 +146,7 @@ class FetchPR:
         changes: {json.dumps(changes, indent=4)},
         title: {title},
         description: {description},
+        manually_added_comments: {"\\".join(c.comment for c in manually_added_comments)}
         existing_comments: {json.dumps([comment.model_dump() for comment in existing_comments], indent=4)}
         """)
 
@@ -145,6 +155,7 @@ class FetchPR:
             "title": title,
             "description": description,
             "existing_comments": existing_comments,
+            "manually_added_comments": manually_added_comments,
             "modified_files": modified_files,
             "context_files": context_files,
         }
