@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 from typing import Optional, Dict, Any
@@ -141,14 +142,27 @@ class SecretManager:
         private_key = os.getenv(GITHUB_APP_PRIVATE_KEY_ENV)
         if private_key:
             log.debug("Github App private key found in environment variables. Using that...")
-            self.__github_app_private_key = private_key
-            return
+            try:
+                private_key_bytes = base64.b64decode(private_key)
+                self.__github_app_private_key = private_key_bytes.decode()
+                return
+            except:
+                raise ValueError(f"Failed to decode GitHub App private key: {private_key}")
 
         log.debug("Fetching GitHub App private key from Secrets Manager...")
         try:
-            self.__github_app_private_key = self.__fetch_github_app_private_key()
+            private_key = self.__fetch_github_app_private_key()
         except Exception as e:
             raise ValueError(f"Error while fetching GitHub App private key from Secrets Manager: {e}")
+        if private_key:
+            try:
+                private_key_bytes = base64.b64decode(private_key)
+                self.__github_app_private_key = private_key_bytes.decode()
+                return
+            except:
+                raise ValueError(f"Failed to decode GitHub App private key: {private_key}")
+
+        raise ValueError("GitHub App private key not found in secrets")
 
     def __init_github_webhook_secret(self):
         log.debug("Initializing GitHub webhook secret...")
