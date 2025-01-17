@@ -66,14 +66,16 @@ resource "aws_lambda_function" "alfred-lambda" {
 
   environment {
     variables = {
-      AZURE_OPENAI_API_KEY = var.azure_openai_api_key
+      AZURE_OPENAI_API_KEY   = var.azure_openai_api_key == "" ? null : var.azure_openai_api_key
       AZURE_OPENAI_API_VERSION = var.azure_openai_version
       AZURE_OPENAI_DEPLOYMENT  = var.azure_openai_deployment
       AZURE_OPENAI_ENDPOINT    = var.azure_openai_endpoint
       GITHUB_APP_ID            = var.github_app_id
-      GITHUB_APP_PRIVATE_KEY   = var.github_app_private_key
-      GITHUB_WEBHOOK_SECRET    = var.github_webhook_secret
-      LANGCHAIN_API_KEY    = var.langchain_api_key
+      GITHUB_APP_PRIVATE_KEY = var.github_app_private_key == "" ? null : var.github_app_private_key
+      GITHUB_WEBHOOK_SECRET  = var.github_webhook_secret == "" ? null : var.github_webhook_secret
+      LANGCHAIN_API_KEY      = (
+        local.is_langsmith_enabled ? (var.is_langsmith_enabled == "" ? null : var.langchain_api_key) : null
+      )
       LANGCHAIN_ENDPOINT   = local.is_langsmith_enabled ? var.langchain_endpoint : null
       LANGCHAIN_PROJECT    = local.is_langsmith_enabled ? var.langchain_project : null
       LANGCHAIN_TRACING_V2 = local.is_langsmith_enabled ? var.langchain_tracing_v2 : null
