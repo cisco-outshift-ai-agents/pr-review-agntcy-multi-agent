@@ -66,6 +66,9 @@ resource "aws_lambda_function" "alfred-lambda" {
 
   environment {
     variables = {
+      AWS_SECRET_REGION      = var.aws_secret_region
+      AWS_SECRET_NAME        = var.aws_secret_name
+      AWS_GCP_SA_SECRET_NAME = var.aws_gcp_sa_secret_name
       AZURE_OPENAI_API_KEY   = var.azure_openai_api_key == "" ? null : var.azure_openai_api_key
       AZURE_OPENAI_API_VERSION = var.azure_openai_version
       AZURE_OPENAI_DEPLOYMENT  = var.azure_openai_deployment

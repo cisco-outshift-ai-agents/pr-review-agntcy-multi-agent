@@ -23,7 +23,11 @@ module "aws_lambda" {
   source = "../lambda"
 
   lambda_function_name = "alfred_lambda_local"
+
   aws_region = "eu-west-1"
+  aws_secret_region      = "eu-west-1"
+  aws_secret_name        = local.envs["AWS_SECRET_NAME"]
+  aws_gcp_sa_secret_name = local.envs["AWS_GCP_SA_SECRET_NAME"]
 
   image_repo = "alfred"
   image_tag  = "local"

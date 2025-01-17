@@ -9,6 +9,22 @@ variable "aws_region" {
   default     = "eu-west-1"
 }
 
+variable "aws_secret_region" {
+  type        = string
+  description = "AWS region for secrets"
+  default     = "eu-west-1"
+}
+
+variable "aws_secret_name" {
+  type        = string
+  description = "AWS secret name"
+}
+
+variable "aws_gcp_sa_secret_name" {
+  type        = string
+  description = "AWS secret name for GCP service account"
+}
+
 variable "image_repo" {
   type        = string
   description = "ECR repository URI"
