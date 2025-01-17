@@ -8,7 +8,7 @@ from mypy_boto3_secretsmanager.type_defs import GetSecretValueResponseTypeDef
 
 from utils.constants import ENVIRONMENT_ENV, GCP_SERVICE_ACCOUNT_FILE_PATH_ENV, LANGCHAIN_API_KEY_ENV, \
     GITHUB_APP_PRIVATE_KEY_FILE_PATH_ENV, GITHUB_APP_PRIVATE_KEY_ENV, AZURE_OPENAI_API_KEY_ENV, AWS_SECRET_NAME_ENV, \
-    AWS_SECRET_REGION_ENV, GCP_SERVICE_ACCOUNT_SECRET_NAME_ENV
+    AWS_SECRET_REGION_ENV, AWS_GCP_SA_SECRET_NAME_ENV
 from utils.logging_config import logger as log
 
 
@@ -192,7 +192,7 @@ class SecretManager:
             raise ValueError(f"Error while fetching Azure OpenAI API key from Secrets Manager: {e}")
 
     def __fetch_gcp_secret(self) -> str:
-        secret_name = os.getenv(GCP_SERVICE_ACCOUNT_SECRET_NAME_ENV)
+        secret_name = os.getenv(AWS_GCP_SA_SECRET_NAME_ENV)
         if not secret_name:
             raise EnvironmentError("Missing required environment variables for GCP service account secret.")
 
