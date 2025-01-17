@@ -1,4 +1,3 @@
-import base64
 import os
 from dataclasses import asdict, dataclass
 from enum import Enum
@@ -90,12 +89,7 @@ class GitHubOperations:
             log.error(f"Failed to get private key: {e}")
             raise
 
-        try:
-            private_key_bytes = base64.b64decode(private_key)
-            return private_key_bytes.decode()
-        except Exception as e:
-            log.error(f"Failed to decode private key: {e}")
-            raise
+        return private_key
 
     @staticmethod
     def _get_app_id() -> str:

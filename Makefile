@@ -65,7 +65,7 @@ start-smee-for-lambda:
 start-lambda: build-lambda-image
 # sam doesn't support volumes currently so we pass in the contents of the key file as env var
 	cd deployment/local_invocation && sam build --hook-name terraform
-	cd deployment/local_invocation && sam local start-api --hook-name terraforms --host 127.0.0.1 --port 3000
+	cd deployment/local_invocation && sam local start-api --hook-name terraform --host 127.0.0.1 --port 3000
 
 # Build the lambda image
 .PHONY: build-lambda-image
