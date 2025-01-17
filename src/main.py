@@ -5,15 +5,19 @@ from typing import Any
 from auth import lambda_validate_github_signature
 from handle_pr import handle_github_event
 from utils.constants import GITHUB_EVENT_HEADER
+from utils.env_setter import set_environment_variables
 from utils.lambda_helpers import lambdaResponse
 from utils.logging_config import logger as log
-
+from utils.secret_manager import secret_manager
 
 # TODO: Typed github event should be created with typed Payload, github.Event exists already.
 #  Worth to check: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parser/
 
 # Set langchain api key as env var
-if os[]
+set_environment_variables()
+
+# Init secrets
+secret_manager.init_secrets()
 
 @lambda_validate_github_signature
 def handle_event(event: dict[str, Any], context):

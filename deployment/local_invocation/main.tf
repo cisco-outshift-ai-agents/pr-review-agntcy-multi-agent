@@ -12,11 +12,11 @@ terraform {
 }
 
 locals {
-  envs = {for tuple in regexall("(.*)=(.*)", file("../../.env")) : tuple[0] => sensitive(tuple[1])}
+  envs = {for tuple in regexall("(.*)=(.*)", file("../../.env")) : tuple[0] => trim(tuple[1], "'\"")}
 }
 
 data "local_file" "github_app_private_key" {
-  filename = local.envs["GITHUB_APP_PRIVATE_KEY_FILE"]
+  filename = "../../${local.envs["GITHUB_APP_PRIVATE_KEY_FILE"]}"
 }
 
 module "aws_lambda" {
@@ -33,12 +33,13 @@ module "aws_lambda" {
   azure_openai_api_key    = local.envs["AZURE_OPENAI_API_KEY"]
   azure_openai_endpoint   = local.envs["AZURE_OPENAI_ENDPOINT"]
 
-  github_app_id         = local.envs["GITHUB_APP_ID"]
+  github_app_id = tonumber(local.envs["GITHUB_APP_ID"])
   github_app_private_key = coalesce(local.envs["GITHUB_APP_PRIVATE_KEY"], data.local_file.github_app_private_key.content)
   github_webhook_secret = local.envs["GITHUB_WEBHOOK_SECRET"]
 
   log_level   = "DEBUG"
   environment = "local"
+  is_langsmith_enabled = false
 }
 
 resource "aws_apigatewayv2_api" "lambda_local_api" {
@@ -54,6 +55,6 @@ resource "aws_apigatewayv2_integration" "lambda_local_integration" {
 
 resource "aws_apigatewayv2_route" "get_route" {
   api_id    = aws_apigatewayv2_api.lambda_local_api.id
-  route_key = "GET /"
+  route_key = "POST /"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_local_integration.id}"
 }

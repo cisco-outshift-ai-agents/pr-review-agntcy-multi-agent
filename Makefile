@@ -59,14 +59,15 @@ setup:
 
 # Start a smee client which routes HTTP requests to the local lambda runtime
 start-smee-for-lambda:
-	npx smee -u https://smee.io/$(smee_id) -t http://localhost:3000/alfred
+	npx smee -u https://smee.io/$(smee_id) -t http://localhost:3000
 
 # Build and start the lambda image locally using sam
 start-lambda: build-lambda-image
 # sam doesn't support volumes currently so we pass in the contents of the key file as env var
-	GITHUB_APP_PRIVATE_KEY=$$(base64 -i private-key.pem) sam local start-api --skip-pull-image --env-vars lambda-env.json
+	cd deployment/local_invocation && sam build --hook-name terraform
+	cd deployment/local_invocation && sam local start-api --hook-name terraforms --host 127.0.0.1 --port 3000
 
 # Build the lambda image
 .PHONY: build-lambda-image
 build-lambda-image:
-	docker build -f docker/Dockerfile.lambda --platform=linux/amd64 -t alfred:local .
+	docker build -f docker/Dockerfile --platform=linux/amd64 -t alfred:local .

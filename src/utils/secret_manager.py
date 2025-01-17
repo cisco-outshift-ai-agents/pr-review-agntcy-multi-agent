@@ -250,6 +250,4 @@ class SecretManager:
             raise EnvironmentError("Missing required environment variables for secrets.")
         return boto3.client(service_name="secretsmanager", region_name=region)
 
-
 secret_manager = SecretManager()
-secret_manager.init_secrets()
