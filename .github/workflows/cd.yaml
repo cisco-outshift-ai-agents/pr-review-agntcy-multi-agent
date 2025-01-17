@@ -51,11 +51,11 @@ jobs:
           echo "SHA=$SHA" >> $GITHUB_OUTPUT
           
           export GIT_BRANCH=$(echo $BRANCH | sed 's/refs\/heads\///g')
-          export IMAGE_TAG=$GIT_BRANCH
+          export IMAGE_TAG=$GIT_BRANCH-$DATE-$SHA
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
           
-          export LANGCHAIN_PROJECT=$IMAGE_NAME-$IMAGE_TAG-$DATE-$SHA
+          export LANGCHAIN_PROJECT=$IMAGE_NAME-$GIT_BRANCH-$DATE-$SHA
           echo "LANGCHAIN_PROJECT=$LANGCHAIN_PROJECT" >> $GITHUB_ENV
           echo "LANGCHAIN_PROJECT=$LANGCHAIN_PROJECT" >> $GITHUB_OUTPUT
           
@@ -89,6 +89,7 @@ jobs:
       runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
       ### Docker image name
       image-name: ${{ needs.set-environment-variables.outputs.image_name }}
+      image-custom-tag: ${{ needs.set-environment-variables.outputs.image_tag }}
       context: .
       ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
       dockerfile: docker/Dockerfile
@@ -98,7 +99,7 @@ jobs:
       ecr-enabled: true
       artifactory-devhub-enabled: false
       ghcr-enabled: false
-      private-ecr-region: ${{ needs.set-environment-variables.aws_region }}
+      private-ecr-region: ${{ needs.set-environment-variables.outputs.aws_region }}
       build-args: "--platform=linux/amd64"
 
   ################################## Deploy Lambda #######################################
