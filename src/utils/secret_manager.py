@@ -23,6 +23,8 @@ class SecretManager:
 
         self.__secrets_cache: Optional[Dict[str, str]] = None
 
+        self.init_secrets()
+
     def init_secrets(self):
         try:
             self.__init_client()

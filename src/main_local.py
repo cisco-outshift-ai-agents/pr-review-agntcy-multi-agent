@@ -6,12 +6,10 @@ from fastapi import FastAPI, HTTPException, Request
 import handle_pr
 from auth import fastapi_validate_github_signature
 from utils.constants import GITHUB_EVENT_HEADER
-from utils.secret_manager import secret_manager
 
 # Init phase
 load_dotenv()
 app = FastAPI()
-secret_manager.init_secrets()
 
 @app.post("/api/webhook")
 @fastapi_validate_github_signature

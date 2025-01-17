@@ -1,11 +1,11 @@
 import sys
+from http import HTTPStatus
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 secret_manager_mock = Mock()
 sys.modules["utils.secret_manager"] = secret_manager_mock
 
-from http import HTTPStatus
-from typing import Any
 import pytest
 from fastapi import HTTPException, Request
 
