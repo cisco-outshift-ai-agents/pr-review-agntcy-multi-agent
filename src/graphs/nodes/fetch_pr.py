@@ -186,8 +186,13 @@ class FetchPR:
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
+        if pr_file.patch is None:
+            # If it's an empty file or a deleted file or a moved file, then there is no patch. This way the file remains part of the diff, but it will be marked empty.
+            return ""
+
         # Split the files into patch blocks
         patch_blocks = re.split(r"(@@ -\d+,?\d* \+\d+,?\d* @@.*\n)", pr_file.patch)
+
         # If the file is not found on the base branch it means it is new, so all lines in it are new.
         # Return the whole file without the annotation
         try:
