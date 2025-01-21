@@ -55,14 +55,6 @@ class SecretManager:
 
     def __init_secrets(self):
         try:
-            self.__init_client()
-        except Exception as e:
-            if os.getenv(ENVIRONMENT_ENV) == "local":
-                log.warning(f"Secrets Manager client cannot be initialized: {e}. Running in local environment.")
-            else:
-                raise ValueError(f"Error while initializing Secrets Manager client: {e}")
-
-        try:
             self.__init_gcp_credentials()
             self.__init_azure_openai_api_key()
             self.__init_github_app_private_key()
@@ -176,7 +168,10 @@ class SecretManager:
 
         log.debug("Pulling GCP service account secret from AWS Secrets Manager...")
         if not self.__client:
-            raise ValueError("Client not initialized")
+            try:
+                self.__init_client()
+            except Exception as e:
+                raise ValueError(f"Error while initializing AWS Secrets Manager client") from e
 
         try:
             get_secret_value_response: GetSecretValueResponseTypeDef = self.__client.get_secret_value(
@@ -200,7 +195,10 @@ class SecretManager:
 
         log.debug("Pulling secrets...")
         if not self.__client:
-            raise ValueError("Client not initialized")
+            try:
+                self.__init_client()
+            except Exception as e:
+                raise ValueError(f"Error while initializing AWS Secrets Manager client") from e
         get_secret_value_response: GetSecretValueResponseTypeDef = self.__client.get_secret_value(SecretId=secret_name)
 
         secret: str = get_secret_value_response.get("SecretString")
