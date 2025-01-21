@@ -11,6 +11,11 @@ from langchain_core.runnables import RunnableSerializable
 
 
 class CommentFilterer:
+    # When two comments considered similar in the same or close lines
+    similarity_limit = 0.6
+    # When two comments considered equal, regardless the line
+    total_similarity_limit = 0.9
+
     def __init__(self, context: DefaultContext, name: str = "duplicate_comment_remover"):
         self.context = context
         self.name = name
@@ -36,6 +41,7 @@ class CommentFilterer:
             new_comments = self.__remove_duplicate_comments(existing_comments, new_comments)
 
             if new_comments:
+                # Filter not useful comments with LLM (this part is not perfect, LLMs are not good at this)
                 example_schema = [
                     Comment(filename="file1", line_number=1, comment="comment1", status="added").model_dump(),
                     Comment(filename="file1", line_number=2, comment="comment2", status="added").model_dump(),
@@ -58,7 +64,7 @@ class CommentFilterer:
                     Comment(
                         filename="",
                         line_number=0,
-                        comment="Reviewed the changes again, but I didn't find any problems in your code which haven't been     mentioned before.",
+                        comment="Reviewed the changes again, but I didn't find any problems in your code which haven't been mentioned before.",
                         status="",
                     )
                 )
@@ -149,11 +155,7 @@ class CommentFilterer:
 
         return new_comments
 
-    @staticmethod
-    def __comments_similar(comment1: Comment, comment2: Comment, similarity: float) -> bool:
-        similarity_limit = 0.6
-        total_similarity_limit = 0.8
-
-        return (similarity > total_similarity_limit and comment1.filename == comment2.filename) or (
-            similarity > similarity_limit and abs(comment1.line_number - comment2.line_number) < 5 and comment1.filename == comment2.filename
+    def __comments_similar(self, comment1: Comment, comment2: Comment, similarity: float) -> bool:
+        return (similarity > self.total_similarity_limit and comment1.filename == comment2.filename) or (
+            similarity > self.similarity_limit and abs(comment1.line_number - comment2.line_number) < 5 and comment1.filename == comment2.filename
         )
