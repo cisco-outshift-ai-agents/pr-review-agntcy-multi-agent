@@ -35,15 +35,12 @@ jobs:
           set -e
           
           export IMAGE_NAME=alfred
-          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT
           
           export DATE=$(date +'%Y-%m-%d')
-          echo "DATE=$DATE" >> $GITHUB_ENV
           echo "DATE=$DATE" >> $GITHUB_OUTPUT
           
           export AWS_REGION=eu-west-1
-          echo "AWS_REGION=$AWS_REGION" >> $GITHUB_ENV
           echo "AWS_REGION=$AWS_REGION" >> $GITHUB_OUTPUT
           
           export SHA=${GITHUB_SHA::7}
@@ -52,18 +49,21 @@ jobs:
           
           export GIT_BRANCH=$(echo $BRANCH | sed 's/refs\/heads\///g')
           export IMAGE_TAG=$GIT_BRANCH-$DATE-$SHA
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
           
           export LANGCHAIN_PROJECT=$IMAGE_NAME-$GIT_BRANCH-$DATE-$SHA
-          echo "LANGCHAIN_PROJECT=$LANGCHAIN_PROJECT" >> $GITHUB_ENV
           echo "LANGCHAIN_PROJECT=$LANGCHAIN_PROJECT" >> $GITHUB_OUTPUT
           
           export ECR_PRIVATE_REGISTRY_URI=626007623524.dkr.ecr.eu-west-1.amazonaws.com
-          echo "ECR_PRIVATE_REGISTRY_URI=$ECR_PRIVATE_REGISTRY_URI" >> $GITHUB_ENV
           echo "ECR_PRIVATE_REGISTRY_URI=$ECR_PRIVATE_REGISTRY_URI" >> $GITHUB_OUTPUT
 
       - name: Display Environment Variables
+        env:
+          IMAGE_NAME: ${{ steps.set-environment-variables.outputs.IMAGE_NAME }}
+          IMAGE_TAG: ${{ steps.set-environment-variables.outputs.IMAGE_TAG }}
+          AWS_REGION: ${{ steps.set-environment-variables.outputs.AWS_REGION }}
+          ECR_PRIVATE_REGISTRY_URI: ${{ steps.set-environment-variables.outputs.ECR_PRIVATE_REGISTRY_URI }}
+          LANGCHAIN_PROJECT: ${{ steps.set-environment-variables.outputs.LANGCHAIN_PROJECT }}
         run: |
           echo "IMAGE_NAME=$IMAGE_NAME"
           echo "IMAGE_TAG=$IMAGE_TAG"
