@@ -51,7 +51,7 @@ def create_code_review_chain(model: BaseChatModel) -> RunnableSerializable[dict,
         Focus your review on the following areas:
         - Code Quality: Ensure that the code follows best practices for readability, maintainability, and clarity.
         - Terraform Best Practices: Review the Terraform code for adherence to best practices, including proper resource naming, proper use of modules, and idempotency.
-        - Cross-File Dependencies: Identify and analyze references across multiple files. Check for missing or incorrect variable, output, or resource references that span across files. Ensure that dependencies like var.some_variable, module.some_module.output, or aws_instance.some_instance.id are correctly referenced and defined.
+        - Reference errors: Identify and analyze references across multiple files. Check for missing or incorrect variable, output, or resource references that span across files.
         - File Structure and Logic: Ensure that resources, variables, and outputs are properly organized in the appropriate files, with no broken or misplaced references.
         - Infrastructure Impact: Understand how changes will affect the overall infrastructure. Ensure no resource conflicts or unintended side effects occur due to changes in one file that might affect resources defined in other files (e.g., cross-file dependencies with security groups, subnets, or IAM roles).
         - Cost Impact: If applicable, review for potential cost optimizations such as cheaper instance types, spot instances, or better resource sizing.

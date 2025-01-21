@@ -1,4 +1,7 @@
+import concurrent.futures
 import json
+
+import concurrent
 
 from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
@@ -18,8 +21,11 @@ class CodeReviewer:
 
         try:
             comments = []
-            for _ in range(3):
-                comments += self.__code_review(state)
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                results = list(executor.map(lambda _: self.__code_review(state), range(5)))
+
+            for res in results:
+                comments += res
 
         except Exception as e:
             log.error(f"Error in {self.name}: {e}")
@@ -43,9 +49,6 @@ class CodeReviewer:
         response: Comments = self.context.chain.invoke(
             {
                 "question": wrap_prompt(
-                    # "MODIFIED FILES:",
-                    # f"{'\n'.join(map(str, state['modified_files']))}",
-                    # "",
                     "FILES:",
                     f"{'\n'.join(map(str, state['context_files']))}",
                     "",

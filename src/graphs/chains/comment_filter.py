@@ -24,6 +24,7 @@ def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[di
         - It's a simple statement without a clear issue.
         - It's just some positive feedpack without stating a clear issue.
         - It doesn't mention an actionable issue.
+        - The message just states what the user changed in the code without mentioning a clear issue.
 
         Response format:
         Return ONLY the remaining comments.

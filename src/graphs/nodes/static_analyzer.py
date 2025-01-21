@@ -1,4 +1,4 @@
-import os
+import shutil
 from subprocess import CalledProcessError, run
 from typing import Any
 
@@ -36,26 +36,27 @@ class StaticAnalyzer:
             log.error(f"Error while cloning the repo: {e}")
             raise
 
-        os.chdir(output_folder)
-
         try:
             # Need tf init to download the necessary third party dependencies, otherwise most linters would fail
             # This will fail if there are module level errors which block the build (like duplicated outputs)
             run(
                 ["terraform", "init", "-backend=false"],
                 # check=True,
+                cwd=output_folder,
                 capture_output=True,
                 text=True,
             )
 
             tf_validate_out = run(
                 ["terraform", "validate", "-no-color"],
+                cwd=output_folder,
                 capture_output=True,
                 text=True,
             )
 
             tflint_out = run(
                 ["tflint", "--format=compact", "--recursive"],
+                cwd=output_folder,
                 capture_output=True,
                 text=True,
             )
@@ -64,12 +65,12 @@ class StaticAnalyzer:
             log.error(f"Error while running static checks in the users repo: {e}")
             return {}
 
-        # TODO
-        # try:
-        #     shutil.rmtree(local_folder)
-        # except Exception as e:
-        #     log.error(f"An error occured while removing the local copy of the repo: {e}")
-        #     return
+        try:
+            shutil.rmtree(local_folder)
+            log.debug("Repo deleted successfully")
+        except Exception as e:
+            log.error(f"An error occured while removing the local copy of the repo: {e}")
+            return {}
 
         try:
             response = self.context.chain.invoke(
@@ -89,7 +90,7 @@ class StaticAnalyzer:
         except Exception as e:
             log.error(f"Error in {self.__name}: {e}")
             raise
-        
+
         log.debug(f"""
         static_analyzer finished.
         output: {response.content}

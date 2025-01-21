@@ -15,6 +15,7 @@ def create_static_analyzer_chain(model: BaseChatModel) -> RunnableSerializable[d
                 Remove ONLY the line numbers but keep everything else, don't remove any detail from the issue message.
                 DO NOT remove any information from the issues, keep every detail! You are only allowed to delete the line numbers, nothing else!
                 Each item in the list should have the following format: {{file name}}: {{full issue description}}
+                Remove the warnings, only keep the errors in the final list.
                                 
                 Only return the list of issues in your response, nothing else.
                 """)

@@ -16,7 +16,7 @@ from .contexts import DefaultContext
 
 
 class FetchPR:
-    tf_files = [".tf", ".tfvars"]
+    tf_files = {".tf", ".tfvars"}
 
     def __init__(self, context: DefaultContext, name: str = "fetch_pr"):
         self.context = context
