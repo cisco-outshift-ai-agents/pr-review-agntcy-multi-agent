@@ -200,8 +200,7 @@ class SecretManager:
             except Exception as e:
                 raise ValueError(f"Error while initializing AWS Secrets Manager client") from e
         get_secret_value_response: GetSecretValueResponseTypeDef = self.__client.get_secret_value(SecretId=secret_name)
-
-        secret: str = get_secret_value_response.get("SecretString")
+        secret: str = get_secret_value_response.get("SecretString", "")
         if not secret:
             raise ValueError("Got invalid secret from AWS Secrets Manager")
         try:
@@ -265,7 +264,6 @@ class SecretManager:
             return ""
 
 
+secret_manager: Optional[SecretManager] = None
 if os.getenv("TESTENV") != "true":
     secret_manager = SecretManager(mandatory_secrets=["openai", "langchain"])
-else:
-    secret_manager = None
