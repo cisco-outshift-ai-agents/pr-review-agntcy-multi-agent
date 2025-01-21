@@ -2,7 +2,6 @@ FROM public.ecr.aws/lambda/python:3.12
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-# Install Terraform, Alfred will use it to run static analysis
 RUN dnf update -y && \
     dnf install -y \
     unzip \

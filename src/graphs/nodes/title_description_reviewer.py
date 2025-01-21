@@ -30,7 +30,8 @@ class TitleDescriptionReviewer:
         try:
             issue_comments = self.context.github.pr.get_issue_comments()
             for issue_comment in issue_comments:
-                if "PR title suggestion" in issue_comment.body and "PR description suggestion" in issue_comment.body:
+                body = issue_comment.body.lower()
+                if "pr title suggestion" in body and "pr description suggestion" in body:
                     existing_title_desc_comment = issue_comment
                     break
         except Exception as e:
