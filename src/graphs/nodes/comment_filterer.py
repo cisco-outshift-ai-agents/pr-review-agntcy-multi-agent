@@ -16,7 +16,7 @@ class CommentFilterer:
     # When two comments considered equal, regardless the line
     total_similarity_limit = 0.9
 
-    def __init__(self, context: DefaultContext, name: str = "duplicate_comment_remover"):
+    def __init__(self, context: DefaultContext, name: str = "comment_filterer"):
         self.context = context
         self.name = name
 

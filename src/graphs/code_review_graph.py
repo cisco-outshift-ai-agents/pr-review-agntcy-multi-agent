@@ -5,8 +5,8 @@ from graphs.chains import (
     create_code_review_chain,
     create_title_description_review_chain,
     create_comment_filter_chain,
+    create_static_analyzer_chain,
 )
-from graphs.chains.static_analysis import create_static_analyzer_chain
 from graphs.nodes import (
     CodeReviewer,
     TitleDescriptionReviewer,
@@ -14,8 +14,8 @@ from graphs.nodes import (
     CommentFilterer,
     FetchPR,
     DefaultContext,
+    StaticAnalyzer,
 )
-from graphs.nodes.static_analyzer import StaticAnalyzer
 from graphs.states import GitHubPRState, create_default_github_pr_state
 from utils.github_operations import GitHubOperations
 from utils.modelfactory import models

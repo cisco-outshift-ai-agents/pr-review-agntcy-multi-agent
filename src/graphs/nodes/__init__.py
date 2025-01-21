@@ -10,11 +10,13 @@ from .comment_filterer import CommentFilterer
 from .fetch_pr import FetchPR
 from .review_chat_assistant import ReviewChatAssistant
 from .title_description_reviewer import TitleDescriptionReviewer
+from .static_analyzer import StaticAnalyzer
 
 __all__ = [
     "CodeReviewer",
     "FetchPR",
     "TitleDescriptionReviewer",
+    "StaticAnalyzer",
     "Commenter",
     "CommentFilterer",
     "ReviewChatAssistant",
