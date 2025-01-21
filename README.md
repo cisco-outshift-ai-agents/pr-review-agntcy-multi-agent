@@ -25,6 +25,7 @@ TBD
    - Save the `GitHub App ID` for later use
 4. Go to `Permissions & events` and set the followings up
    - Under `Repository permissions`:
+     - Checks read and write access
      - Contents read access
      - Pull requests read and write access
    - Under `Subscribe to events`:

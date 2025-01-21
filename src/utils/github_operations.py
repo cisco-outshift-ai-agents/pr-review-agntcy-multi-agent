@@ -3,11 +3,13 @@ from http import HTTPStatus
 import io
 import os
 from dataclasses import asdict, dataclass
+from enum import Enum
 from typing import Optional
 import zipfile
 
 import github.Auth
 from github import Github, GithubException, GithubIntegration, UnknownObjectException
+from github.CheckRun import CheckRun
 from github.Commit import Commit
 from github.PullRequest import PullRequest
 from github.PullRequestComment import PullRequestComment
@@ -34,6 +36,11 @@ class InvalidGitHubInitialization(Exception):
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
+
+
+class CheckRunConclusion(Enum):
+    success = "success"
+    failure = "failure"
 
 
 class GitHubOperations:
@@ -188,3 +195,12 @@ class GitHubOperations:
             log.debug("Repo extracted successfully")
 
             return f"{destination_folder}/{folder_name}"
+
+    def create_pull_request_check_run(self) -> CheckRun:
+        return self._repo.create_check_run(name="Alfred review", head_sha=self._pr.head.sha, status="in_progress")
+
+    def complete_pull_request_check_run(self, check_run: CheckRun, conclusion: CheckRunConclusion):
+        try:
+            check_run.edit(status="completed", conclusion=conclusion.name)
+        except Exception as e:
+            log.error(f"Unable to edit pull request check run: {e}")
