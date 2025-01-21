@@ -1,10 +1,6 @@
-import sys
 from http import HTTPStatus
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
-
-secret_manager_mock = Mock()
-sys.modules["utils.secret_manager"] = secret_manager_mock
 
 import pytest
 from fastapi import HTTPException, Request
@@ -32,6 +28,7 @@ def test_valid_github_signature(payload: bytes, signature_payload: bytes, signat
     assert valid_github_signature(payload, create_signature(signature_payload, signature_secret), secret) == expected
 
 
+@patch("auth.secret_manager")
 @patch("auth.valid_github_signature")
 @pytest.mark.parametrize(
     "signature_header, gh_secret, valid_signature, expected_status",
@@ -49,6 +46,7 @@ def test_valid_github_signature(payload: bytes, signature_payload: bytes, signat
 @pytest.mark.asyncio
 async def test_fastapi_validate_github_signature(
         mock_valid_github_signature: MagicMock,
+        secret_manager_mock: MagicMock,
     signature_header: str | None,
     gh_secret: str | None,
     valid_signature: bool,
@@ -58,7 +56,7 @@ async def test_fastapi_validate_github_signature(
     mock_request.headers.get.return_value = signature_header
     mock_request.body = AsyncMock(return_value=b"payload")
 
-    secret_manager_mock.secret_manager.get_github_webhook_secret.return_value = gh_secret
+    secret_manager_mock.github_webhook_secret = gh_secret
 
     mock_valid_github_signature.return_value = valid_signature
 
@@ -74,8 +72,10 @@ async def test_fastapi_validate_github_signature(
         result = await validator(mock_request)
         assert result == mock_handler.return_value
         mock_handler.assert_awaited_once_with(mock_request)
+        mock_valid_github_signature.assert_called_once()
 
 
+@patch("auth.secret_manager")
 @patch("auth.valid_github_signature")
 @pytest.mark.parametrize(
     "signature_header, gh_secret, valid_signature, expected_status",
@@ -93,6 +93,7 @@ async def test_fastapi_validate_github_signature(
 @pytest.mark.asyncio
 async def test_lambda_validate_github_signature(
     mock_valid_github_signature: MagicMock,
+        secret_manager_mock: MagicMock,
     signature_header: str | None,
     gh_secret: str | None,
     valid_signature: bool,
@@ -103,9 +104,8 @@ async def test_lambda_validate_github_signature(
         key, MagicMock()
     )
 
-    secret_manager_mock.secret_manager.get_github_webhook_secret.return_value = gh_secret
-
     mock_valid_github_signature.return_value = valid_signature
+    secret_manager_mock.github_webhook_secret = gh_secret
 
     mock_handler = Mock()
 

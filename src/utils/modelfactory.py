@@ -40,7 +40,7 @@ class ChatModelFactory:
 
     def __get_gcp_credentials(self) -> service_account.Credentials:
         try:
-            json_acct_info = secret_manager.get_gcp_credentials()
+            json_acct_info = secret_manager.gcp_credentials
         except Exception as e:
             log.error(f"Error while getting GCP credentials: {e}")
             raise ValueError(f"Invalid environment config for GCP credentials") from e
@@ -53,7 +53,7 @@ class ChatModelFactory:
     def __init_azure_openai() -> AzureChatOpenAI:
         log.debug("Initializing AzureChatOpenAI model...")
         try:
-            api_key = secret_manager.get_azure_openai_api_key()
+            api_key = secret_manager.azure_openai_api_key
         except Exception as e:
             log.error(f"Error while getting Azure OpenAI API key: {e}")
             raise ValueError(f"Invalid environment config for Azure OpenAI API key") from e

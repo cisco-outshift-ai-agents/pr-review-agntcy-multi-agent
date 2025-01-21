@@ -1,12 +1,10 @@
-import sys
+from io import StringIO
 from unittest.mock import Mock
 
-secret_manager_mock = Mock()
-sys.modules["utils.secret_manager"] = secret_manager_mock
-
-from io import StringIO
 import pytest
+
 from src.config import AgentConfig, ParserMixin, ParseContentError
+
 
 class MockParser(ParserMixin):
     def parse_content(self, content: str) -> dict[str, str]:

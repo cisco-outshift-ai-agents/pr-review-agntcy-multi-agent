@@ -84,7 +84,7 @@ class GitHubOperations:
     def _get_private_key() -> str:
         """Get private key from file or environment variable"""
         try:
-            private_key = secret_manager.get_github_app_private_key()
+            private_key = secret_manager.github_app_private_key
         except Exception as e:
             log.error(f"Failed to get private key: {e}")
             raise
