@@ -39,11 +39,10 @@ class ChatModelFactory:
         )
 
     def __get_gcp_credentials(self) -> service_account.Credentials:
-        try:
-            json_acct_info = secret_manager.gcp_credentials
-        except Exception as e:
-            log.error(f"Error while getting GCP credentials: {e}")
-            raise ValueError(f"Invalid environment config for GCP credentials") from e
+        if secret_manager.gcp_credentials is None:
+            raise ValueError("GCP credentials are missing")
+
+        json_acct_info = secret_manager.gcp_credentials
 
         credentials = service_account.Credentials.from_service_account_info(json_acct_info)
         return credentials.with_scopes(["https://www.googleapis.com/auth/cloud-platform"])
@@ -52,17 +51,16 @@ class ChatModelFactory:
     @staticmethod
     def __init_azure_openai() -> AzureChatOpenAI:
         log.debug("Initializing AzureChatOpenAI model...")
-        try:
-            api_key = secret_manager.azure_openai_api_key
-        except Exception as e:
-            log.error(f"Error while getting Azure OpenAI API key: {e}")
-            raise ValueError(f"Invalid environment config for Azure OpenAI API key") from e
+        if secret_manager.azure_openai_api_key is None:
+            raise ValueError("Azure OpenAI API key is missing")
+
+        api_key = secret_manager.azure_openai_api_key
 
         return AzureChatOpenAI(
             azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
             api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-            api_key=SecretStr(api_key) if api_key else None,
+            api_key=SecretStr(api_key),
             temperature=0,
         )
 
