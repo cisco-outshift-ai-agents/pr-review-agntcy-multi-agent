@@ -186,7 +186,7 @@ class GitHubOperations:
         with zipfile.ZipFile(zip_file_in_memory, "r") as zip_ref:
             file_list = zip_ref.namelist()
             if not file_list:
-                raise ValueError("Cloned repo is empty or the zip is cossupted")
+                raise ValueError("Cloned repo is empty or the zip is corrupted")
 
             # Inside the zip there's a folder named (repo-name-<commit-hash>), we would like to return this folder name
             folder_name = file_list[0].split("/")[0]

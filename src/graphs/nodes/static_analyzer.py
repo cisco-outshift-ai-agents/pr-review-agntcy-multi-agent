@@ -88,7 +88,7 @@ class StaticAnalyzer:
             )
 
         except Exception as e:
-            log.error(f"Error in {self.__name}: {e}")
+            log.error(f"Error in {self.__name} while running the static analyzer chain: {e}")
             raise
 
         log.debug(f"""
