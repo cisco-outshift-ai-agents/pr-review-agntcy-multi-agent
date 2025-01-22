@@ -1,20 +1,19 @@
-import base64
-from http import HTTPStatus
 import io
 import os
+import zipfile
 from dataclasses import asdict, dataclass
 from enum import Enum
+from http import HTTPStatus
 from typing import Optional
-import zipfile
 
 import github.Auth
+import requests
 from github import Github, GithubException, GithubIntegration, UnknownObjectException
 from github.CheckRun import CheckRun
 from github.Commit import Commit
 from github.PullRequest import PullRequest
 from github.PullRequestComment import PullRequestComment
 from github.Repository import Repository
-import requests
 
 from utils.logging_config import logger as log
 from utils.models import Comment

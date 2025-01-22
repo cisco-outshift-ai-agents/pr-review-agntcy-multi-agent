@@ -161,6 +161,8 @@ class SecretManager:
         if secret_name in self.__mandatory_secrets:
             raise ValueError(f"Secret {secret_name} cannot be initialized because no source was given")
 
+        return ""
+
     def __fetch_secret(self, secret_name: str) -> str:
         if not self.__client:
             try:
