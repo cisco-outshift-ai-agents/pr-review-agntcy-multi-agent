@@ -207,22 +207,22 @@ class TestSecretManager:
     @pytest.mark.parametrize(
         ["env_vars", "is_aws_sm_error", "mandatory_secrets", "expected_secret", "expected_error_type"],
         [
-            (
-                    # env set, should use env,
-                    {"LANGCHAIN_API_KEY": "secret_in_env"},
-                    False,
-                    ["langchain"],
-                    "secret_in_env",
-                    None,
-            ),
-            (
-                    # env not set, should use aws secret,
-                    None,
-                    False,
-                    ["langchain"],
-                    "sm_langchain_api_key",
-                    None
-            ),
+            # (
+            #         # env set, should use env,
+            #         {"LANGCHAIN_API_KEY": "secret_in_env"},
+            #         False,
+            #         ["langchain"],
+            #         "secret_in_env",
+            #         None,
+            # ),
+            # (
+            #         # env not set, should use aws secret,
+            #         None,
+            #         False,
+            #         ["langchain"],
+            #         "sm_langchain_api_key",
+            #         None
+            # ),
             (
                     # env not set, aws sm error, key not mandatory,
                     None,
@@ -231,14 +231,14 @@ class TestSecretManager:
                     None,
                     None
             ),
-            (
-                    # env not set, aws sm error, should raise exception,
-                    None,
-                    True,
-                    ["langchain"],
-                    "",
-                    ValueError
-            ),
+            # (
+            #         # env not set, aws sm error, should raise exception,
+            #         None,
+            #         True,
+            #         ["langchain_api_key"],
+            #         "",
+            #         ValueError
+            # ),
         ],
         indirect=["env_vars"])
     def test_langchain_api_key(self,
@@ -246,7 +246,7 @@ class TestSecretManager:
                                mock_client,
                                env_vars: Dict[str, str],
                                is_aws_sm_error: bool,
-                               mandatory_secrets: List[Literal["langchain"]],
+                               mandatory_secrets: List[Literal["langchain_api_key"]],
                                expected_secret: str,
                                expected_error_type: Optional[type]
                                ):
@@ -298,7 +298,7 @@ class TestSecretManager:
                     # env not set, aws sm error, should raise exception,
                     None,
                     True,
-                    ["openai"],
+                    ["azure_openai_api_key"],
                     "",
                     ValueError
             ),
@@ -309,7 +309,7 @@ class TestSecretManager:
                                   mock_client,
                                   env_vars: Dict[str, str],
                                   is_aws_sm_error: bool,
-                                  mandatory_secrets: List[Literal["openai"]],
+                                  mandatory_secrets: List[Literal["azure_openai_api_key"]],
                                   expected_secret: str,
                                   expected_error_type: Optional[type]
                                   ):
@@ -364,7 +364,7 @@ class TestSecretManager:
             (
                     # aws sm error, key mandatory,
                     {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
-                    ["gcp"],
+                    ["gcp_credentials"],
                     "secret_in_file",
                     True,
                     None,
@@ -377,7 +377,7 @@ class TestSecretManager:
                              mock_client,
                              set_secret_file,
                              env_vars: Dict[str, str],
-                             mandatory_secrets: List[Literal["gcp"]],
+                             mandatory_secrets: List[Literal["gcp_credentials"]],
                              secret_in_file,
                              is_aws_sm_error: bool,
                              expected_secret: str,

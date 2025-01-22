@@ -84,8 +84,6 @@ async def test_fastapi_validate_github_signature(
         ("testsignature", "testsecret", True, None),
         # No header
         (None, "testsecret", None, HTTPStatus.FORBIDDEN),
-        # No secret
-        ("testsignature", None, None, HTTPStatus.INTERNAL_SERVER_ERROR),
         # Invalid signature
         ("testsignature", "testsecret", False, HTTPStatus.FORBIDDEN),
     ],

@@ -42,9 +42,7 @@ class ChatModelFactory:
         if secret_manager.gcp_credentials is None:
             raise ValueError("GCP credentials are missing")
 
-        json_acct_info = secret_manager.gcp_credentials
-
-        credentials = service_account.Credentials.from_service_account_info(json_acct_info)
+        credentials = service_account.Credentials.from_service_account_info(secret_manager.gcp_credentials)
         return credentials.with_scopes(["https://www.googleapis.com/auth/cloud-platform"])
 
 
@@ -54,13 +52,11 @@ class ChatModelFactory:
         if secret_manager.azure_openai_api_key is None:
             raise ValueError("Azure OpenAI API key is missing")
 
-        api_key = secret_manager.azure_openai_api_key
-
         return AzureChatOpenAI(
             azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
             api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-            api_key=SecretStr(api_key),
+            api_key=SecretStr(secret_manager.azure_openai_api_key),
             temperature=0,
         )
 

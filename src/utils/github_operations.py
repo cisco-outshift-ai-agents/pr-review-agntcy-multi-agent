@@ -67,9 +67,8 @@ class GitHubOperations:
     def _init_github(self, installation_id: str) -> Github:
         """Initialize GitHub client with app credentials"""
         try:
-            private_key = self._get_private_key()
+            private_key = secret_manager.github_app_private_key
             app_id = self._get_app_id()
-
             git_integration = GithubIntegration(auth=github.Auth.AppAuth(app_id, private_key))
 
             self._app_name = git_integration.get_app().name
@@ -79,17 +78,6 @@ class GitHubOperations:
         except Exception as e:
             log.error(f"Invalid GitHub credentials: {e}")
             raise
-
-    @staticmethod
-    def _get_private_key() -> str:
-        """Get private key from file or environment variable"""
-        try:
-            private_key = secret_manager.github_app_private_key
-        except Exception as e:
-            log.error(f"Failed to get private key: {e}")
-            raise
-
-        return private_key
 
     @staticmethod
     def _get_app_id() -> str:

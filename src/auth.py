@@ -28,14 +28,8 @@ def fastapi_validate_github_signature(handler: Callable[[Request], Awaitable[Any
             log.debug("Missing signature header")
             raise HTTPException(status_code=HTTPStatus.FORBIDDEN)
 
-        try:
-            gh_secret = secret_manager.github_webhook_secret
-        except Exception as e:
-            log.error(f"Error while getting GitHub webhook secret: {e}")
-            raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
-
         payload = await request.body()
-        if not valid_github_signature(payload, signature_header, gh_secret):
+        if not valid_github_signature(payload, signature_header, secret_manager.github_webhook_secret):
             raise HTTPException(status_code=HTTPStatus.FORBIDDEN)
         return await handler(request)
 
@@ -64,13 +58,8 @@ def lambda_validate_github_signature(handler: Callable[[dict[str, Any], Any], di
             log.debug("Missing signature header")
             return lambdaResponse("Missing signature header", HTTPStatus.FORBIDDEN)
 
-        gh_secret = secret_manager.github_webhook_secret
-        if not gh_secret:
-            log.error("GITHUB_WEBHOOK_SECRET is not set")
-            return lambdaResponse("", HTTPStatus.INTERNAL_SERVER_ERROR)
-
         payload: str = event.get("body", "")
-        if not valid_github_signature(payload.encode(), signature_header, gh_secret):
+        if not valid_github_signature(payload.encode(), signature_header, secret_manager.github_webhook_secret):
             return lambdaResponse("", HTTPStatus.FORBIDDEN)
         return handler(event, context)
 
