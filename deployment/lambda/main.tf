@@ -60,7 +60,7 @@ resource "aws_lambda_function" "alfred-lambda" {
   architectures = ["x86_64"]
   description   = "Alfred code reviewer lambda function"
   timeout     = 120
-  memory_size = 2048
+  memory_size = 4096
   role          = aws_iam_role.alfred-exec-role.arn
 
 
