@@ -12,9 +12,9 @@ from langchain_core.runnables import RunnableSerializable
 
 class CommentFilterer:
     # When two comments considered similar in the same or close lines
-    similarity_limit = 0.6
+    __similarity_limit = 0.6
     # When two comments considered equal, regardless the line
-    total_similarity_limit = 0.9
+    __total_similarity_limit = 0.9
 
     def __init__(self, context: DefaultContext, name: str = "comment_filterer"):
         self.context = context
@@ -103,7 +103,7 @@ class CommentFilterer:
         # 4 -  -   -   -   1
 
         new_comment_count = new_message_similarity.shape[0]
-        to_exclude: list[int] = []
+        to_exclude: set[int] = set()
         new_comments_filtered: list[Comment] = []
 
         for i, similarities in enumerate(new_message_similarity):
@@ -116,7 +116,7 @@ class CommentFilterer:
             # If there's another comment with a similar message, a close line number and the same file, add that one to the exlusion list
             for j in range(i + 1, new_comment_count):
                 if self.__comments_similar(new_comments[i], new_comments[j], similarities[j].item()):
-                    to_exclude.append(j)
+                    to_exclude.add(j)
 
         if not existing_comments:
             return new_comments_filtered
@@ -156,6 +156,6 @@ class CommentFilterer:
         return new_comments
 
     def __comments_similar(self, comment1: Comment, comment2: Comment, similarity: float) -> bool:
-        return (similarity > self.total_similarity_limit and comment1.filename == comment2.filename) or (
-            similarity > self.similarity_limit and abs(comment1.line_number - comment2.line_number) < 5 and comment1.filename == comment2.filename
+        return (similarity > self.__total_similarity_limit and comment1.filename == comment2.filename) or (
+            similarity > self.__similarity_limit and abs(comment1.line_number - comment2.line_number) < 5 and comment1.filename == comment2.filename
         )
