@@ -26,6 +26,7 @@ class GitHubPRState(TypedDict):
     sender: str
     title: str
     description: str
+    static_analyzer_output: str
 
 
 def create_default_github_pr_state() -> GitHubPRState:
@@ -40,6 +41,7 @@ def create_default_github_pr_state() -> GitHubPRState:
         sender="",  # Default to an empty string
         title="",  # Default to an empty string
         description="",  # Default to an empty string
+        static_analyzer_output="",
     )
 
 

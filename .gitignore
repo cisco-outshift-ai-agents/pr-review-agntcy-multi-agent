@@ -181,4 +181,5 @@ gcp_service_account.json
 *.tfvars
 *.tfstate
 
-
+# Local run stuff
+repo_copy/

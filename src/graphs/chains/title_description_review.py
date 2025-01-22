@@ -12,7 +12,7 @@ def create_title_description_review_chain(model: BaseChatModel) -> RunnableSeria
         You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.
         You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
         If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
-        Return result with 2 sections.one named 'PR title suggestion' and another named 'PR description suggestion'.
+        Return result with 2 sections. One named 'PR Title Suggestion' and another named 'PR Description Suggestion'.
         """)
 
     prompt = ChatPromptTemplate.from_messages(

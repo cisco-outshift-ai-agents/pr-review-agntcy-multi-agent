@@ -16,6 +16,8 @@ from .contexts import DefaultContext
 
 
 class FetchPR:
+    tf_files = {".tf", ".tfvars"}
+
     def __init__(self, context: DefaultContext, name: str = "fetch_pr"):
         self.context = context
         self.name = name
@@ -103,7 +105,7 @@ class FetchPR:
         modified_files = self.__get_modified_files()
         context_files = self.__get_context_for_modified_files()
 
-        log.info(f"""
+        log.debug(f"""
         fetch pr finished.
         changes: {json.dumps(changes, indent=4)},
         title: {title},
@@ -225,7 +227,9 @@ class FetchPR:
         return [
             ContextFile(path=f.path, content=f.decoded_content.decode("utf-8"))
             for f in all_files
-            if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames
+            if os.path.splitext(f.name)[1] in self.tf_files and f.type == "file"
+            # TODO: refactor how we get the files for the code review nodes
+            # if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames
         ]
 
     def __append_line_number(self, lines: List[str]):
