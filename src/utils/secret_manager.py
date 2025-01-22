@@ -152,7 +152,7 @@ class SecretManager:
         log.debug("Checking AWS Secrets Manager...")
         if sm_secret_name:
             try:
-                secret = self.__get_secret_from_secret_manager(secret_name, sm_secret_field, encoding)
+                secret = self.__get_secret_from_secret_manager(sm_secret_name, sm_secret_field, encoding)
                 if secret:
                     return secret
             except ValueError as e:
