@@ -2,15 +2,20 @@ from pydantic import BaseModel, Field
 from typing import List
 
 
-class Comment(BaseModel):
+class ReviewComment(BaseModel):
     filename: str
     line_number: int
     comment: str
     status: str
 
 
+class IssueComment_(BaseModel):
+    body: str
+    conditions: List[str]
+
+
 class Comments(BaseModel):
-    issues: List[Comment] = Field(description="List of code review issues found")
+    issues: List[ReviewComment] = Field(description="List of code review issues found")
 
 
 class ContextFile(BaseModel):

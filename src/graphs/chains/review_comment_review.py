@@ -7,7 +7,7 @@ from utils.wrap_prompt import wrap_prompt
 from utils.models import Comments
 
 
-def create_code_review_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | Comments]:
+def create_review_comment_reviewer_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | Comments]:
     llm_with_structured_output = cast(RunnableSerializable[dict, dict | Comments], model.with_structured_output(Comments))
 
     # If some lines are indented more than others, dedent can't normalize it effectively.
