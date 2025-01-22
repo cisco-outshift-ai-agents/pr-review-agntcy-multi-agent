@@ -171,3 +171,6 @@ requirements.txt
 
 *.png
 gcp_service_account.json
+
+# Local run stuff
+repo_copy/

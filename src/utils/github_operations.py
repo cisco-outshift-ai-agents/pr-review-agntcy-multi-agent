@@ -1,14 +1,20 @@
 import base64
+from http import HTTPStatus
+import io
 import os
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Optional
+import zipfile
 
 import github.Auth
 from github import Github, GithubException, GithubIntegration, UnknownObjectException
+from github.CheckRun import CheckRun
 from github.Commit import Commit
 from github.PullRequest import PullRequest
+from github.PullRequestComment import PullRequestComment
 from github.Repository import Repository
+import requests
 
 from utils.logging_config import logger as log
 from utils.models import Comment
@@ -72,9 +78,9 @@ class GitHubOperations:
 
             git_integration = GithubIntegration(auth=github.Auth.AppAuth(app_id, private_key))
 
-            self._app_name = git_integration.get_app().name
-
             github_token = git_integration.get_access_token(int(installation_id)).token
+            self.__github_token = github_token
+
             return Github(github_token)
         except Exception as e:
             log.error(f"Invalid GitHub credentials: {e}")
@@ -155,14 +161,45 @@ class GitHubOperations:
 
         try:
             headers, data = self.pr._requester.requestJsonAndCheck("POST", f"{self.pr.url}/reviews", input=post_parameters)
-            github.PullRequestComment.PullRequestComment(self.pr._requester, headers, data, completed=True)
+            PullRequestComment(self.pr._requester, headers, data, completed=True)
         except Exception as e:
             log.error(f"Error during create a new pending pull request: {e}")
 
-    def create_pull_request_check_run(self) -> github.CheckRun.CheckRun:
+    def clone_repo(self, destination_folder: str) -> str:
+        """Clone the PR's branch content into a folder, returns the path to the repo"""
+
+        log.debug("Cloning the repo into a local folder...")
+
+        repo = self._repo
+        pr = self._pr
+
+        zip_link = repo.get_archive_link("zipball", pr.head.ref)
+
+        response = requests.get(zip_link, headers={"Authorization": f"token {self.__github_token}"})
+
+        if response.status_code != HTTPStatus.OK:
+            raise ValueError(f"Error while downloading the repo as ZIP, status code: {response.status_code}")
+
+        log.debug("Repo downloaded successfully")
+
+        zip_file_in_memory = io.BytesIO(response.content)
+        with zipfile.ZipFile(zip_file_in_memory, "r") as zip_ref:
+            file_list = zip_ref.namelist()
+            if not file_list:
+                raise ValueError("Cloned repo is empty or the zip is corrupted")
+
+            # Inside the zip there's a folder named (repo-name-<commit-hash>), we would like to return this folder name
+            folder_name = file_list[0].split("/")[0]
+
+            zip_ref.extractall(destination_folder)
+            log.debug("Repo extracted successfully")
+
+            return f"{destination_folder}/{folder_name}"
+
+    def create_pull_request_check_run(self) -> CheckRun:
         return self._repo.create_check_run(name="Alfred review", head_sha=self._pr.head.sha, status="in_progress")
 
-    def complete_pull_request_check_run(self, check_run: github.CheckRun.CheckRun, conclusion: CheckRunConclusion):
+    def complete_pull_request_check_run(self, check_run: CheckRun, conclusion: CheckRunConclusion):
         try:
             check_run.edit(status="completed", conclusion=conclusion.name)
         except Exception as e:

@@ -1,3 +1,4 @@
+from typing import Any
 from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
 from .contexts import DefaultContext
@@ -12,7 +13,7 @@ class TitleDescriptionReviewer:
         self.context = context
         self.name = name
 
-    def __call__(self, state: GitHubPRState) -> dict:
+    def __call__(self, state: GitHubPRState) -> dict[str, Any]:
         log.info(f"{self.name} called")
 
         if self.context.github is None:
@@ -29,7 +30,8 @@ class TitleDescriptionReviewer:
         try:
             issue_comments = self.context.github.pr.get_issue_comments()
             for issue_comment in issue_comments:
-                if "PR title suggestion" in issue_comment.body and "PR description suggestion" in issue_comment.body:
+                body = issue_comment.body.lower()
+                if "pr title suggestion" in body and "pr description suggestion" in body:
                     existing_title_desc_comment = issue_comment
                     break
         except Exception as e:
@@ -60,7 +62,7 @@ class TitleDescriptionReviewer:
             except Exception as e:
                 log.error(f"Error updating existing comment: {e}")
 
-        log.info(f"""
+        log.debug(f"""
         title and description reviewer finished.
         comment: {new_title_desc_comment.model_dump_json(indent=2)}
         """)
