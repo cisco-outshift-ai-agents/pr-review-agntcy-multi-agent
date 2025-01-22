@@ -2,7 +2,7 @@ import base64
 import binascii
 import json
 import os
-from typing import Optional, Dict, Any, Literal, List
+from typing import Optional, Dict, Any, Literal, List, Union
 
 import boto3
 from mypy_boto3_secretsmanager.type_defs import GetSecretValueResponseTypeDef
@@ -129,7 +129,7 @@ class SecretManager:
 
     def __get_secret(self, secret_name: str, env_var: Optional[str], file_path_env_var: Optional[str],
                      sm_secret_name: Optional[str],
-                     sm_secret_field: Optional[str], encoding: Optional[Literal["base64"]] = None) -> str:
+                     sm_secret_field: Optional[str], encoding: Optional[Literal["base64"]] = None) -> Union[str, None]:
         log.debug(f"Initializing secret {secret_name}...")
         log.debug("Checking file...")
         if file_path_env_var:
@@ -161,7 +161,7 @@ class SecretManager:
         if secret_name in self.__mandatory_secrets:
             raise ValueError(f"Secret {secret_name} cannot be initialized because no source was given")
 
-        return ""
+        return None
 
     def __fetch_secret(self, secret_name: str) -> str:
         if not self.__client:
