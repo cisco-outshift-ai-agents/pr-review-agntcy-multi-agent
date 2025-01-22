@@ -10,18 +10,22 @@ from pydantic import BaseModel
 
 from graphs.states import GitHubPRState, FileChange
 from utils.logging_config import logger as log
-from utils.models import Comment
+from utils.models import Comment, IssueComment_
 from utils.models import ContextFile
 from .contexts import DefaultContext
 
 terraform_file_types_review_allowed = (".tf", ".tfvars")
 terraform_file_types_push_forbidden = (".tfplan", ".tfstate")
 
+file_type_warning_template = "Please note that the following files are not allowed to be pushed to the repository:"
+
 
 class FetchPR:
     def __init__(self, context: DefaultContext, name: str = "fetch_pr"):
         self.context = context
         self.name = name
+        self.pr_files = []
+        self.pr_files_to_review = []
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name}: called")
@@ -29,18 +33,22 @@ class FetchPR:
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
-        total_files = self.context.github.pr.get_files()
-        files_types_not_to_review: Set[str] = set()
+        try:
+            total_files = self.context.github.pr.get_files()
+            self.pr_files = total_files
+        except Exception as e:
+            raise Exception(f"Error fetching PR files: {e}") from e
 
-        files_to_review: List[File] = []
+        filenames_not_to_review: Set[str] = set()
 
-        for file in total_files:
+        for file in self.pr_files:
+            # TODO:
             if file.filename.endswith(terraform_file_types_review_allowed):
                 # this file should be reviewed
-                files_to_review.append(file)
+                self.pr_files_to_review.append(file)
             elif file.filename.endswith(terraform_file_types_push_forbidden):
                 # this file should not be reviewed, but we should warn the user about the risks pushing it to the repo
-                files_types_not_to_review.add(file.filename.rsplit(".", 1)[1])
+                filenames_not_to_review.add(file.filename)
             else:
                 # this file should not be reviewed
                 pass
@@ -49,26 +57,9 @@ class FetchPR:
         description = self.context.github.pr.body
         changes = []
         existing_comments = []
-        manually_added_comments = []
 
-        if len(terraform_file_types_push_forbidden) > 0:
-            file_type_warning_template = "Please note that the following file types are not allowed to be pushed to the repository: "
-            wrong_files_to_push_message = file_type_warning_template + ", ".join(files_types_not_to_review)
-
-            if len(state["manually_added_comments"]) > 0:
-                for manual_comment in state["manually_added_comments"]:
-                    if file_type_warning_template in manual_comment.comment:
-                        manual_comment["comment"] = wrong_files_to_push_message
-
-            else:
-                manually_added_comments.append(
-                    Comment(
-                        filename="",
-                        line_number=0,
-                        comment=wrong_files_to_push_message,
-                        status="",
-                    )
-                )
+        wrong_files_to_push_message = file_type_warning_template + "\n  - ".join(filenames_not_to_review)
+        new_filetype_restriction_comment = IssueComment_(body=wrong_files_to_push_message, conditions=[file_type_warning_template])
 
         # Fetch existing comments from PR
         try:
@@ -95,7 +86,7 @@ class FetchPR:
             log.error(f"Error fetching existing comments: {e}")
             pass
 
-        for file in files_to_review:
+        for file in self.pr_files_to_review:
             filename = file.filename
             patch = file.patch
 
@@ -138,15 +129,26 @@ class FetchPR:
                         start_line_removed += 1
                         start_line_added += 1
 
+        try:
+            existing_issue_comments = self.context.github.pr.get_issue_comments()
+
+        except Exception as e:
+            log.error(f"Error fetching existing comments: {e}")
+            # Continue even if we can't fetch existing comments
+            pass
+
         modified_files = self.__get_modified_files()
         context_files = self.__get_context_for_modified_files()
+
+        new_issue_comments = [new_filetype_restriction_comment]
 
         log.info(f"""
         fetch pr finished.
         changes: {json.dumps(changes, indent=4)},
         title: {title},
         description: {description},
-        manually_added_comments: {"\\".join(c.comment for c in manually_added_comments)}
+        new_issue_comments: {"\\".join(c.body for c in new_issue_comments)},
+        existing_issue_comments: {"\\".join(c.body for c in existing_issue_comments)}
         existing_comments: {json.dumps([comment.model_dump() for comment in existing_comments], indent=4)}
         """)
 
@@ -155,7 +157,8 @@ class FetchPR:
             "title": title,
             "description": description,
             "existing_comments": existing_comments,
-            "manually_added_comments": manually_added_comments,
+            "existing_issue_comments": existing_issue_comments,
+            "new_issue_comments": new_issue_comments,
             "modified_files": modified_files,
             "context_files": context_files,
         }
@@ -175,7 +178,7 @@ class FetchPR:
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
-        return [ContextFile(path=file.filename, content=self.__get_modified_file(file)) for file in self.context.github.pr.get_files()]
+        return [ContextFile(path=file.filename, content=self.__get_modified_file(file)) for file in self.pr_files_to_review]
 
     def __get_modified_file(self, pr_file: File) -> str:
         class Changes(BaseModel):
@@ -247,13 +250,9 @@ class FetchPR:
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
-        try:
-            pr_files = self.context.github.pr.get_files()
-        except Exception as e:
-            raise Exception(f"Error fetching PR files: {e}") from e
         unique_dirs: Set[str] = set()
-        pr_filenames: List[str] = []
-        for file in pr_files:
+        pr_filenames: list[str] = []
+        for file in self.pr_files_to_review:
             pr_filenames.append(file.filename)
             directory = os.path.dirname(file.filename)
             unique_dirs.add(directory)
@@ -294,3 +293,6 @@ class FetchPR:
                 added_line_idx += 1
                 removed_line_idx += 1
                 lines[i] = f"{'0'.rjust(4)} {lines[i]}"
+
+    def get_pr_files_to_review(self) -> list[File]:
+        return self.pr_files_to_review

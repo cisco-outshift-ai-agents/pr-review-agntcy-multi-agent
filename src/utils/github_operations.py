@@ -11,7 +11,7 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 from utils.logging_config import logger as log
-from utils.models import Comment
+from utils.models import Comment, IssueComment_
 
 GithubOperationException = GithubException
 
@@ -110,7 +110,9 @@ class GitHubOperations:
         return app_id
 
     def create_comments(
-        self, new_comments: list[Comment], title_desc_comment: Optional[Comment] = None, manually_added_comments: list[Comment] = None
+        self,
+        new_comments: list[Comment] = None,
+        new_issue_comments: list[IssueComment_] = None,
     ) -> None:
         try:
             files = self.pr.get_files()
@@ -120,6 +122,7 @@ class GitHubOperations:
         except Exception as error:
             log.error(f"General error while fetching repo: {self.repo._name} with pr: {self.pr._number}. error: {error}")
             return
+
         latest_commit = list(self.pr.get_commits())[-1].commit
         commit = self.repo.get_commit(latest_commit.sha)
 
@@ -133,19 +136,12 @@ class GitHubOperations:
                     )
 
                     comments_transformed.append(c)
-        for comment in new_comments:
-            if comment.line_number == 0:
-                # Response comment for a re-review
-                self.pr.create_issue_comment(comment.comment)
 
-        if len(manually_added_comments) > 0:
-            for manual_comment in manually_added_comments:
-                self.pr.create_issue_comment(manual_comment.comment)
+        # create issue comments
+        for i_comment in new_issue_comments:
+            self.pr.create_issue_comment(i_comment.body)
 
-        # Create summary comment
-        if title_desc_comment:
-            self.pr.create_issue_comment(title_desc_comment.comment)
-
+        # create review comments
         if len(comments_transformed) > 0:
             self.create_pull_request_review_comments(commit, comments_transformed)
 

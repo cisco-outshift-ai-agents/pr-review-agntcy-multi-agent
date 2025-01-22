@@ -9,10 +9,13 @@ from langchain_core.runnables import RunnableSerializable
 
 class DuplicateCommentRemover:
     def __init__(self, context: DefaultContext, name: str = "duplicate_comment_remover"):
+        print("INIT DuplicateCommentRemover")
         self.context = context
         self.name = name
 
     def __call__(self, state: GitHubPRState) -> dict:
+        print("CALL DuplicateCommentRemover")
+
         log.info(f"{self.name}: called")
 
         if self.context.chain is None:

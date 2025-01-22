@@ -9,12 +9,12 @@ from .contexts import DefaultContext
 from .duplicate_comment_remover import DuplicateCommentRemover
 from .fetch_pr import FetchPR
 from .review_chat_assistant import ReviewChatAssistant
-from .title_description_reviewer import TitleDescriptionReviewer
+from .issue_comment_reviewer import IssueCommentReviewer
 
 __all__ = [
     "CodeReviewer",
     "FetchPR",
-    "TitleDescriptionReviewer",
+    "IssueCommentReviewer",
     "Commenter",
     "DuplicateCommentRemover",
     "ReviewChatAssistant",

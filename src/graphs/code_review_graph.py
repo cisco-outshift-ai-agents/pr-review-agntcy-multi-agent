@@ -8,7 +8,7 @@ from graphs.chains import (
 )
 from graphs.nodes import (
     CodeReviewer,
-    TitleDescriptionReviewer,
+    IssueCommentReviewer,
     Commenter,
     DuplicateCommentRemover,
     FetchPR,
@@ -51,14 +51,14 @@ class CodeReviewerWorkflow:
 
         workflow.add_node("fetch_pr", FetchPR(self.github_context))
         workflow.add_node("code_reviewer", CodeReviewer(self.code_review_context))
-        workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_context))
+        workflow.add_node("issue_comment_reviewer", IssueCommentReviewer(self.title_desc_context))
         workflow.add_node("commenter", Commenter(self.github_context))
         workflow.add_node("duplicate_comment_remover", DuplicateCommentRemover(self.duplicate_comment_remover_context))
 
         workflow.add_edge("fetch_pr", "code_reviewer")
-        workflow.add_edge("fetch_pr", "title_description_reviewer")
+        workflow.add_edge("fetch_pr", "issue_comment_reviewer")
         workflow.add_edge("code_reviewer", "duplicate_comment_remover")
-        workflow.add_edge(["duplicate_comment_remover", "title_description_reviewer"], "commenter")
+        workflow.add_edge(["duplicate_comment_remover", "issue_comment_reviewer"], "commenter")
 
         workflow.set_entry_point("fetch_pr")
 

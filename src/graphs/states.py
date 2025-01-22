@@ -5,7 +5,7 @@ from github.PullRequestComment import PullRequestComment
 from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing_extensions import TypedDict
-from utils.models import Comment, ContextFile
+from utils.models import Comment, ContextFile, IssueComment_
 
 
 class FileChange(TypedDict):
@@ -21,9 +21,9 @@ class GitHubPRState(TypedDict):
     modified_files: list[ContextFile]
     context_files: list[ContextFile]
     new_comments: list[Comment]
-    manually_added_comments: list[Comment]
+    new_issue_comments: list[IssueComment_]
     existing_comments: list[Comment]
-    title_desc_comment: Optional[Comment]
+    existing_issue_comments: list[IssueComment_]
     sender: str
     title: str
     description: str
@@ -35,10 +35,10 @@ def create_default_github_pr_state() -> GitHubPRState:
         changes=[],  # Default to an empty list of changes
         modified_files=[],  # Default to an empty list of modified files
         context_files=[],  # Default to an empty list of context files
-        new_comments=[],  # Default to an empty list of new comments
-        manually_added_comments=[],  # Default to an empty list of manually added comments
         existing_comments=[],  # Default to an empty list of existing comments
-        title_desc_comment=None,  # Default to None
+        new_comments=[],  # Default to an empty list of new comments
+        existing_issue_comments=[],  # Default to an empty list of existing issue comments
+        new_issue_comments=[],  # Default to an empty list of new issue comments
         sender="",  # Default to an empty string
         title="",  # Default to an empty string
         description="",  # Default to an empty string

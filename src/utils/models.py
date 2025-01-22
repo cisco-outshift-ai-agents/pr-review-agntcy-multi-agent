@@ -13,6 +13,11 @@ class Comment(BaseModel):
     )
 
 
+class IssueComment_(BaseModel):
+    body: str = Field(description="The review comment describing a general PR issue. Must be placed here without markdown formatting.")
+    conditions: list[str] = Field(description="List of substrings that must be found in the comment if we want to have it displayed.")
+
+
 class Comments(BaseModel):
     issues: List[Comment] = Field(description="List of code review issues found")
 
