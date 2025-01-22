@@ -66,7 +66,7 @@ class StaticAnalyzer:
             return {}
 
         try:
-            shutil.rmtree(local_folder)
+            shutil.rmtree(output_folder)
             log.debug("Repo deleted successfully")
         except Exception as e:
             log.error(f"An error occured while removing the local copy of the repo: {e}")
