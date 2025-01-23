@@ -8,10 +8,11 @@ from github.ContentFile import ContentFile
 from github.File import File
 from pydantic import BaseModel
 
-from graphs.states import GitHubPRState, FileChange
+import utils.hcl2_to_json as hcl2_parser
+from graphs.states import FileChange, GitHubPRState
 from utils.logging_config import logger as log
-from utils.models import Comment
-from utils.models import ContextFile
+from utils.models import Comment, ContextFile
+
 from .contexts import DefaultContext
 
 
@@ -105,12 +106,23 @@ class FetchPR:
         modified_files = self.__get_modified_files()
         context_files = self.__get_context_for_modified_files()
 
+        local_folder = "./repo_copy"
+
+        try:
+            # The output folder will look like this: "./repo_copy/repo-name-<commit-hash>"
+            output_folder = self.context.github.clone_repo(local_folder)
+        except Exception as e:
+            log.error(f"Error while cloning the repo: {e}")
+            raise
+
+        variables_graph = hcl2_parser.parse_variables(output_folder)
+
         log.debug(f"""
         fetch pr finished.
         changes: {json.dumps(changes, indent=4)},
         title: {title},
         description: {description},
-        existing_comments: {json.dumps([comment.model_dump() for comment in existing_comments], indent=4)}
+        existing_comments: {json.dumps([comment.model_dump() for comment in existing_comments], indent=4)},
         """)
 
         return {
@@ -120,6 +132,7 @@ class FetchPR:
             "existing_comments": existing_comments,
             "modified_files": modified_files,
             "context_files": context_files,
+            "variables_graph": variables_graph,
         }
 
     def __get_modified_files(self) -> List[ContextFile]:

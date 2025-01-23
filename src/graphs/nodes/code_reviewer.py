@@ -1,14 +1,15 @@
+import concurrent
 import concurrent.futures
 import json
 
-import concurrent
+from langchain_core.runnables import RunnableSerializable
 
 from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
-from .contexts import DefaultContext
-from utils.wrap_prompt import wrap_prompt
 from utils.models import Comment, Comments
-from langchain_core.runnables import RunnableSerializable
+from utils.wrap_prompt import wrap_prompt
+
+from .contexts import DefaultContext
 
 
 class CodeReviewer:
@@ -56,6 +57,9 @@ class CodeReviewer:
                     "",
                     "STATIC_ANALYZER_OUTPUT:",
                     f"{state["static_analyzer_output"]}",
+                    "",
+                    "VARIABLES:",
+                    f"{state["variables_graph"]}",
                     # "USER_CONFIGURATION:",
                     # f"{self.user_config.get("Code Review", "")}",
                     # f"{self.user_config.get("Security & Compliance Policies", "")}",

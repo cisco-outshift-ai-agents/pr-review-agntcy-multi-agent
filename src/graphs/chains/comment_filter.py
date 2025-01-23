@@ -11,14 +11,14 @@ def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[di
     llm_with_structured_output = cast(RunnableSerializable[dict, dict | Comments], model.with_structured_output(Comments))
     system_message = wrap_prompt("""\
         You are a review agent tasked with filtering a list of PR review comments.
-        Your peer has created several comments on a GitHub pull request but it could be that some of them are not useful. 
+        Your peer has created several comments on a GitHub pull request but it could be that some of them are not useful.
         Your job is to filter these comments based on the insturctions below, follow them carefully.
-        
+
         Input Format:
         comments: The set of comments that you need to filter.
         Here's an example how the input array will look like:
         {input_json_format}
-        
+
         Rules for Filtering:
         A comment considered not useful if ANY of the following applies:
         - It's a simple statement without a clear issue.

@@ -27,6 +27,7 @@ class GitHubPRState(TypedDict):
     title: str
     description: str
     static_analyzer_output: str
+    variables_graph: dict
 
 
 def create_default_github_pr_state() -> GitHubPRState:

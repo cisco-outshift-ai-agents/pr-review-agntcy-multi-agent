@@ -1,10 +1,14 @@
+from typing import cast
+
+from langchain.globals import set_debug
 from langchain_core.language_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableSerializable
-from typing import cast
 
-from utils.wrap_prompt import wrap_prompt
 from utils.models import Comments
+from utils.wrap_prompt import wrap_prompt
+
+set_debug(True)
 
 
 def create_code_review_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | Comments]:
@@ -14,8 +18,8 @@ def create_code_review_chain(model: BaseChatModel) -> RunnableSerializable[dict,
     system_message = wrap_prompt("""\
         You are a senior software enginner, specialized in IaC, tasked with reviewing code changes in a pull request.
         You will get a GitHub pull request which shows all the added and deleted lines, just like how GitHub shows it on their UI.
-        Your task is to review the modifications and provide feedback on them, using the same language and logic as temmates would do when reviewing a PR. 
-        
+        Your task is to review the modifications and provide feedback on them, using the same language and logic as temmates would do when reviewing a PR.
+
         Input from the user:
         - You will receive all the Terraform files from the user in the "FILES" list.
         - These files are the current state of the feature branch that the user wants to merge into the target branch.
@@ -36,7 +40,30 @@ def create_code_review_chain(model: BaseChatModel) -> RunnableSerializable[dict,
         - Use the STATIC_ANALYZER_OUTPUT to better understand the new code written by the user, but DO NOT use this as the base of your review. It's just a helper tool for you, nothing else.
         - The STATIC_ANALYZER_OUTPUT could be useful for understanding the potential issues introduced by the user, like missing references, undefined or unused variables etc.
         - The STATIC_ANALYZER_OUTPUT could have issues which are not related to the current code changes, you MUST ignore these issues as they weren't introduced by this PR.
-        
+        - You will recieve all of the variable names and locations about the whole codebase to better understand variables related changes, after VARIABLES.
+        - Use VARIABLES to find all variable names and there locations which are changed based on the new code written by the user and explicitly identify any modification made to the variable names. It's just a helper tool for you, nothing else.
+        - The VARIABLES could be useful for find potential issues introduces by the user, like missing references, undefinied or unused variables.
+        - The VARIABLES could have issues which are not related the whole codebase, you MUST ignore these issues as they weren't introduced by this PR.
+        - The VARIABLES is a JSON file which have the following format:
+            "path/to/terraformfile1": [
+                "type1.variable1",
+                "type1.variable5",
+                "type2.variable2.field1",
+                "type2.variable2.field2",
+                ...
+            ],
+            "path/to/terraformfile2": [
+                "type1.variable3",
+                "type1.variable5",
+                "type2.variable6.field2",
+                "type3.variable4.field1",
+                ...
+            ],
+        - Use VARIABLES to cross-reference your findings to ensure accuracy.
+        - Example usages in response:
+            - `type1.variable5` in `path/to/terraformfile1` had been removed but still used in `path/to/terraformfile2`
+            - `type2.variable2.field2` had been renamed in `path/to/terraformfile2` to `type2.variable6.field2` and not renamed in `path/to`terraformfile1`
+
         Your output format:
         - Output MUST be in JSON, with the following insturctions:
         - You have to return a list of comments.
@@ -74,12 +101,13 @@ def create_code_review_chain(model: BaseChatModel) -> RunnableSerializable[dict,
         - Keep comments concise and relevant. Avoid redundancy or excessive detail.
         - DO NOT provide general or positive comments (e.g., 'This looks good', 'This is a best practice', etc.).
         - Your comments MUST NOT have any level of uncertanity, only write about clear issues.
-        
+
         Before returning your response, take your time to review your results:
         - Make sure that each comment belongs to a change.
         - Make sure the properties of the comment are aligned with the change object's properties.
         - Make sure the comment messages are actually useful for the user.
         - Make sure you checked the static analyzer outputs.
+        - Make sure you used the provided variables and locations.
         """)
 
     # Personalizing your behaviour with user preferences:
