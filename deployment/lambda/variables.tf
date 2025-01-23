@@ -58,6 +58,12 @@ variable "azure_openai_api_key" {
   default = ""
 }
 
+variable "environment" {
+  type        = string
+  description = "Set run environment type"
+  default     = "dev"
+}
+
 variable "github_app_id" {
   type        = number
   description = "Set GITHUB_APP_ID environment variable"
@@ -121,8 +127,14 @@ variable "log_level" {
   default     = "INFO"
 }
 
-variable "environment" {
+variable "transformers_cache_dir" {
   type        = string
-  description = "Set run environment type"
-  default     = "dev"
+  description = "Set TRANSFORMERS_CACHE_DIR environment variable"
+  default     = "/tmp/.cache/huggingface"
+}
+
+variable "tmp_dir" {
+  type        = string
+  description = "Set TMP_DIR environment variable"
+  default     = "/tmp"
 }

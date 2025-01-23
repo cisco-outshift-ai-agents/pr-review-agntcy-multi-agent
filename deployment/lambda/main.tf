@@ -73,6 +73,7 @@ resource "aws_lambda_function" "alfred-lambda" {
       AZURE_OPENAI_API_VERSION = var.azure_openai_version
       AZURE_OPENAI_DEPLOYMENT  = var.azure_openai_deployment
       AZURE_OPENAI_ENDPOINT    = var.azure_openai_endpoint
+      ENVIRONMENT = var.environment
       GITHUB_APP_ID            = var.github_app_id
       GITHUB_APP_PRIVATE_KEY = var.github_app_private_key == "" ? null : var.github_app_private_key
       GITHUB_WEBHOOK_SECRET  = var.github_webhook_secret == "" ? null : var.github_webhook_secret
@@ -83,7 +84,8 @@ resource "aws_lambda_function" "alfred-lambda" {
       LANGCHAIN_PROJECT    = local.is_langsmith_enabled ? var.langchain_project : null
       LANGCHAIN_TRACING_V2 = local.is_langsmith_enabled ? var.langchain_tracing_v2 : null
       LOG_LEVEL                = var.log_level
-      ENVIRONMENT          = var.environment
+      TRANSFORMERS_CACHE_DIR = var.transformers_cache_dir
+      TMP_DIR                = var.tmp_dir
     }
   }
 }

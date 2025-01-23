@@ -8,3 +8,5 @@ is_langsmith_enabled    = true
 langchain_endpoint      = "https://langsmith.outshift.io/api/v1"
 langchain_tracing_v2    = true
 log_level               = "DEBUG"
+transformers_cache_dir = "/tmp/transformers"
+tmp_dir                = "/tmp"
