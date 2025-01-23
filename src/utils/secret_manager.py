@@ -74,8 +74,8 @@ class SecretManager:
                 secret_name="gcp_credentials",
                 file_path_env_var=GCP_SERVICE_ACCOUNT_FILE_PATH_ENV,
                 env_var=None,
-                sm_secret_name=self.__get_gcp_secret_name(),
-                sm_secret_field=None)
+                external_secret_name=self.__get_gcp_secret_name(),
+                external_secret_field=None)
         except Exception:
             raise
 
@@ -88,8 +88,8 @@ class SecretManager:
                 secret_name="langchain_api_key",
                 file_path_env_var=None,
                 env_var=LANGCHAIN_API_KEY_ENV,
-                sm_secret_name=self.__get_general_secret_name(),
-                sm_secret_field="langchain_api_key")
+                external_secret_name=self.__get_general_secret_name(),
+                external_secret_field="langchain_api_key")
         except Exception:
             raise
 
@@ -99,8 +99,8 @@ class SecretManager:
                 secret_name="github_app_private_key",
                 file_path_env_var=GITHUB_APP_PRIVATE_KEY_FILE_PATH_ENV,
                 env_var=GITHUB_APP_PRIVATE_KEY_ENV,
-                sm_secret_name=self.__get_general_secret_name(),
-                sm_secret_field="github_app_private_key",
+                external_secret_name=self.__get_general_secret_name(),
+                external_secret_field="github_app_private_key",
                 encoding="base64")
         except Exception:
             raise
@@ -111,8 +111,8 @@ class SecretManager:
                 secret_name="github_webhook_secret",
                 file_path_env_var=None,
                 env_var=GITHUB_WEBHOOK_SECRET_ENV,
-                sm_secret_name=self.__get_general_secret_name(),
-                sm_secret_field="github_webhook_secret")
+                external_secret_name=self.__get_general_secret_name(),
+                external_secret_field="github_webhook_secret")
         except Exception:
             raise
 
@@ -122,14 +122,15 @@ class SecretManager:
                 secret_name="azure_openai_api_key",
                 file_path_env_var=None,
                 env_var=AZURE_OPENAI_API_KEY_ENV,
-                sm_secret_name=self.__get_general_secret_name(),
-                sm_secret_field="azure_openai_api_key")
+                external_secret_name=self.__get_general_secret_name(),
+                external_secret_field="azure_openai_api_key")
         except Exception:
             raise
 
     def __get_secret(self, secret_name: str, env_var: Optional[str], file_path_env_var: Optional[str],
-                     sm_secret_name: Optional[str],
-                     sm_secret_field: Optional[str], encoding: Optional[Literal["base64"]] = None) -> Union[str, None]:
+                     external_secret_name: Optional[str],
+                     external_secret_field: Optional[str], encoding: Optional[Literal["base64"]] = None) -> Union[
+        str, None]:
         log.debug(f"Initializing secret {secret_name}...")
         log.debug("Checking file...")
         if file_path_env_var:
@@ -150,9 +151,9 @@ class SecretManager:
                 raise ValueError(f"Error while getting secret from environment variable: {e}") from e
 
         log.debug("Checking AWS Secrets Manager...")
-        if sm_secret_name:
+        if external_secret_name:
             try:
-                secret = self.__get_secret_from_secret_manager(sm_secret_name, sm_secret_field, encoding)
+                secret = self.__get_secret_from_secret_manager(external_secret_name, external_secret_field, encoding)
                 if secret:
                     return secret
             except ValueError as e:
