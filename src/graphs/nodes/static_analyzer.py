@@ -29,7 +29,7 @@ class StaticAnalyzer:
             raise ValueError(f"{self.__name}: Chain is not a RunnableSerializable")
 
         # First clone the repo into a local folder
-        local_folder = "./tmp/repo_copy"
+        local_folder = "/tmp/repo_copy"
         try:
             # The output folder will look like this: "./repo_copy/repo-name-<commit-hash>"
             output_folder = self.context.github.clone_repo(local_folder)
