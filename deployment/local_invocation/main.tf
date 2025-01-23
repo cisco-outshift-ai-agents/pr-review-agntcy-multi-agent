@@ -45,7 +45,7 @@ module "aws_lambda" {
   environment = "local"
   is_langsmith_enabled = false
 
-  transformers_cache_dir = "./tmp/.cache/transformers"
+  hf_home_dir = "./tmp/.cache/transformers"
   tmp_dir                = "./tmp"
 }
 

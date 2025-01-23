@@ -84,7 +84,7 @@ resource "aws_lambda_function" "alfred-lambda" {
       LANGCHAIN_PROJECT    = local.is_langsmith_enabled ? var.langchain_project : null
       LANGCHAIN_TRACING_V2 = local.is_langsmith_enabled ? var.langchain_tracing_v2 : null
       LOG_LEVEL                = var.log_level
-      TRANSFORMERS_CACHE = var.transformers_cache_dir
+      HF_HOME = var.hf_home_dir
       TMP_DIR                = var.tmp_dir
     }
   }
