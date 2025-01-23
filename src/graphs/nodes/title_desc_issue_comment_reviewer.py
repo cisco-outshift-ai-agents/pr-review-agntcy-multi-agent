@@ -1,15 +1,15 @@
-from typing import Any
-from graphs.states import GitHubPRState
-from utils.logging_config import logger as log
 from .contexts import DefaultContext
+from graphs.states import GitHubPRState
 from langchain_core.messages import BaseMessage
-from utils.wrap_prompt import wrap_prompt
-from utils.models import Comment
 from langchain_core.runnables import RunnableSerializable
+from typing import Any
+from utils.logging_config import logger as log
+from utils.models import IssueComment_
+from utils.wrap_prompt import wrap_prompt
 
 
 class TitleDescIssueCommentReviewer:
-    def __init__(self, context: DefaultContext, name: str = "title_description_reviewer"):
+    def __init__(self, context: DefaultContext, name: str = "title_description_issue_comment_reviewer"):
         self.context = context
         self.name = name
 
@@ -26,22 +26,10 @@ class TitleDescIssueCommentReviewer:
         user_input = self.context.user_config.get("PR Title and Description", "")
 
         # Fetch existing comments
-        existing_title_desc_comment = None
-        try:
-            issue_comments = self.context.github.pr.get_issue_comments()
-            for issue_comment in issue_comments:
-                body = issue_comment.body.lower()
-                if "pr title suggestion" in body and "pr description suggestion" in body:
-                    existing_title_desc_comment = issue_comment
-                    break
-        except Exception as e:
-            log.error(f"Error fetching existing comments: {e}")
-            # Continue even if we can't fetch existing comments
-            pass
-
+        new_issue_comments = state["new_issue_comments"]
         diff = state["changes"]
 
-        result: BaseMessage = self.context.chain.invoke(
+        title_desc_chain_result: BaseMessage = self.context.chain.invoke(
             {
                 "question": wrap_prompt(
                     f"Given following changes :\n{diff}\n",
@@ -52,19 +40,13 @@ class TitleDescIssueCommentReviewer:
             }
         )
 
-        result_content = str(result.content)
-        new_title_desc_comment = Comment(filename="", line_number=0, comment=result_content, status="")
-        if existing_title_desc_comment:
-            # Update existing comment
-            try:
-                existing_title_desc_comment.edit(result_content)
-                return {}
-            except Exception as e:
-                log.error(f"Error updating existing comment: {e}")
+        title_desc_chain_result_content = str(title_desc_chain_result.content)
+        new_title_desc_comment = IssueComment_(body=title_desc_chain_result_content, conditions=["PR title suggestion", "PR description suggestion"])
+        new_issue_comments.append(new_title_desc_comment)
 
         log.debug(f"""
-        title and description reviewer finished. issue comment added: 
+        title and description reviewer finished. issue comment added.
         title and description comment: {new_title_desc_comment.model_dump_json(indent=2)}
         """)
 
-        return {"new_issue_comments": [[new_title_desc_comment]]}
+        return {"new_issue_comments": new_issue_comments}

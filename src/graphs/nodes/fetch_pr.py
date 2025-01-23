@@ -8,7 +8,7 @@ from github.ContentFile import ContentFile
 from github.File import File
 from pydantic import BaseModel
 
-from graphs.states import GitHubPRState, FileChange
+from graphs.states import FileChange
 from utils.logging_config import logger as log
 from utils.models import ReviewComment, IssueComment_, ContextFile
 from .contexts import DefaultContext

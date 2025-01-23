@@ -35,11 +35,6 @@ class CommentFilterer:
             # Use existing comments from state
             review_comments = state["review_comments"]
             new_review_comments = state["new_review_comments"]
-
-            if not new_review_comments:
-                # TODO: this return has to be fixed when the filter of the issue comments is implemented here
-                return {}
-
             filtered_review_comments = self.__remove_duplicate_comments(review_comments, new_review_comments)
 
             if filtered_review_comments:
@@ -81,9 +76,39 @@ class CommentFilterer:
         """)
 
         # FILTER ISSUE COMMENTS
-        # TODO:
+        def check_conditions(comment: str, conditions: list[str]) -> bool:
+            for c in conditions:
+                if c not in comment:
+                    return False
+            return True
 
+        # check new issue comments for duplications
+        existing_issue_comments = state["issue_comments"]
+        new_issue_comments = state["new_issue_comments"]
+
+        # Remove duplicate issue comments from the new_issue_comments
+        unique_new_issue_comments = list({c.body: c for c in new_issue_comments}.values())
         filtered_issue_comments = []
+        for new_i_c in unique_new_issue_comments:
+            existing_issue_comment = next(
+                (existing_i_c for existing_i_c in existing_issue_comments if check_conditions(existing_i_c.body, new_i_c.conditions)),
+                None,
+            )
+
+            if existing_issue_comment:
+                # Update existing comment
+                try:
+                    existing_issue_comment.edit(new_i_c.body)
+                except Exception as e:
+                    log.error(f"Error updating existing comment: {e}")
+            else:
+                # add new comment
+                filtered_issue_comments.append(new_i_c)
+
+        log.info(f"""
+        issue comment reviewer finished.
+        comments: {"\\".join(c.body for c in new_issue_comments)}
+        """)
 
         log.debug(f"""
         issue comment filtering finished.
@@ -101,6 +126,8 @@ class CommentFilterer:
         return updated_state
 
     def __remove_duplicate_comments(self, review_comments: ReviewComments, new_review_comments: ReviewComments) -> ReviewComments:
+        if not new_review_comments or len(new_review_comments) == 0:
+            return []
         # We use a simple embeding model to create vector embedings
         # We calculate the embedings first and then the similarities
         # The similarities are the cosine of the angle between the vectors, [-1, 1], the closer to 1 the more similar two sentences are
