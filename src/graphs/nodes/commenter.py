@@ -17,7 +17,7 @@ class Commenter:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
         try:
-            self.context.github.create_comments(state["new_comments"], state["title_desc_comment"])
+            self.context.github.create_comments(state["new_review_comments"], state["new_issue_comments"])
         except Exception as e:
             log.error(f"{self.name}: Error creating comments: {e}")
             raise

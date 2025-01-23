@@ -12,7 +12,7 @@ from graphs.nodes import (
     Commenter,
     DefaultContext,
     FetchPR,
-    IssueCommentReviewer,
+    TitleDescIssueCommentReviewer,
     ReviewCommentReviewer,
     StaticAnalyzer,
 )
@@ -59,14 +59,14 @@ class CodeReviewerWorkflow:
         workflow.add_node("fetch_pr", FetchPR(self.github_context))
         workflow.add_node("static_analyzer", StaticAnalyzer(self.static_analyzer_context))
         workflow.add_node("review_comment_reviewer", ReviewCommentReviewer(self.review_comment_reviewer_context))
-        workflow.add_node("issue_comment_reviewer", IssueCommentReviewer(self.issue_comment_reviewer_context))
+        workflow.add_node("title_desc_issue_comment_reviewer", TitleDescIssueCommentReviewer(self.issue_comment_reviewer_context))
         workflow.add_node("comment_filterer", CommentFilterer(self.comment_filterer_context))
         workflow.add_node("commenter", Commenter(self.github_context))
 
         workflow.add_edge("fetch_pr", "static_analyzer")
-        workflow.add_edge("fetch_pr", "issue_comment_reviewer")
+        workflow.add_edge("fetch_pr", "title_desc_issue_comment_reviewer")
         workflow.add_edge("static_analyzer", "review_comment_reviewer")
-        workflow.add_edge(["review_comment_reviewer", "issue_comment_reviewer"], "comment_filterer")
+        workflow.add_edge(["review_comment_reviewer", "title_desc_issue_comment_reviewer"], "comment_filterer")
         workflow.add_edge("comment_filterer", "commenter")
 
         workflow.set_entry_point("fetch_pr")

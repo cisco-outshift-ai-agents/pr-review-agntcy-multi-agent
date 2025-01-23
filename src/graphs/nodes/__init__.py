@@ -7,10 +7,10 @@ from .comments_to_messages_converter import CommentsToMessagesConverter
 from .comments_to_thread_converter import CommentsToThreadConverter
 from .contexts import DefaultContext
 from .fetch_pr import FetchPR
-from .issue_comment_reviewer import IssueCommentReviewer
 from .review_chat_assistant import ReviewChatAssistant
 from .review_comment_reviewer import ReviewCommentReviewer
 from .static_analyzer import StaticAnalyzer
+from .title_desc_issue_comment_reviewer import TitleDescIssueCommentReviewer
 
 __all__ = [
     "CommentFilterer",
@@ -22,8 +22,8 @@ __all__ = [
     "CommentsToThreadConverter",
     "DefaultContext",
     "FetchPR",
-    "IssueCommentReviewer",
     "ReviewChatAssistant",
     "ReviewCommentReviewer",
     "StaticAnalyzer",
+    "TitleDescIssueCommentReviewer",
 ]

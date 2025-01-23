@@ -14,7 +14,7 @@ class IssueComment_(BaseModel):
     conditions: List[str]
 
 
-class Comments(BaseModel):
+class ReviewComments(BaseModel):
     issues: List[ReviewComment] = Field(description="List of code review issues found")
 
 

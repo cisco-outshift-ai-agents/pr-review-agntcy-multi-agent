@@ -8,7 +8,7 @@ from utils.models import Comment
 from langchain_core.runnables import RunnableSerializable
 
 
-class IssueCommentReviewer:
+class TitleDescIssueCommentReviewer:
     def __init__(self, context: DefaultContext, name: str = "title_description_reviewer"):
         self.context = context
         self.name = name
@@ -63,8 +63,8 @@ class IssueCommentReviewer:
                 log.error(f"Error updating existing comment: {e}")
 
         log.debug(f"""
-        title and description reviewer finished.
-        comment: {new_title_desc_comment.model_dump_json(indent=2)}
+        title and description reviewer finished. issue comment added: 
+        title and description comment: {new_title_desc_comment.model_dump_json(indent=2)}
         """)
 
-        return {"title_desc_comment": new_title_desc_comment}
+        return {"new_issue_comments": [[new_title_desc_comment]]}

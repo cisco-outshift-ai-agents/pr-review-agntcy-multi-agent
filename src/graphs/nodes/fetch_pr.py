@@ -10,34 +10,56 @@ from pydantic import BaseModel
 
 from graphs.states import GitHubPRState, FileChange
 from utils.logging_config import logger as log
-from utils.models import Comment
-from utils.models import ContextFile
+from utils.models import ReviewComment, IssueComment_, ContextFile
 from .contexts import DefaultContext
 
 
 class FetchPR:
-    tf_files = {".tf", ".tfvars"}
+    terraform_file_types_review_allowed = {".tf", ".tfvars"}
+    terraform_file_types_push_forbidden = {".tfplan", ".tfstate"}
+    file_type_warning_template = "Please note that the following files are not allowed to be pushed to the repository:"
+    pr_files: list[File] = []
+    pr_files_to_review: list[File] = []
 
     def __init__(self, context: DefaultContext, name: str = "fetch_pr"):
         self.context = context
         self.name = name
 
-    def __call__(self, state: GitHubPRState) -> dict:
+    def __call__(self) -> dict:
         log.info(f"{self.name}: called")
 
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
-        files = self.context.github.pr.get_files()
+        try:
+            total_files = self.context.github.pr.get_files()
+            self.pr_files = total_files
+        except Exception as e:
+            raise Exception(f"Error fetching PR files: {e}") from e
+
+        filenames_not_to_review: Set[str] = set()
+
+        for file in self.pr_files:
+            # TODO:
+            if file.filename.endswith(self.terraform_file_types_review_allowed):
+                # this file should be reviewed
+                self.pr_files_to_review.append(file)
+            elif file.filename.endswith(self.terraform_file_types_push_forbidden):
+                # this file should not be reviewed, but we should warn the user about the risks pushing it to the repo
+                filenames_not_to_review.add(file.filename)
+            else:
+                # this file should not be reviewed
+                pass
+
         title = self.context.github.pr.title
         description = self.context.github.pr.body
         changes = []
-        existing_comments = []
+        existing_review_comments = []
 
-        # Fetch existing comments from PR
+        # Fetch existing review comments from PR
         try:
-            pr_comments = self.context.github.pr.get_review_comments()
-            for comment in pr_comments:
+            review_comments = self.context.github.pr.get_review_comments()
+            for comment in review_comments:
                 # original_line is not yet implemented in the PullRequestComment class but it's in the backing data object
                 line_number = comment.raw_data.get("original_line")
                 if not line_number or not isinstance(line_number, int):
@@ -47,8 +69,8 @@ class FetchPR:
                 if not side:
                     raise ValueError("Side for existing comment is missing")
 
-                existing_comments.append(
-                    Comment(
+                existing_review_comments.append(
+                    ReviewComment(
                         filename=comment.path,
                         line_number=line_number,
                         comment=comment.body,
@@ -56,10 +78,10 @@ class FetchPR:
                     )
                 )
         except Exception as e:
-            log.error(f"Error fetching existing comments: {e}")
+            log.error(f"Error fetching existing review comments: {e}")
             pass
 
-        for file in files:
+        for file in self.pr_files_to_review:
             filename = file.filename
             patch = file.patch
 
@@ -102,24 +124,42 @@ class FetchPR:
                         start_line_removed += 1
                         start_line_added += 1
 
+        try:
+            existing_issue_comments = self.context.github.pr.get_issue_comments()
+
+        except Exception as e:
+            log.error(f"Error fetching existing comments: {e}")
+            # Continue even if we can't fetch existing comments
+            pass
+
         modified_files = self.__get_modified_files()
         context_files = self.__get_context_for_modified_files()
+
+        wrong_files_to_push_message = self.file_type_warning_template + " \n  - ".join(filenames_not_to_review)
+        new_filetype_restriction_comment = IssueComment_(body=wrong_files_to_push_message, conditions=[self.file_type_warning_template])
+
+        new_issue_comments = [new_filetype_restriction_comment]
 
         log.debug(f"""
         fetch pr finished.
         changes: {json.dumps(changes, indent=4)},
         title: {title},
         description: {description},
-        existing_comments: {json.dumps([comment.model_dump() for comment in existing_comments], indent=4)}
+        new_issue_comments: {"\\".join(c.body for c in new_issue_comments)},
+        issue_comments: {"\\".join(c.body for c in existing_issue_comments)}
+        review_comments: {json.dumps([comment.model_dump() for comment in existing_review_comments], indent=4)}
         """)
 
         return {
             "changes": changes,
             "title": title,
             "description": description,
-            "existing_comments": existing_comments,
+            "review_comments": existing_review_comments,
+            "issue_comments": existing_issue_comments,
+            "new_issue_comments": new_issue_comments,
             "modified_files": modified_files,
             "context_files": context_files,
+            "pr_files_to_review": self.pr_files_to_review,
         }
 
     def __get_modified_files(self) -> List[ContextFile]:
@@ -134,10 +174,11 @@ class FetchPR:
             List[ContextFile]: List of ContextFile objects containing the path and annotated content
                                of each modified file
         """
+
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
-        return [ContextFile(path=file.filename, content=self.__get_modified_file(file)) for file in self.context.github.pr.get_files()]
+        return [ContextFile(path=file.filename, content=self.__get_modified_file(file)) for file in self.pr_files_to_review]
 
     def __get_modified_file(self, pr_file: File) -> str:
         class Changes(BaseModel):
@@ -147,6 +188,10 @@ class FetchPR:
 
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
+
+        if pr_file.patch is None:
+            # If it's an empty file or a deleted file or a moved file, then there is no patch. This way the file remains part of the diff, but it will be marked empty.
+            return ""
 
         # Split the files into patch blocks
         patch_blocks = re.split(r"(@@ -\d+,?\d* \+\d+,?\d* @@.*\n)", pr_file.patch)
@@ -204,13 +249,9 @@ class FetchPR:
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
-        try:
-            pr_files = self.context.github.pr.get_files()
-        except Exception as e:
-            raise Exception(f"Error fetching PR files: {e}") from e
         unique_dirs: Set[str] = set()
         pr_filenames: List[str] = []
-        for file in pr_files:
+        for file in self.pr_files_to_review:
             pr_filenames.append(file.filename)
             directory = os.path.dirname(file.filename)
             unique_dirs.add(directory)
@@ -227,8 +268,8 @@ class FetchPR:
         return [
             ContextFile(path=f.path, content=f.decoded_content.decode("utf-8"))
             for f in all_files
-            if os.path.splitext(f.name)[1] in self.tf_files and f.type == "file"
-            # TODO: refactor how we get the files for the code review nodes
+            if os.path.splitext(f.name)[1] in self.terraform_file_types_review_allowed and f.type == "file"
+            # If we want to TODO: refactor how we get the files for the code review nodes
             # if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames
         ]
 
