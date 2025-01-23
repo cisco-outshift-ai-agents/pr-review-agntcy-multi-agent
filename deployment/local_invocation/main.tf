@@ -44,6 +44,9 @@ module "aws_lambda" {
   log_level   = "DEBUG"
   environment = "local"
   is_langsmith_enabled = false
+
+  transformers_cache_dir = "./tmp/.cache/transformers"
+  tmp_dir                = "./tmp"
 }
 
 resource "aws_apigatewayv2_api" "lambda_local_api" {
