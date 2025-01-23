@@ -129,7 +129,7 @@ variable "log_level" {
 
 variable "hf_home_dir" {
   type        = string
-  description = "Set TRANSFORMERS_CACHE_DIR environment variable"
+  description = "Set HF_HOME environment variable"
   default     = "/tmp/.cache/huggingface"
 }
 

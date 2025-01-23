@@ -38,7 +38,7 @@ module "aws_lambda" {
   azure_openai_endpoint   = local.envs["AZURE_OPENAI_ENDPOINT"]
 
   github_app_id = tonumber(local.envs["GITHUB_APP_ID"])
-  github_app_private_key = coalesce(local.envs["GITHUB_APP_PRIVATE_KEY"], data.local_file.github_app_private_key.content)
+  github_app_private_key = coalesce(lookup(local.envs, "GITHUB_APP_PRIVATE_KEY", ""), base64encode(data.local_file.github_app_private_key.content))
   github_webhook_secret = local.envs["GITHUB_WEBHOOK_SECRET"]
 
   log_level   = "DEBUG"
