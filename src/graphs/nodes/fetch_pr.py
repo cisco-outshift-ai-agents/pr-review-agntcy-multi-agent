@@ -137,10 +137,11 @@ class FetchPR:
         # modified_files = self.__get_modified_files()
         context_files = self.__get_context_for_modified_files()
 
-        wrong_files_to_push_message = self.file_type_warning_template + " \n  - ".join(filenames_not_to_review)
-        new_filetype_restriction_comment = IssueComment_(body=wrong_files_to_push_message, conditions=[self.file_type_warning_template])
-
-        new_issue_comments = [new_filetype_restriction_comment]
+        new_issue_comments = []
+        if filenames_not_to_review:
+            wrong_files_to_push_message = self.file_type_warning_template + "\n \n - " + " \n  - ".join(filenames_not_to_review)
+            new_filetype_restriction_comment = IssueComment_(body=wrong_files_to_push_message, conditions=[self.file_type_warning_template])
+            new_issue_comments.append(new_filetype_restriction_comment)
 
         log.debug(f"""
         fetch pr finished.
