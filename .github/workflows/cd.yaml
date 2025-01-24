@@ -41,7 +41,6 @@ jobs:
           echo "AWS_REGION=$AWS_REGION" >> $GITHUB_OUTPUT
           
           export SHA=${GITHUB_SHA::7}
-          echo "SHA=$SHA" >> $GITHUB_ENV
           echo "SHA=$SHA" >> $GITHUB_OUTPUT
           
           export GIT_BRANCH=$(echo $BRANCH | sed 's/refs\/heads\///g')
