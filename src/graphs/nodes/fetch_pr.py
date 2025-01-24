@@ -271,7 +271,7 @@ class FetchPR:
             ContextFile(path=f.path, content=f.decoded_content.decode("utf-8"))
             for f in all_files
             if os.path.splitext(f.name)[1] in self.terraform_file_types_review_allowed and f.type == "file"
-            # If we want to TODO: refactor how we get the files for the code review nodes
+            # TODO: If we want to refactor how we get the files for the code review nodes
             # if f.name.endswith(".tf") and f.type == "file" and f.path not in pr_filenames
         ]
 
