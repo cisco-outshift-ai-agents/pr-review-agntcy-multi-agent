@@ -1,6 +1,8 @@
 from io import StringIO
 from unittest.mock import Mock
+
 import pytest
+
 from src.config import AgentConfig, ParserMixin, ParseContentError
 
 

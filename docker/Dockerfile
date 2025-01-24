@@ -1,4 +1,17 @@
-FROM public.ecr.aws/lambda/python:3.12
+# Use the official Python image from the Docker Hub
+FROM public.ecr.aws/lambda/python:3.12 as base
+
+WORKDIR /app
+
+RUN pip install poetry
+
+COPY pyproject.toml poetry.lock ./
+
+RUN poetry config virtualenvs.create true
+RUN poetry config virtualenvs.in-project true
+RUN poetry install --no-root
+
+FROM public.ecr.aws/lambda/python:3.12 as build
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
@@ -17,14 +30,7 @@ RUN curl -Lo /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.6.1/t
 # Install tflint for the same reasons as above
 RUN curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 
-# Build Alfred
-COPY ./src/ .
-COPY pyproject.toml .
-COPY poetry.lock .
+COPY --from=base /app/.venv/lib/python3.12/site-packages/ ${LAMBDA_TASK_ROOT}/
+COPY src/ ${LAMBDA_TASK_ROOT}/
 
-RUN pip install poetry
-# We don't need a virtual env, the image itself is an isolated env
-RUN poetry config virtualenvs.create false 
-RUN poetry install --only main
-
-CMD [ "main.handle_event" ]
+CMD ["main.handle_event"]

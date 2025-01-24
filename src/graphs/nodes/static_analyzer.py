@@ -1,10 +1,12 @@
 from subprocess import CalledProcessError, run
 from typing import Any
+import os
 import shutil
 
 from .contexts import DefaultContext
 from graphs.states import GitHubPRState
 from langchain_core.runnables import RunnableSerializable
+from utils.constants import TMP_DIR_ENV
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
 
@@ -27,8 +29,9 @@ class StaticAnalyzer:
         if not isinstance(self.context.chain, RunnableSerializable):
             raise ValueError(f"{self.__name}: Chain is not a RunnableSerializable")
 
+        tmp_dir = os.getenv(TMP_DIR_ENV, ".")
         # First clone the repo into a local folder
-        local_folder = "./repo_copy"
+        local_folder = os.path.join(tmp_dir, "repo_copy")
         try:
             # The output folder will look like this: "./repo_copy/repo-name-<commit-hash>"
             output_folder = self.context.github.clone_repo(local_folder)
