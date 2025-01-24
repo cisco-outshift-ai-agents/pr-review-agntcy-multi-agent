@@ -3,12 +3,12 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableSerializable
 
 from utils.wrap_prompt import wrap_prompt
-from utils.models import Comments
+from utils.models import ReviewComments
 from typing import cast
 
 
-def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | Comments]:
-    llm_with_structured_output = cast(RunnableSerializable[dict, dict | Comments], model.with_structured_output(Comments))
+def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | ReviewComments]:
+    llm_with_structured_output = cast(RunnableSerializable[dict, dict | ReviewComments], model.with_structured_output(ReviewComments))
     system_message = wrap_prompt("""\
         You are a review agent tasked with filtering a list of PR review comments.
         Your peer has created several comments on a GitHub pull request but it could be that some of them are not useful. 

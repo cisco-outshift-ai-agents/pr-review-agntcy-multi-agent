@@ -15,8 +15,8 @@ from .contexts import DefaultContext
 
 
 class FetchPR:
-    terraform_file_types_review_allowed = {".tf", ".tfvars"}
-    terraform_file_types_push_forbidden = {".tfplan", ".tfstate"}
+    terraform_file_types_review_allowed = (".tf", ".tfvars")
+    terraform_file_types_push_forbidden = (".tfplan", ".tfstate")
     file_type_warning_template = "Please note that the following files are not allowed to be pushed to the repository:"
     pr_files: list[File] = []
     pr_files_to_review: list[File] = []
@@ -25,7 +25,7 @@ class FetchPR:
         self.context = context
         self.name = name
 
-    def __call__(self) -> dict:
+    def __call__(self, state) -> dict:
         log.info(f"{self.name}: called")
 
         if self.context.github is None:
@@ -44,6 +44,7 @@ class FetchPR:
             if file.filename.endswith(self.terraform_file_types_review_allowed):
                 # this file should be reviewed
                 self.pr_files_to_review.append(file)
+
             elif file.filename.endswith(self.terraform_file_types_push_forbidden):
                 # this file should not be reviewed, but we should warn the user about the risks pushing it to the repo
                 filenames_not_to_review.add(file.filename)
@@ -159,7 +160,6 @@ class FetchPR:
             "new_issue_comments": new_issue_comments,
             "modified_files": modified_files,
             "context_files": context_files,
-            "pr_files_to_review": self.pr_files_to_review,
         }
 
     def __get_modified_files(self) -> List[ContextFile]:

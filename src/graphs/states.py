@@ -1,4 +1,4 @@
-from typing import Annotated, Sequence, Dict, Any, File
+from typing import Annotated, Sequence, Dict, Any
 from typing import Optional
 
 from github.PullRequestComment import PullRequestComment
@@ -24,7 +24,6 @@ class GitHubPRState(TypedDict):
     modified_files: list[ContextFile]
     new_issue_comments: list[IssueComment_]
     new_review_comments: list[ReviewComment]
-    pr_files_to_review: list[File]
     review_comments: list[ReviewComment]
     sender: str
     static_analyzer_output: str
@@ -41,7 +40,6 @@ def create_default_github_pr_state() -> GitHubPRState:
         modified_files=[],  # Default to an empty list of modified files
         new_issue_comments=[],  # Default to an empty list of new issue comments
         new_review_comments=[],  # Default to an empty list of new review comments
-        pr_files_to_review=[],  # Default to an empty list of PR files to review
         review_comments=[],  # Default to an empty list of review comments
         sender="",  # Default to an empty string
         static_analyzer_output="",

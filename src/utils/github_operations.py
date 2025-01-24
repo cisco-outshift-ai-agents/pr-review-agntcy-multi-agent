@@ -17,7 +17,7 @@ from github.Repository import Repository
 import requests
 
 from utils.logging_config import logger as log
-from utils.models import Comment
+from utils.models import ReviewComment, IssueComment_
 
 GithubOperationException = GithubException
 
@@ -115,7 +115,11 @@ class GitHubOperations:
             raise ValueError("GITHUB_APP_ID environment variable is not set")
         return app_id
 
-    def create_comments(self, new_comments: list[Comment], title_desc_comment: Optional[Comment] = None) -> None:
+    def create_comments(
+        self,
+        new_review_comments: list[ReviewComment] = None,
+        new_issue_comments: list[IssueComment_] = None,
+    ) -> None:
         try:
             files = self.pr.get_files()
         except UnknownObjectException:
@@ -127,27 +131,29 @@ class GitHubOperations:
         latest_commit = list(self.pr.get_commits())[-1].commit
         commit = self.repo.get_commit(latest_commit.sha)
 
-        comments_transformed: list[GitHubReviewComment] = []
+        review_comments_transformed: list[GitHubReviewComment] = []
 
         for pr_file in files:
-            for comment in new_comments:
-                if comment.filename == pr_file.filename:
+            for r_comment in new_review_comments:
+                if r_comment.filename == pr_file.filename:
                     c = GitHubReviewComment(
-                        comment.comment, pr_file.filename, int(comment.line_number), "LEFT" if comment.status == "removed" else "RIGHT"
+                        r_comment.comment, pr_file.filename, int(r_comment.line_number), "LEFT" if r_comment.status == "removed" else "RIGHT"
                     )
 
-                    comments_transformed.append(c)
-        for comment in new_comments:
-            if comment.line_number == 0:
+                    review_comments_transformed.append(c)
+        for r_comment in new_review_comments:
+            if r_comment.line_number == 0:
+                # TODO: Is this stil necessary?
                 # Response comment for a re-review
-                self.pr.create_issue_comment(comment.comment)
+                self.pr.create_issue_comment(r_comment.comment)
 
-        # Create summary comment
-        if title_desc_comment:
-            self.pr.create_issue_comment(title_desc_comment.comment)
+        # create issue comments
+        for i_comment in new_issue_comments:
+            self.pr.create_issue_comment(i_comment.body)
 
-        if len(comments_transformed) > 0:
-            self.create_pull_request_review_comments(commit, comments_transformed)
+        # create review comments
+        if len(review_comments_transformed) > 0:
+            self.create_pull_request_review_comments(commit, review_comments_transformed)
 
     def create_pull_request_review_comments(self, commit: Commit, comments: list[GitHubReviewComment]):
         comments_as_dict = [asdict(c) for c in comments]
