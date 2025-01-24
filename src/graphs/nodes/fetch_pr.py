@@ -3,7 +3,7 @@ import os
 import re
 from typing import List, Set
 
-from github import UnknownObjectException
+from github import GithubException, UnknownObjectException
 from github.ContentFile import ContentFile
 from github.File import File
 from pydantic import BaseModel
@@ -133,7 +133,8 @@ class FetchPR:
             # Continue even if we can't fetch existing comments
             pass
 
-        modified_files = self.__get_modified_files()
+        # TODO: Currently we don't deal with modified files.
+        # modified_files = self.__get_modified_files()
         context_files = self.__get_context_for_modified_files()
 
         wrong_files_to_push_message = self.file_type_warning_template + " \n  - ".join(filenames_not_to_review)
@@ -158,7 +159,7 @@ class FetchPR:
             "review_comments": existing_review_comments,
             "issue_comments": existing_issue_comments,
             "new_issue_comments": new_issue_comments,
-            "modified_files": modified_files,
+            # "modified_files": modified_files,
             "context_files": context_files,
         }
 
@@ -203,7 +204,7 @@ class FetchPR:
                 o_file = contents[0].decoded_content.decode("utf-8").splitlines()
             else:
                 o_file = contents.decoded_content.decode("utf-8").splitlines()
-        except UnknownObjectException:
+        except GithubException:  # UnknownObjectException:
             new_file = patch_blocks[2].splitlines()
             self.__append_line_number(new_file)
             return "\n".join(new_file)

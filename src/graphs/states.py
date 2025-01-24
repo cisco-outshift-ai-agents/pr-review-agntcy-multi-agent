@@ -21,7 +21,7 @@ class GitHubPRState(TypedDict):
     description: str
     issue_comments: list[IssueComment_]
     messages: Annotated[Sequence[BaseMessage], add_messages]
-    modified_files: list[ContextFile]
+    # modified_files: list[ContextFile]
     new_issue_comments: list[IssueComment_]
     new_review_comments: list[ReviewComment]
     review_comments: list[ReviewComment]
@@ -37,7 +37,7 @@ def create_default_github_pr_state() -> GitHubPRState:
         description="",  # Default to an empty string
         issue_comments=[],  # Default to an empty list of issue comments
         messages=[],  # Default to an empty list of messages
-        modified_files=[],  # Default to an empty list of modified files
+        # modified_files=[],  # Default to an empty list of modified files
         new_issue_comments=[],  # Default to an empty list of new issue comments
         new_review_comments=[],  # Default to an empty list of new review comments
         review_comments=[],  # Default to an empty list of review comments
