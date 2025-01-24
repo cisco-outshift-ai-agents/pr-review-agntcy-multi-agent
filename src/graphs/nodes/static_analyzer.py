@@ -45,7 +45,7 @@ class StaticAnalyzer:
             # This will fail if there are module level errors which block the build (like duplicated outputs)
             run(
                 ["terraform", "init", "-backend=false"],
-                # check=True,
+                check=True,
                 cwd=output_folder,
                 capture_output=True,
                 text=True,
