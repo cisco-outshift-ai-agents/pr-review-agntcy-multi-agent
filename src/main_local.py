@@ -1,16 +1,16 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from http import HTTPStatus
 
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 
 import handle_pr
 from auth import fastapi_validate_github_signature
 from utils.constants import GITHUB_EVENT_HEADER
 
-load_dotenv()
-
 app = FastAPI()
-
 
 @app.post("/api/webhook")
 @fastapi_validate_github_signature

@@ -3,7 +3,7 @@ import os
 import re
 from typing import List, Set
 
-from github import UnknownObjectException
+from github import UnknownObjectException, GithubException
 from github.ContentFile import ContentFile
 from github.File import File
 from pydantic import BaseModel
@@ -158,10 +158,12 @@ class FetchPR:
                 o_file = contents[0].decoded_content.decode("utf-8").splitlines()
             else:
                 o_file = contents.decoded_content.decode("utf-8").splitlines()
-        except UnknownObjectException:
-            new_file = patch_blocks[2].splitlines()
-            self.__append_line_number(new_file)
-            return "\n".join(new_file)
+        except GithubException as e:
+            if e.status == 404:
+                new_file = patch_blocks[2].splitlines()
+                self.__append_line_number(new_file)
+                return "\n".join(new_file)
+            raise e
         # Parse the patch blocks to get the code lines in it and get the starting and ending point of the patch block
         # in the ORIGINAL file.
         # Every patch block starts with the following expression:

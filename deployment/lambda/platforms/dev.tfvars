@@ -1,0 +1,12 @@
+aws_gcp_sa_secret_name = "alfred-dev-gcp"
+aws_secret_name        = "alfred-dev"
+azure_openai_version    = "2024-08-01-preview"
+azure_openai_deployment = "gpt-4o"
+azure_openai_endpoint   = "https://prcoach-project-agents.openai.azure.com"
+github_app_id           = 1046901
+is_langsmith_enabled    = true
+langchain_endpoint      = "https://langsmith.outshift.io/api/v1"
+langchain_tracing_v2    = true
+log_level               = "DEBUG"
+hf_home_dir = "/tmp/.cache/transformers"
+tmp_dir                = "/tmp"
