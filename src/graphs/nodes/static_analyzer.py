@@ -67,8 +67,6 @@ class StaticAnalyzer:
 
         except CalledProcessError as e:
             log.error(f"Error while running static checks in the users repo: {e.stderr}")
-            log.error(f"Error while running static checks in the users repo: {e.stdout}")
-            log.error(f"Error while running static checks in the users repo: {e.output}")
             return {}
 
         try:
