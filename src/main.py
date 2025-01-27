@@ -15,6 +15,7 @@ from utils.logging_config import logger as log
 # Set langchain api key as env var
 set_environment_variables()
 
+
 @lambda_validate_github_signature
 def handle_event(event: dict[str, Any], context):
     # The body is coming as a stringified json object, the headers is a proper dict
