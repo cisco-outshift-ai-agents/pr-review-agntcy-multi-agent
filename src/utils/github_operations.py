@@ -16,7 +16,7 @@ from github.PullRequestComment import PullRequestComment
 from github.Repository import Repository
 
 from utils.logging_config import logger as log
-from utils.models import ReviewComment, IssueComment_
+from utils.models import ReviewComment, IssueComment
 from utils.secret_manager import secret_manager
 
 GithubOperationException = GithubException
@@ -96,7 +96,7 @@ class GitHubOperations:
     def create_comments(
         self,
         new_review_comments: list[ReviewComment] = None,
-        new_issue_comments: list[IssueComment_] = None,
+        new_issue_comments: list[IssueComment] = None,
     ) -> None:
         try:
             files = self.pr.get_files()

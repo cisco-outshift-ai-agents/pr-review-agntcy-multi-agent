@@ -11,7 +11,7 @@ from utils.models import ReviewComments
 from langchain_core.runnables import RunnableSerializable
 
 
-class ReviewCommentReviewer:
+class CodeReviewer:
     def __init__(self, context: DefaultContext, name: str = "review_comment_reviewer"):
         self.context = context
         self.name = name

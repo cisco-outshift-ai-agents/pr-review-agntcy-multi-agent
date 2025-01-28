@@ -1,9 +1,9 @@
 import json
-from typing import Any
+from typing import Any, List
 
 from sentence_transformers import SentenceTransformer
 from graphs.states import GitHubPRState
-from utils.models import ReviewComments, ReviewComment
+from utils.models import IssueComment, ReviewComments, ReviewComment
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
 from .contexts import DefaultContext
@@ -31,6 +31,30 @@ class CommentFilterer:
             raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
 
         # FILTER REVIEW COMMENTS
+        filtered_review_comments = self.__filter_review_comments(state)
+
+        log.debug(f"""
+        review comment filtering finished.
+        new review comments: {json.dumps([comment.model_dump() for comment in filtered_review_comments], indent=4)}
+        """)
+
+        # FILTER ISSUE COMMENTS
+
+        filtered_issue_comments = self.__filter_issue_comments(state)
+
+        log.debug(f"""
+        issue comment filtering finished.
+        new issue comments: {json.dumps([comment.model_dump() for comment in filtered_issue_comments], indent=4)}
+        """)
+
+        log.debug("comment filterer finished.")
+
+        return {
+            "new_review_comments": filtered_review_comments,
+            "new_issue_comments": filtered_issue_comments,
+        }
+
+    def __filter_review_comments(self, state: GitHubPRState) -> ReviewComments:
         try:
             # Use existing comments from state
             review_comments = state["review_comments"]
@@ -57,26 +81,22 @@ class CommentFilterer:
 
             if not filtered_review_comments:
                 # Since there are no new comments, create a simple response for the user
+                no_new_problems_text = "Reviewed the changes again, but I didn't find any problems in your code which haven't been mentioned before."
                 filtered_review_comments.append(
-                    ReviewComment(
-                        filename="",
-                        line_number=0,
-                        comment="Reviewed the changes again, but I didn't find any problems in your code which haven't been mentioned before.",
-                        status="",
+                    IssueComment(
+                        body=no_new_problems_text,
+                        conditions=[no_new_problems_text],
                     )
                 )
+
+            return filtered_review_comments
 
         except Exception as e:
             log.error(f"{self.name}: Error removing duplicate review comments: {e}")
             raise
 
-        log.debug(f"""
-        review comment filtering finished.
-        new review comments: {json.dumps([comment.model_dump() for comment in filtered_review_comments], indent=4)}
-        """)
-
-        # FILTER ISSUE COMMENTS
-        def check_conditions(comment: str, conditions: list[str]) -> bool:
+    def __filter_issue_comments(self, state: GitHubPRState) -> List[IssueComment]:
+        def contains_all_condition(comment: str, conditions: list[str]) -> bool:
             for c in conditions:
                 if c not in comment:
                     return False
@@ -89,9 +109,10 @@ class CommentFilterer:
         # Remove duplicate issue comments from the new_issue_comments
         unique_new_issue_comments = list({c.body: c for c in new_issue_comments}.values())
         filtered_issue_comments = []
+
         for new_i_c in unique_new_issue_comments:
             existing_issue_comment = next(
-                (existing_i_c for existing_i_c in existing_issue_comments if check_conditions(existing_i_c.body, new_i_c.conditions)),
+                (existing_i_c for existing_i_c in existing_issue_comments if contains_all_condition(existing_i_c.body, new_i_c.conditions)),
                 None,
             )
 
@@ -105,28 +126,10 @@ class CommentFilterer:
                 # add new comment
                 filtered_issue_comments.append(new_i_c)
 
-        log.info(f"""
-        issue comment reviewer finished.
-        comments: {"\\".join(c.body for c in new_issue_comments)}
-        """)
-
-        log.debug(f"""
-        issue comment filtering finished.
-        new issue comments: {json.dumps([comment.model_dump() for comment in filtered_issue_comments], indent=4)}
-        """)
-
-        updated_state = {}
-        if len(filtered_review_comments) > 0:
-            updated_state["new_review_comments"] = filtered_review_comments
-        if len(filtered_issue_comments) > 0:
-            updated_state["new_issue_comments"] = filtered_issue_comments
-
-        log.debug("comment filterer finished.")
-
-        return updated_state
+        return filtered_issue_comments
 
     def __remove_duplicate_comments(self, review_comments: ReviewComments, new_review_comments: ReviewComments) -> ReviewComments:
-        if not new_review_comments or len(new_review_comments) == 0:
+        if not new_review_comments:
             return []
         # We use a simple embeding model to create vector embedings
         # We calculate the embedings first and then the similarities

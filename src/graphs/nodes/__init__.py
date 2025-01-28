@@ -8,9 +8,9 @@ from .comments_to_thread_converter import CommentsToThreadConverter
 from .contexts import DefaultContext
 from .fetch_pr import FetchPR
 from .review_chat_assistant import ReviewChatAssistant
-from .review_comment_reviewer import ReviewCommentReviewer
+from .code_reviewer import CodeReviewer
 from .static_analyzer import StaticAnalyzer
-from .title_desc_issue_comment_reviewer import TitleDescIssueCommentReviewer
+from .title_desc_reviewer import TitleDescReviewer
 
 __all__ = [
     "CommentFilterer",
@@ -23,7 +23,7 @@ __all__ = [
     "DefaultContext",
     "FetchPR",
     "ReviewChatAssistant",
-    "ReviewCommentReviewer",
+    "CodeReviewer",
     "StaticAnalyzer",
-    "TitleDescIssueCommentReviewer",
+    "TitleDescReviewer",
 ]

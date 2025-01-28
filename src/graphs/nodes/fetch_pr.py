@@ -8,9 +8,9 @@ from github.ContentFile import ContentFile
 from github.File import File
 from pydantic import BaseModel
 
-from graphs.states import FileChange
+from graphs.states import FileChange, GitHubPRState
 from utils.logging_config import logger as log
-from utils.models import ReviewComment, IssueComment_, ContextFile
+from utils.models import ReviewComment, IssueComment, ContextFile
 from .contexts import DefaultContext
 
 
@@ -25,7 +25,7 @@ class FetchPR:
         self.context = context
         self.name = name
 
-    def __call__(self, state) -> dict:
+    def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name}: called")
 
         if self.context.github is None:
@@ -40,7 +40,6 @@ class FetchPR:
         filenames_not_to_review: Set[str] = set()
 
         for file in self.pr_files:
-            # TODO:
             if file.filename.endswith(self.terraform_file_types_review_allowed):
                 # this file should be reviewed
                 self.pr_files_to_review.append(file)
@@ -140,7 +139,7 @@ class FetchPR:
         new_issue_comments = []
         if filenames_not_to_review:
             wrong_files_to_push_message = self.file_type_warning_template + "\n \n - " + " \n  - ".join(filenames_not_to_review)
-            new_filetype_restriction_comment = IssueComment_(body=wrong_files_to_push_message, conditions=[self.file_type_warning_template])
+            new_filetype_restriction_comment = IssueComment(body=wrong_files_to_push_message, conditions=[self.file_type_warning_template])
             new_issue_comments.append(new_filetype_restriction_comment)
 
         log.debug(f"""

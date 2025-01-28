@@ -6,7 +6,7 @@ from langchain_core.runnables import RunnableSerializable
 from utils.wrap_prompt import wrap_prompt
 
 
-def create_title_description_review_chain(model: BaseChatModel) -> RunnableSerializable[dict, BaseMessage]:
+def create_title_description_reviewer_chain(model: BaseChatModel) -> RunnableSerializable[dict, BaseMessage]:
     system_message = wrap_prompt("""\
         You are code specialist with phenomenal verbal abilities.
         You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.

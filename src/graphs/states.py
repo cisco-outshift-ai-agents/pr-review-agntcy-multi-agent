@@ -5,7 +5,7 @@ from github.PullRequestComment import PullRequestComment
 from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing_extensions import TypedDict
-from utils.models import ContextFile, IssueComment_, ReviewComment
+from utils.models import ContextFile, IssueComment, ReviewComment
 
 
 class FileChange(TypedDict):
@@ -19,10 +19,10 @@ class GitHubPRState(TypedDict):
     changes: list[FileChange]
     context_files: list[ContextFile]
     description: str
-    issue_comments: list[IssueComment_]
+    issue_comments: list[IssueComment]
     messages: Annotated[Sequence[BaseMessage], add_messages]
     # modified_files: list[ContextFile]
-    new_issue_comments: list[IssueComment_]
+    new_issue_comments: list[IssueComment]
     new_review_comments: list[ReviewComment]
     review_comments: list[ReviewComment]
     sender: str

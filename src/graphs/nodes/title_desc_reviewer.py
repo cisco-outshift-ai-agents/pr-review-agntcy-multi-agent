@@ -4,12 +4,12 @@ from langchain_core.messages import BaseMessage
 from langchain_core.runnables import RunnableSerializable
 from typing import Any
 from utils.logging_config import logger as log
-from utils.models import IssueComment_
+from utils.models import IssueComment
 from utils.wrap_prompt import wrap_prompt
 
 
-class TitleDescIssueCommentReviewer:
-    def __init__(self, context: DefaultContext, name: str = "title_description_issue_comment_reviewer"):
+class TitleDescReviewer:
+    def __init__(self, context: DefaultContext, name: str = "title_description_reviewer"):
         self.context = context
         self.name = name
 
@@ -41,7 +41,7 @@ class TitleDescIssueCommentReviewer:
         )
 
         title_desc_chain_result_content = str(title_desc_chain_result.content)
-        new_title_desc_comment = IssueComment_(body=title_desc_chain_result_content, conditions=["PR title suggestion", "PR description suggestion"])
+        new_title_desc_comment = IssueComment(body=title_desc_chain_result_content, conditions=["PR title suggestion", "PR description suggestion"])
         new_issue_comments.append(new_title_desc_comment)
 
         log.debug(f"""

@@ -9,7 +9,7 @@ class ReviewComment(BaseModel):
     status: str
 
 
-class IssueComment_(BaseModel):
+class IssueComment(BaseModel):
     body: str
     conditions: List[str]
 
