@@ -93,13 +93,8 @@ def handle_pull_request_comment(payload):
     if installation_id is None:
         raise ValueError("Installation ID is missing in the payload")
 
-    github_ops = GitHubOperations(str(installation_id), repo_name, pr_number)
-    check_run = github_ops.create_pull_request_check_run()
-
     graph = ReviewChatWorkflow(installation_id, pr_number, repo_name, comment)
     print(graph.run())
-
-    github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success)
 
 
 def __is_commented_by_human(payload: dict[str, Any]) -> bool:
