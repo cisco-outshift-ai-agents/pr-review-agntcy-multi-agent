@@ -5,9 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from auth import fastapi_validate_github_signature, create_signature, valid_github_signature, \
-    lambda_validate_github_signature
-from src.utils.constants import GITHUB_SIGNATURE_HEADER
+from auth import fastapi_validate_github_signature, create_signature, valid_github_signature, lambda_validate_github_signature
+from utils.constants import GITHUB_SIGNATURE_HEADER
 
 
 @pytest.mark.parametrize(
@@ -23,8 +22,7 @@ from src.utils.constants import GITHUB_SIGNATURE_HEADER
         (b"testpayload", "", b"testpayload", "testsecret", False),
     ],
 )
-def test_valid_github_signature(payload: bytes, signature_payload: bytes, signature_secret: str, secret: str,
-                                expected: bool):
+def test_valid_github_signature(payload: bytes, signature_payload: bytes, signature_secret: str, secret: str, expected: bool):
     assert valid_github_signature(payload, create_signature(signature_payload, signature_secret), secret) == expected
 
 
@@ -45,8 +43,8 @@ def test_valid_github_signature(payload: bytes, signature_payload: bytes, signat
 )
 @pytest.mark.asyncio
 async def test_fastapi_validate_github_signature(
-        mock_valid_github_signature: MagicMock,
-        secret_manager_mock: MagicMock,
+    mock_valid_github_signature: MagicMock,
+    secret_manager_mock: MagicMock,
     signature_header: str | None,
     gh_secret: str | None,
     valid_signature: bool,
@@ -91,7 +89,7 @@ async def test_fastapi_validate_github_signature(
 @pytest.mark.asyncio
 async def test_lambda_validate_github_signature(
     mock_valid_github_signature: MagicMock,
-        secret_manager_mock: MagicMock,
+    secret_manager_mock: MagicMock,
     signature_header: str | None,
     gh_secret: str | None,
     valid_signature: bool,

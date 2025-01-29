@@ -10,7 +10,6 @@ from utils.secret_manager import SecretManager
 
 
 class TestSecretManager:
-
     @pytest.fixture()
     def set_secret_file(self, tmp_path):
         path = tmp_path / "secret.pem"
@@ -35,12 +34,14 @@ class TestSecretManager:
                     if throw_sm_exception:
                         raise Exception("AWS Secrets Manager exception")
 
-                    secrets = json.dumps({
-                        "github_app_private_key": base64.b64encode(b"sm_github_app_private_key").decode("utf-8"),
-                        "github_webhook_secret": "sm_github_webhook_secret",
-                        "langchain_api_key": "sm_langchain_api_key",
-                        "azure_openai_api_key": "sm_azure_openai_api_key",
-                    })
+                    secrets = json.dumps(
+                        {
+                            "github_app_private_key": base64.b64encode(b"sm_github_app_private_key").decode("utf-8"),
+                            "github_webhook_secret": "sm_github_webhook_secret",
+                            "langchain_api_key": "sm_langchain_api_key",
+                            "azure_openai_api_key": "sm_azure_openai_api_key",
+                        }
+                    )
 
                     return {"SecretString": secrets if secret_name == "base" else "sm_gcp_credentials"}
 
@@ -59,9 +60,9 @@ class TestSecretManager:
     def mock_inits(self):
         patchers = []
 
-        def mock(inits: List[
-            Literal[
-                "gcp_credentials", "github_app_private_key", "github_webhook_secret", "azure_openai_api_key", "langchain_api_key"]]):
+        def mock(
+            inits: List[Literal["gcp_credentials", "github_app_private_key", "github_webhook_secret", "azure_openai_api_key", "langchain_api_key"]],
+        ):
             for init in inits:
                 patcher = patch.object(SecretManager, f"_SecretManager__init_{init}", return_value=None)
                 patchers.append(patcher)
@@ -87,51 +88,52 @@ class TestSecretManager:
         ["env_vars", "secret_in_file", "is_aws_sm_error", "expected_secret", "expected_error_type"],
         [
             (
-                    # file set, env set, should use file,
-                    {"GITHUB_APP_PRIVATE_KEY_FILE": "secret.pem", "GITHUB_APP_PRIVATE_KEY": "secret_in_env"},
-                    "secret_in_file",
-                    False,
-                    "secret_in_file",
-                    None,
+                # file set, env set, should use file,
+                {"GITHUB_APP_PRIVATE_KEY_FILE": "secret.pem", "GITHUB_APP_PRIVATE_KEY": "secret_in_env"},
+                "secret_in_file",
+                False,
+                "secret_in_file",
+                None,
             ),
             (
-                    # file not set, env set, should use env,
-                    {"GITHUB_APP_PRIVATE_KEY": base64.b64encode(b"secret_in_env").decode("utf-8")},
-                    "secret_in_file",
-                    False,
-                    "secret_in_env",
-                    None,
+                # file not set, env set, should use env,
+                {"GITHUB_APP_PRIVATE_KEY": base64.b64encode(b"secret_in_env").decode("utf-8")},
+                "secret_in_file",
+                False,
+                "secret_in_env",
+                None,
             ),
             (
-                    # file not set, env not set, should use aws secret,
-                    None,
-                    "secret_in_file",
-                    False,
-                    "sm_github_app_private_key",
-                    None
+                # file not set, env not set, should use aws secret,
+                None,
+                "secret_in_file",
+                False,
+                "sm_github_app_private_key",
+                None,
             ),
             (
-                    # file not set, env not set, aws sm error, should raise exception,
-                    None,
-                    "secret_in_file",
-                    True,
-                    "",
-                    ValueError
-            )
+                # file not set, env not set, aws sm error, should raise exception,
+                None,
+                "secret_in_file",
+                True,
+                "",
+                ValueError,
+            ),
         ],
         indirect=["env_vars"],
     )
-    def test_github_app_private_key(self,
-                                    set_secret_file,
-                                    mock_inits,
-                                    mock_client,
-                                    tmp_path,
-                                    env_vars: Dict[str, str],
-                                    secret_in_file: str,
-                                    is_aws_sm_error: bool,
-                                    expected_secret: str,
-                                    expected_error_type: Optional[type]
-                                    ):
+    def test_github_app_private_key(
+        self,
+        set_secret_file,
+        mock_inits,
+        mock_client,
+        tmp_path,
+        env_vars: Dict[str, str],
+        secret_in_file: str,
+        is_aws_sm_error: bool,
+        expected_secret: str,
+        expected_error_type: Optional[type],
+    ):
         with patch.dict("os.environ", env_vars):
             # Arrange
             mock_inits(["gcp_credentials", "github_webhook_secret", "azure_openai_api_key", "langchain_api_key"])
@@ -157,36 +159,32 @@ class TestSecretManager:
         ["env_vars", "is_aws_sm_error", "expected_secret", "expected_error_type"],
         [
             (
-                    # env set, should use env,
-                    {"GITHUB_WEBHOOK_SECRET": "secret_in_env"},
-                    False,
-                    "secret_in_env",
-                    None,
+                # env set, should use env,
+                {"GITHUB_WEBHOOK_SECRET": "secret_in_env"},
+                False,
+                "secret_in_env",
+                None,
             ),
             (
-                    # env not set, should use aws secret,
-                    None,
-                    False,
-                    "sm_github_webhook_secret",
-                    None
+                # env not set, should use aws secret,
+                None,
+                False,
+                "sm_github_webhook_secret",
+                None,
             ),
             (
-                    # env not set, aws sm error, should raise exception,
-                    None,
-                    True,
-                    "",
-                    ValueError
-            )
+                # env not set, aws sm error, should raise exception,
+                None,
+                True,
+                "",
+                ValueError,
+            ),
         ],
-        indirect=["env_vars"])
-    def test_github_webhook_secret(self,
-                                   mock_inits,
-                                   mock_client,
-                                   env_vars: Dict[str, str],
-                                   is_aws_sm_error: bool,
-                                   expected_secret: str,
-                                   expected_error_type: Optional[type]
-                                   ):
+        indirect=["env_vars"],
+    )
+    def test_github_webhook_secret(
+        self, mock_inits, mock_client, env_vars: Dict[str, str], is_aws_sm_error: bool, expected_secret: str, expected_error_type: Optional[type]
+    ):
         # Arrange
         mock_inits(["gcp_credentials", "github_app_private_key", "azure_openai_api_key", "langchain_api_key"])
         mock_client(throw_sm_exception=is_aws_sm_error)
@@ -224,12 +222,12 @@ class TestSecretManager:
             #         None
             # ),
             (
-                    # env not set, aws sm error, key not mandatory,
-                    None,
-                    True,
-                    [],
-                    None,
-                    None
+                # env not set, aws sm error, key not mandatory,
+                None,
+                True,
+                [],
+                None,
+                None,
             ),
             # (
             #         # env not set, aws sm error, should raise exception,
@@ -240,16 +238,18 @@ class TestSecretManager:
             #         ValueError
             # ),
         ],
-        indirect=["env_vars"])
-    def test_langchain_api_key(self,
-                               mock_inits,
-                               mock_client,
-                               env_vars: Dict[str, str],
-                               is_aws_sm_error: bool,
-                               mandatory_secrets: List[Literal["langchain_api_key"]],
-                               expected_secret: str,
-                               expected_error_type: Optional[type]
-                               ):
+        indirect=["env_vars"],
+    )
+    def test_langchain_api_key(
+        self,
+        mock_inits,
+        mock_client,
+        env_vars: Dict[str, str],
+        is_aws_sm_error: bool,
+        mandatory_secrets: List[Literal["langchain_api_key"]],
+        expected_secret: str,
+        expected_error_type: Optional[type],
+    ):
         # Arrange
         mock_inits(["gcp_credentials", "github_app_private_key", "github_webhook_secret", "azure_openai_api_key"])
         mock_client(throw_sm_exception=is_aws_sm_error)
@@ -271,48 +271,50 @@ class TestSecretManager:
         ["env_vars", "is_aws_sm_error", "mandatory_secrets", "expected_secret", "expected_error_type"],
         [
             (
-                    # env set, should use env,
-                    {"AZURE_OPENAI_API_KEY": "secret_in_env"},
-                    False,
-                    ["openai"],
-                    "secret_in_env",
-                    None,
+                # env set, should use env,
+                {"AZURE_OPENAI_API_KEY": "secret_in_env"},
+                False,
+                ["openai"],
+                "secret_in_env",
+                None,
             ),
             (
-                    # env not set, should use aws secret,
-                    None,
-                    False,
-                    ["openai"],
-                    "sm_azure_openai_api_key",
-                    None
+                # env not set, should use aws secret,
+                None,
+                False,
+                ["openai"],
+                "sm_azure_openai_api_key",
+                None,
             ),
             (
-                    # env not set, aws sm error, key not mandatory,
-                    None,
-                    True,
-                    [],
-                    None,
-                    None
+                # env not set, aws sm error, key not mandatory,
+                None,
+                True,
+                [],
+                None,
+                None,
             ),
             (
-                    # env not set, aws sm error, should raise exception,
-                    None,
-                    True,
-                    ["azure_openai_api_key"],
-                    "",
-                    ValueError
+                # env not set, aws sm error, should raise exception,
+                None,
+                True,
+                ["azure_openai_api_key"],
+                "",
+                ValueError,
             ),
         ],
-        indirect=["env_vars"])
-    def test_azure_openai_api_key(self,
-                                  mock_inits,
-                                  mock_client,
-                                  env_vars: Dict[str, str],
-                                  is_aws_sm_error: bool,
-                                  mandatory_secrets: List[Literal["azure_openai_api_key"]],
-                                  expected_secret: str,
-                                  expected_error_type: Optional[type]
-                                  ):
+        indirect=["env_vars"],
+    )
+    def test_azure_openai_api_key(
+        self,
+        mock_inits,
+        mock_client,
+        env_vars: Dict[str, str],
+        is_aws_sm_error: bool,
+        mandatory_secrets: List[Literal["azure_openai_api_key"]],
+        expected_secret: str,
+        expected_error_type: Optional[type],
+    ):
         # Arrange
         mock_inits(["gcp_credentials", "github_app_private_key", "github_webhook_secret", "langchain_api_key"])
         mock_client(throw_sm_exception=is_aws_sm_error)
@@ -331,8 +333,7 @@ class TestSecretManager:
             assert sm.azure_openai_api_key == expected_secret
 
     @pytest.mark.parametrize(
-        ["env_vars", "mandatory_secrets", "secret_in_file", "is_aws_sm_error", "expected_secret",
-         "expected_error_type"],
+        ["env_vars", "mandatory_secrets", "secret_in_file", "is_aws_sm_error", "expected_secret", "expected_error_type"],
         [
             # (
             #         # aws sm error, should raise exception,
@@ -344,45 +345,47 @@ class TestSecretManager:
             #         None
             # ),
             (
-                    # aws sm error, should raise exception,
-                    {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
-                    ["gcp"],
-                    "secret_in_file",
-                    False,
-                    "sm_gcp_credentials",
-                    None
+                # aws sm error, should raise exception,
+                {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
+                ["gcp"],
+                "secret_in_file",
+                False,
+                "sm_gcp_credentials",
+                None,
             ),
             (
-                    # aws sm error, key not mandatory,
-                    {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
-                    [],
-                    "secret_in_file",
-                    True,
-                    None,
-                    None
+                # aws sm error, key not mandatory,
+                {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
+                [],
+                "secret_in_file",
+                True,
+                None,
+                None,
             ),
             (
-                    # aws sm error, key mandatory,
-                    {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
-                    ["gcp_credentials"],
-                    "secret_in_file",
-                    True,
-                    None,
-                    ValueError
-            )
+                # aws sm error, key mandatory,
+                {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
+                ["gcp_credentials"],
+                "secret_in_file",
+                True,
+                None,
+                ValueError,
+            ),
         ],
-        indirect=["env_vars"])
-    def test_gcp_credentials(self,
-                             mock_inits,
-                             mock_client,
-                             set_secret_file,
-                             env_vars: Dict[str, str],
-                             mandatory_secrets: List[Literal["gcp_credentials"]],
-                             secret_in_file,
-                             is_aws_sm_error: bool,
-                             expected_secret: str,
-                             expected_error_type: Optional[type]
-                             ):
+        indirect=["env_vars"],
+    )
+    def test_gcp_credentials(
+        self,
+        mock_inits,
+        mock_client,
+        set_secret_file,
+        env_vars: Dict[str, str],
+        mandatory_secrets: List[Literal["gcp_credentials"]],
+        secret_in_file,
+        is_aws_sm_error: bool,
+        expected_secret: str,
+        expected_error_type: Optional[type],
+    ):
         # Arrange
         mock_inits(["github_app_private_key", "github_webhook_secret", "azure_openai_api_key", "langchain_api_key"])
         mock_client(throw_sm_exception=is_aws_sm_error, secret_name="gcp")

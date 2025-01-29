@@ -61,6 +61,9 @@ resource "aws_lambda_function" "alfred-lambda" {
   description   = "Alfred code reviewer lambda function"
   timeout = 240
   memory_size = 4096
+  ephemeral_storage {
+    size = 1024
+  }
   role          = aws_iam_role.alfred-exec-role.arn
 
 

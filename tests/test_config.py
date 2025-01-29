@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.config import AgentConfig, ParserMixin, ParseContentError
+from config import AgentConfig, ParserMixin, ParseContentError
 
 
 class MockParser(ParserMixin):

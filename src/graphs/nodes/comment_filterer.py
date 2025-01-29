@@ -17,18 +17,18 @@ class CommentFilterer:
     __total_similarity_limit = 0.9
 
     def __init__(self, context: DefaultContext, name: str = "comment_filterer"):
-        self.context = context
-        self.name = name
+        self._context = context
+        self._name = name
 
     def __call__(self, state: GitHubPRState) -> dict[str, Any]:
-        log.info(f"{self.name}: called")
+        log.info(f"{self._name}: called")
 
-        if self.context.chain is None:
-            raise ValueError(f"{self.name}: Chain is not set in the context")
+        if self._context.chain is None:
+            raise ValueError(f"{self._name}: Chain is not set in the context")
 
         # TODO: fix this later. Chain can be a Callable[..., RunnableSerializable] or RunnableSerializable
-        if not isinstance(self.context.chain, RunnableSerializable):
-            raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
+        if not isinstance(self._context.chain, RunnableSerializable):
+            raise ValueError(f"{self._name}: Chain is not a RunnableSerializable")
 
         # FILTER REVIEW COMMENTS
         filtered_review_comments = self.__filter_review_comments(state)
@@ -94,7 +94,7 @@ class CommentFilterer:
             return filtered_review_comments
 
         except Exception as e:
-            log.error(f"{self.name}: Error removing duplicate review comments: {e}")
+            log.error(f"{self._name}: Error removing duplicate comments: {e}")
             raise
 
     def __filter_issue_comments(self, state: GitHubPRState) -> List[IssueComment]:

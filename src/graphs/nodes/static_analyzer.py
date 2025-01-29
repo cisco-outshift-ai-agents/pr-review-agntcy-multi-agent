@@ -13,28 +13,28 @@ from utils.wrap_prompt import wrap_prompt
 
 class StaticAnalyzer:
     def __init__(self, context: DefaultContext, name: str = "static_analyzer"):
-        self.context = context
-        self.__name = name
+        self._context = context
+        self._name = name
 
     def __call__(self, state: GitHubPRState) -> dict[str, Any]:
-        log.info(f"{self.__name} called")
+        log.info(f"{self._name} called")
 
-        if not self.context.chain:
-            raise ValueError(f"{self.__name}: Chain is not set in the context")
+        if not self._context.chain:
+            raise ValueError(f"{self._name}: Chain is not set in the context")
 
-        if not self.context.github:
-            raise ValueError(f"{self.__name}: GithubOps is not set in the context")
+        if not self._context.github:
+            raise ValueError(f"{self._name}: GithubOps is not set in the context")
 
         # TODO: fix this later. Chain can be a Callable[..., RunnableSerializable] or RunnableSerializable
-        if not isinstance(self.context.chain, RunnableSerializable):
-            raise ValueError(f"{self.__name}: Chain is not a RunnableSerializable")
+        if not isinstance(self._context.chain, RunnableSerializable):
+            raise ValueError(f"{self._name}: Chain is not a RunnableSerializable")
 
         tmp_dir = os.getenv(TMP_DIR_ENV, ".")
         # First clone the repo into a local folder
         local_folder = os.path.join(tmp_dir, "repo_copy")
         try:
             # The output folder will look like this: "./repo_copy/repo-name-<commit-hash>"
-            output_folder = self.context.github.clone_repo(local_folder)
+            output_folder = self._context.github.clone_repo(local_folder)
         except Exception as e:
             log.error(f"Error while cloning the repo: {e}")
             raise
@@ -44,7 +44,7 @@ class StaticAnalyzer:
             # This will fail if there are module level errors which block the build (like duplicated outputs)
             run(
                 ["terraform", "init", "-backend=false"],
-                # check=True,
+                check=True,
                 cwd=output_folder,
                 capture_output=True,
                 text=True,
@@ -65,7 +65,7 @@ class StaticAnalyzer:
             )
 
         except CalledProcessError as e:
-            log.error(f"Error while running static checks in the users repo: {e}")
+            log.error(f"Error while running static checks in the users repo: {e.stderr}")
             return {}
 
         try:
@@ -76,7 +76,7 @@ class StaticAnalyzer:
             return {}
 
         try:
-            response = self.context.chain.invoke(
+            response = self._context.chain.invoke(
                 {
                     "linter_outputs": wrap_prompt(
                         "terraform validate output:",
@@ -91,7 +91,7 @@ class StaticAnalyzer:
             )
 
         except Exception as e:
-            log.error(f"Error in {self.__name} while running the static analyzer chain: {e}")
+            log.error(f"Error in {self._name} while running the static analyzer chain: {e}")
             raise
 
         log.debug(f"""

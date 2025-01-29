@@ -39,17 +39,16 @@ class ChatModelFactory:
         )
 
     def __get_gcp_credentials(self) -> service_account.Credentials:
-        if secret_manager.gcp_credentials is None:
+        if not secret_manager or secret_manager.gcp_credentials is None:
             raise ValueError("GCP credentials are missing")
 
         credentials = service_account.Credentials.from_service_account_info(secret_manager.gcp_credentials)
         return credentials.with_scopes(["https://www.googleapis.com/auth/cloud-platform"])
 
-
     @staticmethod
     def __init_azure_openai() -> AzureChatOpenAI:
         log.debug("Initializing AzureChatOpenAI model...")
-        if secret_manager.azure_openai_api_key is None:
+        if not secret_manager or secret_manager.azure_openai_api_key is None:
             raise ValueError("Azure OpenAI API key is missing")
 
         return AzureChatOpenAI(
