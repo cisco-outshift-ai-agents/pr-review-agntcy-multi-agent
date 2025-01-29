@@ -159,8 +159,8 @@ class FetchPR:
         changes: {json.dumps(changes, indent=4)},
         title: {title},
         description: {description},
-        new_issue_comments: {"\\".join(c.body for c in new_issue_comments)},
-        issue_comments: {"\\".join(c.body for c in existing_issue_comments)}
+        new_issue_comments: {json.dumps([comment.model_dump() for comment in new_issue_comments], indent=4)},
+        issue_comments: {json.dumps([comment.model_dump() for comment in existing_issue_comments], indent=4)},
         review_comments: {json.dumps([comment.model_dump() for comment in existing_review_comments], indent=4)}
         """)
 
@@ -202,7 +202,7 @@ class FetchPR:
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
-        if pr_file.patch is None:
+        if not pr_file.patch:
             # If it's an empty file or a deleted file or a moved file, then there is no patch. This way the file remains part of the diff, but it will be marked empty.
             return ""
 
