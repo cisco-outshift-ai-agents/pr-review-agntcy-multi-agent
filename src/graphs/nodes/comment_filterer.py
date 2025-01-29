@@ -3,7 +3,7 @@ from typing import Any, List
 
 from sentence_transformers import SentenceTransformer
 from graphs.states import GitHubPRState
-from utils.models import IssueComment, ReviewComments, ReviewComment
+from utils.models import ExtendedGitHubIssueComment, IssueComment, ReviewComments, ReviewComment
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
 from .contexts import DefaultContext
@@ -69,7 +69,7 @@ class CommentFilterer:
                     ReviewComment(filename="file1", line_number=2, comment="comment2", status="added").model_dump(),
                 ]
 
-                result: ReviewComments = self.context.chain.invoke(
+                result: ReviewComments = self._context.chain.invoke(
                     {
                         "input_json_format": json.dumps(example_schema, indent=2),
                         "question": wrap_prompt(
@@ -111,18 +111,18 @@ class CommentFilterer:
         # Remove duplicate issue comments from the new_issue_comments
         # unique_new_issue_comments = list({c.body: c for c in new_issue_comments}.values())
         unique_new_issue_comments = {c.body: c for c in new_issue_comments}
-        # TODO: test this
         filtered_issue_comments = []
 
         for new_i_c in unique_new_issue_comments.values():
-            existing_issue_comment = next(
+            existing_issue_comment: ExtendedGitHubIssueComment = next(
                 (existing_i_c for existing_i_c in existing_issue_comments if contains_all_condition(existing_i_c.body, new_i_c.conditions)),
                 None,
             )
 
             if existing_issue_comment:
                 # save the new body content in the comment dict - gh issue comment is not yet updated
-                existing_issue_comment.body = new_i_c.body
+                existing_issue_comment.new_body = new_i_c.body
+                state["issue_comments_to_update"].append(existing_issue_comment)
             else:
                 # add new comment
                 filtered_issue_comments.append(new_i_c)

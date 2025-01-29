@@ -38,15 +38,23 @@ class FetchPR:
             raise Exception(f"Error fetching PR files: {e}") from e
 
         filenames_not_to_review: Set[str] = set()
+        new_issue_comments: list[IssueComment] = []
 
         for file in self.pr_files:
-            if file.filename.endswith(self.terraform_file_types_review_allowed):
+            filename = file.filename
+            if filename.endswith(self.terraform_file_types_review_allowed):
                 # this file should be reviewed
                 self.pr_files_to_review.append(file)
 
-            elif file.filename.endswith(self.terraform_file_types_push_forbidden):
+                if ".tfvars" in filename:
+                    # warning about pushing .tfvars files to the repo
+                    tfvars_warning_text = "You are about to push .tfvars file(s) to the repo. I always check these file types, but please make sure for yourself no sensitive data is published on Github."
+                    tfvars_warning_comment = IssueComment(body=tfvars_warning_text, conditions=[tfvars_warning_text])
+                    new_issue_comments.append(tfvars_warning_comment)
+
+            elif filename.endswith(self.terraform_file_types_push_forbidden):
                 # this file should not be reviewed, but we should warn the user about the risks pushing it to the repo
-                filenames_not_to_review.add(file.filename)
+                filenames_not_to_review.add(filename)
             else:
                 # this file should not be reviewed
                 pass
@@ -136,12 +144,13 @@ class FetchPR:
         # modified_files = self.__get_modified_files()
         context_files = self.__get_context_for_modified_files()
 
-        new_issue_comments = []
         if filenames_not_to_review:
-            wrong_files_to_push_message = """
-            {self.file_type_warning_template}
-            - {" \n  - ".join(filenames_not_to_review)}
+            wrong_files_to_push_message = (
+                self.file_type_warning_template
+                + f"""
+            {"\n - " + " \n  - ".join(filenames_not_to_review)}
             """
+            )
             new_filetype_restriction_comment = IssueComment(body=wrong_files_to_push_message, conditions=[self.file_type_warning_template])
             new_issue_comments.append(new_filetype_restriction_comment)
 

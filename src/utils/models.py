@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List
+from github.IssueComment import IssueComment as GHIssueComment
 
 
 class ReviewComment(BaseModel):
@@ -12,6 +13,10 @@ class ReviewComment(BaseModel):
 class IssueComment(BaseModel):
     body: str
     conditions: List[str]
+
+
+class ExtendedGitHubIssueComment(GHIssueComment):
+    new_body: str
 
 
 class ReviewComments(BaseModel):

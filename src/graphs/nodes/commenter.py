@@ -18,7 +18,7 @@ class Commenter:
 
         try:
             for u_i_c in state["issue_comments_to_update"]:
-                u_i_c.edit(u_i_c.body)
+                u_i_c.edit(u_i_c.new_body)
         except Exception as e:
             log.error(f"Error updating existing comment: {e}")
 
