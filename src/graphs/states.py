@@ -6,6 +6,7 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing_extensions import TypedDict
 from utils.models import ContextFile, IssueComment, ReviewComment
+from github.IssueComment import IssueComment as GHIssueComment
 
 
 class FileChange(TypedDict):
@@ -19,7 +20,8 @@ class GitHubPRState(TypedDict):
     changes: list[FileChange]
     context_files: list[ContextFile]
     description: str
-    issue_comments: list[IssueComment]
+    issue_comments: list[GHIssueComment]
+    issue_comments_to_update: list[GHIssueComment]
     messages: Annotated[Sequence[BaseMessage], add_messages]
     # modified_files: list[ContextFile]
     new_issue_comments: list[IssueComment]
@@ -36,9 +38,10 @@ def create_default_github_pr_state() -> GitHubPRState:
         context_files=[],  # Default to an empty list of context files
         description="",  # Default to an empty string
         issue_comments=[],  # Default to an empty list of issue comments
+        issue_comments_to_update=[],  # Default to an empty list of issue comments to be updated
         messages=[],  # Default to an empty list of messages
         # modified_files=[],  # Default to an empty list of modified files
-        new_issue_comments=[],  # Default to an empty list of new issue comments
+        new_issue_comments=[],  # Default to an empty list of new issue commentsissue_comments_to_update
         new_review_comments=[],  # Default to an empty list of new review comments
         review_comments=[],  # Default to an empty list of review comments
         sender="",  # Default to an empty string

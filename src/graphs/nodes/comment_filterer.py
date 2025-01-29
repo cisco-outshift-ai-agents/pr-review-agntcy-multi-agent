@@ -52,6 +52,7 @@ class CommentFilterer:
         return {
             "new_review_comments": filtered_review_comments,
             "new_issue_comments": filtered_issue_comments,
+            "issue_comments_to_update": state["issue_comments_to_update"],
         }
 
     def __filter_review_comments(self, state: GitHubPRState) -> ReviewComments:
@@ -82,7 +83,8 @@ class CommentFilterer:
             if not filtered_review_comments:
                 # Since there are no new comments, create a simple response for the user
                 no_new_problems_text = "Reviewed the changes again, but I didn't find any problems in your code which haven't been mentioned before."
-                filtered_review_comments.append(
+
+                state["new_issue_comments"].append(
                     IssueComment(
                         body=no_new_problems_text,
                         conditions=[no_new_problems_text],
@@ -107,21 +109,20 @@ class CommentFilterer:
         new_issue_comments = state["new_issue_comments"]
 
         # Remove duplicate issue comments from the new_issue_comments
-        unique_new_issue_comments = list({c.body: c for c in new_issue_comments}.values())
+        # unique_new_issue_comments = list({c.body: c for c in new_issue_comments}.values())
+        unique_new_issue_comments = {c.body: c for c in new_issue_comments}
+        # TODO: test this
         filtered_issue_comments = []
 
-        for new_i_c in unique_new_issue_comments:
+        for new_i_c in unique_new_issue_comments.values():
             existing_issue_comment = next(
                 (existing_i_c for existing_i_c in existing_issue_comments if contains_all_condition(existing_i_c.body, new_i_c.conditions)),
                 None,
             )
 
             if existing_issue_comment:
-                # Update existing comment
-                try:
-                    existing_issue_comment.edit(new_i_c.body)
-                except Exception as e:
-                    log.error(f"Error updating existing comment: {e}")
+                # save the new body content in the comment dict - gh issue comment is not yet updated
+                existing_issue_comment.body = new_i_c.body
             else:
                 # add new comment
                 filtered_issue_comments.append(new_i_c)
