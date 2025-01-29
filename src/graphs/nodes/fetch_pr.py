@@ -138,7 +138,10 @@ class FetchPR:
 
         new_issue_comments = []
         if filenames_not_to_review:
-            wrong_files_to_push_message = self.file_type_warning_template + "\n \n - " + " \n  - ".join(filenames_not_to_review)
+            wrong_files_to_push_message = """
+            {self.file_type_warning_template}
+            - {" \n  - ".join(filenames_not_to_review)}
+            """
             new_filetype_restriction_comment = IssueComment(body=wrong_files_to_push_message, conditions=[self.file_type_warning_template])
             new_issue_comments.append(new_filetype_restriction_comment)
 
