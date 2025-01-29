@@ -29,5 +29,9 @@ jobs:
         make install
 
     - name: Run tests
+      env:
+        AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
       run: |
+        # Some tests need Alfred's env vars
+        cp .env.example .env
         make test

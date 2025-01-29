@@ -17,18 +17,18 @@ class CommentFilterer:
     __total_similarity_limit = 0.9
 
     def __init__(self, context: DefaultContext, name: str = "comment_filterer"):
-        self.context = context
-        self.name = name
+        self._context = context
+        self._name = name
 
     def __call__(self, state: GitHubPRState) -> dict[str, Any]:
-        log.info(f"{self.name}: called")
+        log.info(f"{self._name}: called")
 
-        if self.context.chain is None:
-            raise ValueError(f"{self.name}: Chain is not set in the context")
+        if self._context.chain is None:
+            raise ValueError(f"{self._name}: Chain is not set in the context")
 
         # TODO: fix this later. Chain can be a Callable[..., RunnableSerializable] or RunnableSerializable
-        if not isinstance(self.context.chain, RunnableSerializable):
-            raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
+        if not isinstance(self._context.chain, RunnableSerializable):
+            raise ValueError(f"{self._name}: Chain is not a RunnableSerializable")
 
         try:
             # Use existing comments from state
@@ -38,7 +38,7 @@ class CommentFilterer:
             if not new_comments:
                 return {}
 
-            new_comments = self.__remove_duplicate_comments(existing_comments, new_comments)
+            new_comments = self._remove_duplicate_comments(existing_comments, new_comments)
 
             if new_comments:
                 # Filter not useful comments with LLM (this part is not perfect, LLMs are not good at this)
@@ -47,7 +47,7 @@ class CommentFilterer:
                     Comment(filename="file1", line_number=2, comment="comment2", status="added").model_dump(),
                 ]
 
-                result: Comments = self.context.chain.invoke(
+                result: Comments = self._context.chain.invoke(
                     {
                         "input_json_format": json.dumps(example_schema, indent=2),
                         "question": wrap_prompt(
@@ -70,7 +70,7 @@ class CommentFilterer:
                 )
 
         except Exception as e:
-            log.error(f"{self.name}: Error removing duplicate comments: {e}")
+            log.error(f"{self._name}: Error removing duplicate comments: {e}")
             raise
 
         log.debug(f"""
@@ -80,7 +80,7 @@ class CommentFilterer:
 
         return {"new_comments": new_comments}
 
-    def __remove_duplicate_comments(self, existing_comments: list[Comment], new_comments: list[Comment]) -> list[Comment]:
+    def _remove_duplicate_comments(self, existing_comments: list[Comment], new_comments: list[Comment]) -> list[Comment]:
         # We use a simple embeding model to create vector embedings
         # We calculate the embedings first and then the similarities
         # The similarities are the cosine of the angle between the vectors, [-1, 1], the closer to 1 the more similar two sentences are
