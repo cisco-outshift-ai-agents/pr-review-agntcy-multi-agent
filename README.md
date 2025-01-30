@@ -83,7 +83,7 @@ Run `make setup` in this project folder
    ```bash
    npm install --global smee-client
    ```
-5. Install Terraform
+5. [Install Terraform](https://developer.hashicorp.com/terraform/install)
    ```bash
    brew tap hashicorp/tap
    brew install hashicorp/tap/terraform
