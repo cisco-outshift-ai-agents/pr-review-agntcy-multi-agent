@@ -23,7 +23,9 @@ class TitleDescReviewer:
         if not isinstance(self.context.chain, RunnableSerializable):
             raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
 
-        user_input = self.context.user_config.get("PR Title and Description", "")
+        user_input = ""
+        if self.context.user_config:
+            user_input = self.context.user_config.get("PR Title and Description", "")
 
         # Fetch existing comments
         new_issue_comments = state["new_issue_comments"]
