@@ -88,7 +88,7 @@ Run `make setup` in this project folder
    brew tap hashicorp/tap
    brew install hashicorp/tap/terraform
    ```
-6. Install TFlint
+6. [Install TFlint](https://github.com/terraform-linters/tflint?tab=readme-ov-file#installation)
    ```bash
    brew install tflint
    ```
