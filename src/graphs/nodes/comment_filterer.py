@@ -129,7 +129,7 @@ class CommentFilterer:
 
         return filtered_issue_comments
 
-    def __remove_duplicate_comments(self, review_comments: ReviewComments, new_review_comments: ReviewComments) -> ReviewComments:
+    def _remove_duplicate_comments(self, review_comments: ReviewComments, new_review_comments: ReviewComments) -> ReviewComments:
         if not new_review_comments:
             return []
         # We use a simple embeding model to create vector embedings
