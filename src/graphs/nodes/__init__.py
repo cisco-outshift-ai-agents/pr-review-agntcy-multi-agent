@@ -10,7 +10,7 @@ from .fetch_pr import FetchPR
 from .review_chat_assistant import ReviewChatAssistant
 from .code_reviewer import CodeReviewer
 from .static_analyzer import StaticAnalyzer
-from .title_desc_reviewer import TitleDescReviewer
+from .title_description_reviewer import TitleDescriptionReviewer
 
 __all__ = [
     "CommentFilterer",
@@ -25,5 +25,5 @@ __all__ = [
     "ReviewChatAssistant",
     "CodeReviewer",
     "StaticAnalyzer",
-    "TitleDescReviewer",
+    "TitleDescriptionReviewer",
 ]

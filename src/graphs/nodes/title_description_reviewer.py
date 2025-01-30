@@ -9,7 +9,7 @@ from utils.models import IssueComment
 from utils.wrap_prompt import wrap_prompt
 
 
-class TitleDescReviewer:
+class TitleDescriptionReviewer:
     def __init__(self, context: DefaultContext, name: str = "title_description_reviewer"):
         self.context = context
         self.name = name
