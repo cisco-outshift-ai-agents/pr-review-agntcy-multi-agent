@@ -5,58 +5,58 @@ from graphs.nodes.contexts import DefaultContext
 from langchain_core.runnables import RunnableSerializable
 
 from graphs.states import GitHubPRState, create_default_github_pr_state
-from utils.models import Comment
+from utils.models import ReviewComment
 
 new_comments = [
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=10,
         comment="The CIDR block '10.0.2.0.12/24' is invalid. CIDR blocks must follow the correct format, such as '10.0.2.0/24'. This will cause errors during resource creation.",
         status="added",
     ),
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=12,
         comment="The CIDR block '10.0.2.0.12/24' is invalid. CIDR blocks must follow the correct format, such as '10.0.2.0/24'. This will cause errors during resource creation.",
         status="added",
     ),
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=20,
         comment="The 'aws_route_table' resource for 'public_rt' has been removed, but it is still being referenced in 'aws_route_table_association.public_rt_assoc'. This will result in a reference error.",
         status="removed",
     ),
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=21,
         comment="The 'aws_route_table' resource for 'public_rt' has been deleted, yet it is still being referenced in 'aws_route_table_association.public_rt_assoc', which will cause a reference error.",
         status="removed",
     ),
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=22,
         comment="The 'aws_route_table' resource for 'public_rt' has been removed, but it is still referenced in 'aws_route_table_association.public_rt_assoc', leading to a reference error.",
         status="removed",
     ),
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=30,
         comment="The instance type has been changed to 't2.xlarge'. This could significantly increase costs compared to 't2.micro'. Ensure this change is intentional and aligns with the project's budget and performance requirements.",
         status="added",
     ),
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=31,
         comment="The instance type has been updated to 't2.xlarge', which may lead to a notable increase in costs compared to 't2.micro'. Please confirm that this change is intentional and consistent with the project's budget and performance needs.",
         status="added",
     ),
-    Comment(
+    ReviewComment(
         filename="outputs.tf",
         line_number=50,
         comment="Storing sensitive information like passwords in plain text outputs is a security risk. Consider using a secure method to manage secrets, such as AWS Secrets Manager.",
         status="added",
     ),
-    Comment(
+    ReviewComment(
         filename="outputs.tf",
         line_number=50,
         comment="Storing sensitive information, such as passwords, in plain text outputs poses a security risk. It's recommended to use a secure solution for managing secrets, like AWS Secrets Manager.",
@@ -65,13 +65,13 @@ new_comments = [
 ]
 
 existing_comments = [
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=10,
         comment="The CIDR block '10.0.2.0.12/24' is invalid. CIDR blocks must follow the correct format, such as '10.0.2.0/24'. This will cause errors during resource creation.",
         status="added",
     ),
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=20,
         comment="The 'aws_route_table' resource for 'public_rt' has been removed, but it is still being referenced in 'aws_route_table_association.public_rt_assoc'. This will result in a reference error.",
@@ -80,13 +80,13 @@ existing_comments = [
 ]
 
 new_comments_filtered = [
-    Comment(
+    ReviewComment(
         filename="main.tf",
         line_number=30,
         comment="The instance type has been changed to 't2.xlarge'. This could significantly increase costs compared to 't2.micro'. Ensure this change is intentional and aligns with the project's budget and performance requirements.",
         status="added",
     ),
-    Comment(
+    ReviewComment(
         filename="outputs.tf",
         line_number=50,
         comment="Storing sensitive information like passwords in plain text outputs is a security risk. Consider using a secure method to manage secrets, such as AWS Secrets Manager.",
