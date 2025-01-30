@@ -12,7 +12,7 @@ from langchain_core.runnables import RunnableSerializable
 
 
 class CodeReviewer:
-    def __init__(self, context: DefaultContext, name: str = "review_comment_reviewer"):
+    def __init__(self, context: DefaultContext, name: str = "code_reviewer"):
         self.context = context
         self.name = name
 
@@ -32,7 +32,7 @@ class CodeReviewer:
             raise
 
         log.debug(f"""
-        review comment reviewer finished.
+        code reviewer finished.
         review comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
         """)
 
