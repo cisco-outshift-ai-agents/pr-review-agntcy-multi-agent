@@ -1,15 +1,17 @@
-from typing import Dict, Optional
+import base64
 import io
 import os
-import base64
-from utils.github_operations import GitHubOperations, GithubOperationException
+from typing import Dict, Optional
+from typing import Tuple
+
 from github.ContentFile import ContentFile
+
+from utils.constants import ALFRED_CONFIG_BRANCH, ALFRED_CONFIG_FILE
+from utils.github_operations import GitHubOperations, GithubOperationException
+from utils.logging_config import logger as log
 from .agent_config import AgentConfig
 from .md_parser import MarkdownParser
 from .parser_mixin import ParseContentError
-from utils.logging_config import logger as log
-from utils.constants import ALFRED_CONFIG_BRANCH, ALFRED_CONFIG_FILE
-from typing import Tuple
 
 
 class ConfigManager:
@@ -168,4 +170,8 @@ class ConfigManager:
 
     def _get_config_from_default_branch(self) -> Optional[str]:
         """Gets config content from default branch"""
-        return self.get_file_content(self.default_config_path)
+        try:
+            return self.get_file_content(self.default_config_path)
+        except Exception:
+            log.info("No config file found on default branch")
+            return None
