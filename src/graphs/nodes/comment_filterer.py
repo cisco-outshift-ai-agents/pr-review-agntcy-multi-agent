@@ -60,7 +60,7 @@ class CommentFilterer:
             # Use existing comments from state
             review_comments = state["review_comments"]
             new_review_comments = state["new_review_comments"]
-            filtered_review_comments = self.__remove_duplicate_comments(review_comments, new_review_comments)
+            filtered_review_comments = self._remove_duplicate_comments(review_comments, new_review_comments)
 
             if filtered_review_comments:
                 # Filter not useful comments with LLM (this part is not perfect, LLMs are not good at this)

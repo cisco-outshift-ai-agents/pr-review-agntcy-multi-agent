@@ -7,7 +7,7 @@ from langchain_core.runnables import RunnableSerializable
 from graphs.states import GitHubPRState, create_default_github_pr_state
 from utils.models import ReviewComment
 
-new_comments = [
+new_review_comments = [
     ReviewComment(
         filename="main.tf",
         line_number=10,
@@ -64,7 +64,7 @@ new_comments = [
     ),
 ]
 
-existing_comments = [
+existing_review_comments = [
     ReviewComment(
         filename="main.tf",
         line_number=10,
@@ -79,7 +79,7 @@ existing_comments = [
     ),
 ]
 
-new_comments_filtered = [
+new_review_comments_filtered = [
     ReviewComment(
         filename="main.tf",
         line_number=30,
@@ -99,15 +99,15 @@ new_comments_filtered = [
 def mock_context() -> MagicMock:
     context = MagicMock(spec=DefaultContext)
     context.chain = MagicMock(spec=RunnableSerializable)
-    context.chain.invoke.return_value.issues = new_comments_filtered
+    context.chain.invoke.return_value.issues = new_review_comments_filtered
     return context
 
 
 @pytest.fixture
 def mock_state() -> GitHubPRState:
     state = create_default_github_pr_state()
-    state["new_comments"] = new_comments
-    state["existing_comments"] = existing_comments
+    state["new_review_comments"] = new_review_comments
+    state["review_comments"] = existing_review_comments
     return state
 
 
@@ -135,10 +135,14 @@ def test_comment_filterer_call_chain_error(mock_context, mock_state):
 def test_comment_filterer_call(mock_context, mock_state):
     cf = CommentFilterer(mock_context)
     resp = cf(mock_state)
-    assert resp == {"new_comments": new_comments_filtered}
+    assert resp == {
+        "new_review_comments": new_review_comments_filtered,
+        "new_issue_comments": [],
+        "issue_comments_to_update": [],
+    }
 
 
 def test_comment_filterer_remove_duplicate_comments(mock_context, mock_state):
     cf = CommentFilterer(mock_context)
-    resp = cf._remove_duplicate_comments(existing_comments, new_comments)
-    assert resp == new_comments_filtered
+    resp = cf._remove_duplicate_comments(existing_review_comments, new_review_comments)
+    assert resp == new_review_comments_filtered
