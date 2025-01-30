@@ -159,8 +159,8 @@ class FetchPR:
         changes: {json.dumps(changes, indent=4)},
         title: {title},
         description: {description},
-        new_issue_comments: {json.dumps([comment.model_dump() for comment in new_issue_comments], indent=4)},
-        issue_comments: {json.dumps([comment.model_dump() for comment in existing_issue_comments], indent=4)},
+        new_issue_comments: ", \n".join([comment.body for comment in new_issue_comments]),
+        issue_comments: ", \n".join([comment.body for comment in existing_issue_comments]),
         review_comments: {json.dumps([comment.model_dump() for comment in existing_review_comments], indent=4)}
         """)
 
