@@ -1,11 +1,13 @@
 from typing import Any
+
+from langchain_core.messages import BaseMessage
+from langchain_core.runnables import RunnableSerializable
+
 from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
-from .contexts import DefaultContext
-from langchain_core.messages import BaseMessage
-from utils.wrap_prompt import wrap_prompt
 from utils.models import Comment
-from langchain_core.runnables import RunnableSerializable
+from utils.wrap_prompt import wrap_prompt
+from .contexts import DefaultContext
 
 
 class TitleDescriptionReviewer:
@@ -23,7 +25,9 @@ class TitleDescriptionReviewer:
         if not isinstance(self.context.chain, RunnableSerializable):
             raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
 
-        user_input = self.context.user_config.get("PR Title and Description", "")
+        user_input = ""
+        if self.context.user_config:
+            user_input = self.context.user_config.get("PR Title and Description", "")
 
         # Fetch existing comments
         existing_title_desc_comment = None

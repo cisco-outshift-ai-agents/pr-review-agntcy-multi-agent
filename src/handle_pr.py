@@ -30,10 +30,11 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
                 repo_name = payload["repository"]["full_name"]
                 installation_id = payload["installation"]["id"]
                 handle_pull_request(pr_number, repo_name, installation_id)
-        elif github_event == "installation" and payload.get("action") == "created":
-            handle_installation(payload, "repositories")
-        elif github_event == "installation_repositories" and payload.get("action") == "added":
-            handle_installation(payload, "repositories_added")
+        # TODO: handle installation correctly
+        # elif github_event == "installation" and payload.get("action") == "created":
+        #     handle_installation(payload, "repositories")
+        # elif github_event == "installation_repositories" and payload.get("action") == "added":
+        #     handle_installation(payload, "repositories_added")
         elif github_event == "pull_request_review_comment" and payload.get("action") in ["created"] and __is_commented_by_human(payload):
             # TODO: handle edited comments
             handle_pull_request_comment(payload)
@@ -61,10 +62,12 @@ def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
 
     github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success)
 
-
 def handle_installation(payload, repositories_key):
     try:
         installation_id = payload["installation"]["id"]
+        # TODO app can be installed into multiple repositories in the same event
+        # TODO handling these batch events should be implemented
+        # TODO turn back handling installation event
         repo_name = payload["repository"]["full_name"]
         github_ops = GitHubOperations(str(installation_id), repo_name, None)
         config_manager = ConfigManager(github_ops)

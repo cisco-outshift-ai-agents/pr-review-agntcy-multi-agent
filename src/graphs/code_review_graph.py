@@ -18,6 +18,7 @@ from graphs.nodes import (
 )
 from graphs.states import GitHubPRState, create_default_github_pr_state
 from utils.github_operations import GitHubOperations
+from utils.logging_config import logger as log
 from utils.modelfactory import models
 
 
@@ -27,7 +28,7 @@ class CodeReviewerWorkflow:
         config_manager = ConfigManager(github_ops)
         user_config = config_manager.load_config()
         if user_config is None:
-            raise ValueError("User config is None")
+            log.info("User config not found. Continuing without custom configuration.")
 
         model = models.get_azure_openai()
 
