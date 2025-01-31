@@ -17,7 +17,7 @@ from .contexts import DefaultContext
 class FetchPR:
     terraform_file_types_review_allowed = (".tf", ".tfvars")
     terraform_file_types_push_forbidden = (".tfplan", ".tfstate")
-    file_type_warning_template = "Please note that the following files are not allowed to be pushed to the repository:"
+    file_type_warning_template = "The following files are not suggested being pushed to the repository, since those likely contain sensitive data:"
     pr_files: list[File] = []
     pr_files_to_review: list[File] = []
 
@@ -48,7 +48,7 @@ class FetchPR:
 
                 if ".tfvars" in filename:
                     # warning about pushing .tfvars files to the repo
-                    tfvars_warning_text = "You are about to push .tfvars file(s) to the repo. I always check these file types, but please make sure for yourself no sensitive data is published on Github."
+                    tfvars_warning_text = "You are about to push .tfvars file(s) to the repo. I always check these file types, but please make sure for yourself no sensitive data is published on GitHub."
                     tfvars_warning_comment = IssueComment(body=tfvars_warning_text, conditions=[tfvars_warning_text])
                     new_issue_comments.append(tfvars_warning_comment)
 
