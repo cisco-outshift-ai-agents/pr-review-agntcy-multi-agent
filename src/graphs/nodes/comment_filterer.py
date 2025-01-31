@@ -87,7 +87,7 @@ class CommentFilterer:
                 state["new_issue_comments"].append(
                     IssueComment(
                         body=no_new_problems_text,
-                        conditions=[no_new_problems_text],
+                        conditions=[],
                     )
                 )
 
@@ -113,6 +113,11 @@ class CommentFilterer:
         filtered_issue_comments = []
 
         for new_i_c in unique_new_issue_comments.values():
+            if not new_i_c.conditions:
+                # no conditions, add the comment, skip looking for duplicates
+                filtered_issue_comments.append(new_i_c)
+                continue
+
             existing_issue_comment: GitHubIssueCommentUpdate = next(
                 (existing_i_c for existing_i_c in existing_issue_comments if contains_all_condition(existing_i_c.body, new_i_c.conditions)),
                 None,
