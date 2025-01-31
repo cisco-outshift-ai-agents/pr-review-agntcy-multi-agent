@@ -5,7 +5,7 @@ from github.PullRequestComment import PullRequestComment
 from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 from typing_extensions import TypedDict
-from utils.models import ContextFile, ExtendedGitHubIssueComment, IssueComment, ReviewComment
+from utils.models import ContextFile, GitHubIssueCommentUpdate, IssueComment, ReviewComment
 from github.IssueComment import IssueComment as GHIssueComment
 
 
@@ -21,7 +21,7 @@ class GitHubPRState(TypedDict):
     context_files: list[ContextFile]
     description: str
     issue_comments: list[GHIssueComment]
-    issue_comments_to_update: list[ExtendedGitHubIssueComment]
+    issue_comments_to_update: list[GitHubIssueCommentUpdate]
     messages: Annotated[Sequence[BaseMessage], add_messages]
     # modified_files: list[ContextFile]
     new_issue_comments: list[IssueComment]

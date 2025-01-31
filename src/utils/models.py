@@ -15,7 +15,7 @@ class IssueComment(BaseModel):
     conditions: List[str]
 
 
-class ExtendedGitHubIssueComment(GHIssueComment):
+class GitHubIssueCommentUpdate(GHIssueComment):
     new_body: str
 
 

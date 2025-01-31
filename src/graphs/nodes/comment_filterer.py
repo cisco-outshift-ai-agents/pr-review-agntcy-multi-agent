@@ -3,7 +3,7 @@ from typing import Any, List
 
 from sentence_transformers import SentenceTransformer
 from graphs.states import GitHubPRState
-from utils.models import ExtendedGitHubIssueComment, IssueComment, ReviewComments, ReviewComment
+from utils.models import GitHubIssueCommentUpdate, IssueComment, ReviewComments, ReviewComment
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
 from .contexts import DefaultContext
@@ -100,7 +100,7 @@ class CommentFilterer:
     def __filter_issue_comments(self, state: GitHubPRState) -> List[IssueComment]:
         def contains_all_condition(comment: str, conditions: list[str]) -> bool:
             for c in conditions:
-                if c not in comment:
+                if c.lower() not in comment.lower():
                     return False
             return True
 
@@ -109,12 +109,11 @@ class CommentFilterer:
         new_issue_comments = state["new_issue_comments"]
 
         # Remove duplicate issue comments from the new_issue_comments
-        # unique_new_issue_comments = list({c.body: c for c in new_issue_comments}.values())
         unique_new_issue_comments = {c.body: c for c in new_issue_comments}
         filtered_issue_comments = []
 
         for new_i_c in unique_new_issue_comments.values():
-            existing_issue_comment: ExtendedGitHubIssueComment = next(
+            existing_issue_comment: GitHubIssueCommentUpdate = next(
                 (existing_i_c for existing_i_c in existing_issue_comments if contains_all_condition(existing_i_c.body, new_i_c.conditions)),
                 None,
             )
