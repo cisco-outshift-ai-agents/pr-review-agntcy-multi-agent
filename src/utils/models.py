@@ -1,16 +1,26 @@
 from pydantic import BaseModel, Field
 from typing import List
+from github.IssueComment import IssueComment as GHIssueComment
 
 
-class Comment(BaseModel):
+class ReviewComment(BaseModel):
     filename: str
     line_number: int
     comment: str
     status: str
 
 
-class Comments(BaseModel):
-    issues: List[Comment] = Field(description="List of code review issues found")
+class IssueComment(BaseModel):
+    body: str
+    conditions: List[str]
+
+
+class GitHubIssueCommentUpdate(GHIssueComment):
+    new_body: str
+
+
+class ReviewComments(BaseModel):
+    issues: List[ReviewComment] = Field(description="List of code review issues found")
 
 
 class ContextFile(BaseModel):

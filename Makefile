@@ -57,6 +57,12 @@ setup:
 
 	npm install --global smee-client
 
+	brew tap hashicorp/tap
+	brew install hashicorp/tap/terraform
+
+	brew install tflint
+
+
 # Start a smee client which routes HTTP requests to the local lambda runtime
 start-smee-for-lambda:
 	npx smee -u https://smee.io/$(smee_id) -t http://localhost:3000

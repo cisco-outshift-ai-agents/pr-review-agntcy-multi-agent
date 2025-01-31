@@ -83,6 +83,15 @@ Run `make setup` in this project folder
    ```bash
    npm install --global smee-client
    ```
+5. [Install Terraform](https://developer.hashicorp.com/terraform/install)
+   ```bash
+   brew tap hashicorp/tap
+   brew install hashicorp/tap/terraform
+   ```
+6. [Install TFlint](https://github.com/terraform-linters/tflint?tab=readme-ov-file#installation)
+   ```bash
+   brew install tflint
+   ```
 
 #### Run alfred locally
 

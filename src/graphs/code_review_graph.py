@@ -2,18 +2,18 @@ from langgraph.graph import StateGraph
 
 from config import ConfigManager
 from graphs.chains import (
-    create_code_review_chain,
-    create_title_description_review_chain,
     create_comment_filter_chain,
+    create_code_reviewer_chain,
     create_static_analyzer_chain,
+    create_title_description_reviewer_chain,
 )
 from graphs.nodes import (
-    CodeReviewer,
-    TitleDescriptionReviewer,
-    Commenter,
     CommentFilterer,
-    FetchPR,
+    Commenter,
     DefaultContext,
+    FetchPR,
+    TitleDescriptionReviewer,
+    CodeReviewer,
     StaticAnalyzer,
 )
 from graphs.states import GitHubPRState, create_default_github_pr_state
@@ -41,13 +41,13 @@ class CodeReviewerWorkflow:
             github=github_ops,
         )
 
-        self.code_review_context = DefaultContext(
-            chain=create_code_review_chain(model),
+        self.code_reviewer_context = DefaultContext(
+            chain=create_code_reviewer_chain(model),
             user_config=user_config,
         )
 
-        self.title_desc_context = DefaultContext(
-            chain=create_title_description_review_chain(model),
+        self.title_desc_reviewer_context = DefaultContext(
+            chain=create_title_description_reviewer_chain(model),
             user_config=user_config,
             github=github_ops,
         )
@@ -59,16 +59,16 @@ class CodeReviewerWorkflow:
 
         workflow.add_node("fetch_pr", FetchPR(self.github_context))
         workflow.add_node("static_analyzer", StaticAnalyzer(self.static_analyzer_context))
-        workflow.add_node("code_reviewer", CodeReviewer(self.code_review_context))
-        workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_context))
-        workflow.add_node("commenter", Commenter(self.github_context))
+        workflow.add_node("code_reviewer", CodeReviewer(self.code_reviewer_context))
+        workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_reviewer_context))
         workflow.add_node("comment_filterer", CommentFilterer(self.comment_filterer_context))
+        workflow.add_node("commenter", Commenter(self.github_context))
 
         workflow.add_edge("fetch_pr", "static_analyzer")
         workflow.add_edge("fetch_pr", "title_description_reviewer")
         workflow.add_edge("static_analyzer", "code_reviewer")
-        workflow.add_edge("code_reviewer", "comment_filterer")
-        workflow.add_edge(["comment_filterer", "title_description_reviewer"], "commenter")
+        workflow.add_edge(["code_reviewer", "title_description_reviewer"], "comment_filterer")
+        workflow.add_edge("comment_filterer", "commenter")
 
         workflow.set_entry_point("fetch_pr")
 

@@ -7,7 +7,7 @@ from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
 from .contexts import DefaultContext
 from utils.wrap_prompt import wrap_prompt
-from utils.models import Comment, Comments
+from utils.models import ReviewComments
 from langchain_core.runnables import RunnableSerializable
 
 
@@ -33,12 +33,12 @@ class CodeReviewer:
 
         log.debug(f"""
         code reviewer finished.
-        comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
+        review comments: {json.dumps([comment.model_dump() for comment in comments], indent=4)}
         """)
 
-        return {"new_comments": comments}
+        return {"new_review_comments": comments}
 
-    def __code_review(self, state: GitHubPRState) -> list[Comment]:
+    def __code_review(self, state: GitHubPRState) -> ReviewComments:
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
 
@@ -46,7 +46,7 @@ class CodeReviewer:
         if not isinstance(self.context.chain, RunnableSerializable):
             raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
 
-        response: Comments = self.context.chain.invoke(
+        response: ReviewComments = self.context.chain.invoke(
             {
                 "question": wrap_prompt(
                     "FILES:",

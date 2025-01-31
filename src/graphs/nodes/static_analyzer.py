@@ -1,15 +1,14 @@
-import os
-import shutil
 from subprocess import CalledProcessError, run
 from typing import Any
+import os
+import shutil
 
-from langchain_core.runnables import RunnableSerializable
-
+from .contexts import DefaultContext
 from graphs.states import GitHubPRState
+from langchain_core.runnables import RunnableSerializable
 from utils.constants import TMP_DIR_ENV
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
-from .contexts import DefaultContext
 
 
 class StaticAnalyzer:
