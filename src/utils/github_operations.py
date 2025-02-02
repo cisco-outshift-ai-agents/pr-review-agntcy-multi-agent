@@ -73,6 +73,9 @@ class GitHubOperations:
     def _init_github(self, installation_id: str) -> Github:
         """Initialize GitHub client with app credentials"""
         try:
+            if secret_manager is None:
+                raise ValueError("Secret manager is not initialized")
+
             private_key = secret_manager.github_app_private_key
             app_id = self._get_app_id()
             git_integration = GithubIntegration(auth=github.Auth.AppAuth(app_id, private_key))
@@ -97,6 +100,7 @@ class GitHubOperations:
         self,
         new_review_comments: list[ReviewComment] = None,
         new_issue_comments: list[IssueComment] = None,
+        cross_reference_problems: Optional[Comment] = None,
     ) -> None:
         try:
             files = self.pr.get_files()
@@ -132,6 +136,9 @@ class GitHubOperations:
         # create review comments
         if len(review_comments_transformed) > 0:
             self.create_pull_request_review_comments(commit, review_comments_transformed)
+
+        if cross_reference_problems:
+            self.pr.create_issue_comment(cross_reference_problems.comment)
 
     def create_pull_request_review_comments(self, commit: Commit, comments: list[GitHubReviewComment]):
         comments_as_dict = [asdict(c) for c in comments]
@@ -189,3 +196,13 @@ class GitHubOperations:
             check_run.edit(status="completed", conclusion=conclusion.name)
         except Exception as e:
             log.error(f"Unable to edit pull request check run: {e}")
+
+    def get_git_diff(self) -> str:
+        git_diff = ""
+        # Request the diff format directly using the diff media type
+        _, data = self._pr._requester.requestJsonAndCheck("GET", f"{self._pr.url}", headers={"Accept": "application/vnd.github.diff"})
+
+        if data:
+            git_diff = data["data"]
+
+        return git_diff

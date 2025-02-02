@@ -1,5 +1,4 @@
-from typing import Annotated, Sequence, Dict, Any
-from typing import Optional
+from typing import Annotated, Sequence, Dict, Any, Optional
 
 from github.PullRequestComment import PullRequestComment
 from langchain_core.messages import BaseMessage
@@ -30,6 +29,7 @@ class GitHubPRState(TypedDict):
     sender: str
     static_analyzer_output: str
     title: str
+    cross_reference_problems: Optional[Comment]
 
 
 def create_default_github_pr_state() -> GitHubPRState:
@@ -47,6 +47,7 @@ def create_default_github_pr_state() -> GitHubPRState:
         sender="",  # Default to an empty string
         static_analyzer_output="",
         title="",  # Default to an empty string
+        cross_reference_problems=None,
     )
 
 

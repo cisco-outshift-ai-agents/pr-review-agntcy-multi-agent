@@ -11,6 +11,7 @@ from .review_chat_assistant import ReviewChatAssistant
 from .code_reviewer import CodeReviewer
 from .static_analyzer import StaticAnalyzer
 from .title_description_reviewer import TitleDescriptionReviewer
+from .cross_reference_validator import CrossReferenceValidator
 
 __all__ = [
     "CommentFilterer",
@@ -21,6 +22,7 @@ __all__ = [
     "CommentsToMessagesConverter",
     "CommentsToThreadConverter",
     "DefaultContext",
+    "CrossReferenceValidator",
     "FetchPR",
     "ReviewChatAssistant",
     "CodeReviewer",
