@@ -23,7 +23,7 @@ class Commenter:
             log.error(f"Error updating existing comment: {e}")
 
         try:
-            self.context.github.create_comments(state["new_review_comments"], state["new_issue_comments"], state["cross_reference_problems"])
+            self.context.github.create_comments(state["new_review_comments"], state["new_issue_comments"])
         except Exception as e:
             log.error(f"{self.name}: Error creating comments: {e}")
             raise

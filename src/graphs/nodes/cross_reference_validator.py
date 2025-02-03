@@ -13,17 +13,7 @@ from github.GitTreeElement import GitTreeElement
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, BaseMessage, AIMessage, SystemMessage
 from typing import List, cast
-from pydantic import BaseModel
-from utils.models import Comment
-
-
-class CrossReferenceProblem(BaseModel):
-    resource_or_variable: str
-    context: str
-
-
-class CrossReferenceProblems(BaseModel):
-    problems: List[CrossReferenceProblem]
+from utils.models import IssueComment
 
 
 class File:
@@ -65,11 +55,9 @@ class CrossReferenceValidator:
         self._analyze_cross_references_from_diff(git_diff, head_codebase)
         cross_reference_problems = self._create_issue_comments()
 
-        comment = Comment(filename="", line_number=0, comment=cross_reference_problems, status="")
+        comment = IssueComment(body=cross_reference_problems)
 
-        return {"cross_reference_problems": comment}
-        # review_comments = self._create_review_comment()
-        # return {"cross_reference_problems": review_comments}
+        return {"new_issue_comments": [comment]}
 
     def _get_files_from_sha(self, sha: str) -> list[File]:
         if self.context.github is None:
@@ -178,57 +166,3 @@ class CrossReferenceValidator:
         self.messages.append(ai_message)
 
         return str(ai_message.content)
-
-
-#     def _create_review_comment(self) -> List[ReviewComment]:
-#         llm_with_structured_output = self.model.with_structured_output(ReviewComments)
-#         user_prompt = """
-# Here is the GitHib ReviewComment specification.
-# ## ReviewComment Specification
-# ### Body Parameters
-
-# - **body** (`string`, Required)
-#   The text of the review comment.
-
-# - **commit_id** (`string`, Required)
-#   The SHA of the commit needing a comment. Not using the latest commit SHA may render your comment outdated if a subsequent commit modifies the line you specify as the position.
-
-# - **path** (`string`, Required)
-#   The relative path to the file that necessitates a comment.
-
-# - **position** (`integer`, Deprecated)
-#   This parameter is being deprecated; use `line` instead. It represents the position in the diff where you want to add a review comment.
-#   Note that this value is **not** the same as the line number in the file. The position is counted from the first "@@" hunk header in the file.
-#   - The line just below the "@@" line is position `1`, the next line is `2`, and so on.
-#   - The position count increases through lines of whitespace and additional hunks until the start of a new file.
-
-# - **side** (`string`)
-#   Defines the side of the diff where the pull request’s changes appear in a split diff view.
-#   - Use `LEFT` for deletions (red).
-#   - Use `RIGHT` for additions (green) or unchanged lines (white, shown for context).
-#   - For multi-line comments, `side` represents whether the **last line** of the comment range is a deletion or an addition.
-
-#   **Accepted values:** `LEFT`, `RIGHT`
-
-# - **line** (`integer`, Required unless using `subject_type:file`)
-#   The line of the blob in the pull request diff that the comment applies to.
-#   - For a multi-line comment, this represents the **last line** of the range your comment applies to.
-
-# - **start_line** (`integer`, Required for multi-line comments unless using `in_reply_to`)
-#   The first line in the pull request diff that your multi-line comment applies to.
-
-# - **start_side** (`string`, Required for multi-line comments unless using `in_reply_to`)
-#   The starting side of the diff that the comment applies to.
-
-#   **Accepted values:** `LEFT`, `RIGHT`
-# ## End of ReviewComment Specification
-
-# Use the 'specification', the 'git diff', the 'base reference codebase', the 'head reference codebase' and the chat history to create a review comment for the ### Summary of Cross-Reference Problems section. Calculate the best line, side, start_line, start_side for the review comment using the 'git diff' line numbers, the 'head reference codebase' line numbers and the 'base reference codebase' line numbers. Make sure that the review comment lines must be part of the 'git diff' hunks.
-
-# Think step by step.
-# """
-#         self.messages.append(HumanMessage(content=user_prompt))
-#         ai_message: AIMessage = cast(AIMessage, llm_with_structured_output.invoke(self.messages))
-#         self.messages.append(ai_message)
-#         review_comments: List[ReviewComment] = ai_message["review_comments"]
-#         return review_comments

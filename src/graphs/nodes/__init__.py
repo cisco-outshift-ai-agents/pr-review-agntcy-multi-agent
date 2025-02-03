@@ -12,6 +12,7 @@ from .code_reviewer import CodeReviewer
 from .static_analyzer import StaticAnalyzer
 from .title_description_reviewer import TitleDescriptionReviewer
 from .cross_reference_validator import CrossReferenceValidator
+from .cross_reference_reflection import CrossReferenceReflector, CrossReferenceGenerator, CrossReferenceInitializer
 
 __all__ = [
     "CommentFilterer",
@@ -28,4 +29,7 @@ __all__ = [
     "CodeReviewer",
     "StaticAnalyzer",
     "TitleDescriptionReviewer",
+    "CrossReferenceReflector",
+    "CrossReferenceGenerator",
+    "CrossReferenceInitializer",
 ]

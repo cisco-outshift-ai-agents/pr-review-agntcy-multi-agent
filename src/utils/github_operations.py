@@ -100,7 +100,6 @@ class GitHubOperations:
         self,
         new_review_comments: list[ReviewComment] = None,
         new_issue_comments: list[IssueComment] = None,
-        cross_reference_problems: Optional[Comment] = None,
     ) -> None:
         try:
             files = self.pr.get_files()
@@ -136,9 +135,6 @@ class GitHubOperations:
         # create review comments
         if len(review_comments_transformed) > 0:
             self.create_pull_request_review_comments(commit, review_comments_transformed)
-
-        if cross_reference_problems:
-            self.pr.create_issue_comment(cross_reference_problems.comment)
 
     def create_pull_request_review_comments(self, commit: Commit, comments: list[GitHubReviewComment]):
         comments_as_dict = [asdict(c) for c in comments]

@@ -29,7 +29,6 @@ class TitleDescriptionReviewer:
             user_input = self.context.user_config.get("PR Title and Description", "")
 
         # Fetch existing comments
-        new_issue_comments = state["new_issue_comments"]
         diff = state["changes"]
 
         title_desc_chain_result: BaseMessage = self.context.chain.invoke(
@@ -45,11 +44,10 @@ class TitleDescriptionReviewer:
 
         title_desc_chain_result_content = str(title_desc_chain_result.content)
         new_title_desc_comment = IssueComment(body=title_desc_chain_result_content, conditions=["PR title suggestion", "PR description suggestion"])
-        new_issue_comments.append(new_title_desc_comment)
 
         log.debug(f"""
         title and description reviewer finished. issue comment added.
         title and description comment: {new_title_desc_comment.model_dump_json(indent=2)}
         """)
 
-        return {"new_issue_comments": new_issue_comments}
+        return {"new_issue_comments": [new_title_desc_comment]}

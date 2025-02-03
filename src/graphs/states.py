@@ -1,4 +1,5 @@
-from typing import Annotated, Sequence, Dict, Any, Optional
+from typing import Annotated, Sequence, Dict, Any, Optional, List
+from operator import add
 
 from github.PullRequestComment import PullRequestComment
 from langchain_core.messages import BaseMessage
@@ -23,13 +24,13 @@ class GitHubPRState(TypedDict):
     issue_comments_to_update: list[GitHubIssueCommentUpdate]
     messages: Annotated[Sequence[BaseMessage], add_messages]
     # modified_files: list[ContextFile]
-    new_issue_comments: list[IssueComment]
+    new_issue_comments: Annotated[List[IssueComment], add]
     new_review_comments: list[ReviewComment]
     review_comments: list[ReviewComment]
     sender: str
     static_analyzer_output: str
     title: str
-    cross_reference_problems: Optional[Comment]
+    cross_reference_problems: Optional[IssueComment]
 
 
 def create_default_github_pr_state() -> GitHubPRState:
