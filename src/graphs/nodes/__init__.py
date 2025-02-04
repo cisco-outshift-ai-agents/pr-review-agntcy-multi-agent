@@ -11,8 +11,7 @@ from .review_chat_assistant import ReviewChatAssistant
 from .code_reviewer import CodeReviewer
 from .static_analyzer import StaticAnalyzer
 from .title_description_reviewer import TitleDescriptionReviewer
-from .cross_reference_validator import CrossReferenceValidator
-from .cross_reference_reflection import CrossReferenceReflector, CrossReferenceGenerator, CrossReferenceInitializer
+from .cross_reference_reflection import CrossReferenceReflector, CrossReferenceGenerator, CrossReferenceInitializer, CrossReferenceCommenter
 
 __all__ = [
     "CommentFilterer",
@@ -23,7 +22,6 @@ __all__ = [
     "CommentsToMessagesConverter",
     "CommentsToThreadConverter",
     "DefaultContext",
-    "CrossReferenceValidator",
     "FetchPR",
     "ReviewChatAssistant",
     "CodeReviewer",
@@ -32,4 +30,5 @@ __all__ = [
     "CrossReferenceReflector",
     "CrossReferenceGenerator",
     "CrossReferenceInitializer",
+    "CrossReferenceCommenter",
 ]

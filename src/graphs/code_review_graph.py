@@ -15,10 +15,10 @@ from graphs.nodes import (
     TitleDescriptionReviewer,
     CodeReviewer,
     StaticAnalyzer,
-    CrossReferenceValidator,
     CrossReferenceGenerator,
     CrossReferenceReflector,
     CrossReferenceInitializer,
+    CrossReferenceCommenter,
 )
 from graphs.states import GitHubPRState, create_default_github_pr_state
 from utils.github_operations import GitHubOperations
@@ -66,30 +66,31 @@ class CodeReviewerWorkflow:
         workflow.add_node("code_reviewer", CodeReviewer(self.code_review_context))
         workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_context))
         workflow.add_node("comment_filterer", CommentFilterer(self.comment_filterer_context))
-        # workflow.add_node("cross_reference_validator", CrossReferenceValidator(self.github_context, self.model))
         workflow.add_node("cross_reference_initializer", CrossReferenceInitializer(self.github_context, self.model))
         workflow.add_node("cross_reference_generator", CrossReferenceGenerator(self.github_context, self.model))
         workflow.add_node("cross_reference_reflector", CrossReferenceReflector(self.github_context, self.model))
+        workflow.add_node("cross_reference_commenter", CrossReferenceCommenter(self.github_context, self.model))
         workflow.add_node("commenter", Commenter(self.github_context))
 
         def should_continue(state: GitHubPRState):
             if len(state["messages"]) > 4:
                 # End after 3 iterations
-                return "code_reviewer"
+                return "cross_reference_commenter"
             return "cross_reference_reflector"
 
         workflow.add_edge("fetch_pr", "static_analyzer")
         workflow.add_edge("fetch_pr", "title_description_reviewer")
         workflow.add_edge("static_analyzer", "cross_reference_initializer")
+        workflow.add_edge("static_analyzer", "code_reviewer")
         workflow.add_edge("cross_reference_initializer", "cross_reference_generator")
         workflow.add_conditional_edges("cross_reference_generator", should_continue)
         workflow.add_edge("cross_reference_reflector", "cross_reference_generator")
-        # workflow.add_edge("cross_reference_validator", "code_reviewer")
-        workflow.add_edge("code_reviewer", "comment_filterer")
+        workflow.add_edge(["cross_reference_commenter", "code_reviewer"], "comment_filterer")
         workflow.add_edge(["comment_filterer", "title_description_reviewer"], "commenter")
 
         workflow.set_entry_point("fetch_pr")
 
         init_state = create_default_github_pr_state()
         graph = workflow.compile()
+        graph.get_graph().draw_mermaid_png(output_file_path="graph.png")
         return graph.invoke(init_state)

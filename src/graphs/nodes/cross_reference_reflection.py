@@ -9,9 +9,8 @@ from github.GitBlob import GitBlob
 from github.GitTreeElement import GitTreeElement
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import HumanMessage, BaseMessage, AIMessage, SystemMessage
+from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from typing import Any, List, cast
 from utils.models import IssueComment
 
 
@@ -213,3 +212,17 @@ def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str) -
         """
 
     return user_prompt
+
+
+class CrossReferenceCommenter:
+    def __init__(self, context: DefaultContext, model: BaseChatModel, name: str = "cross_reference_commenter"):
+        self.context = context
+        self.name = name
+        self.model = model
+
+    def __call__(self, state: GitHubPRState) -> dict:
+        log.info(f"{self.name} called")
+
+        message: AIMessage = state["messages"][-1]
+
+        return {"new_issue_comments": [IssueComment(body=message.content)]}
