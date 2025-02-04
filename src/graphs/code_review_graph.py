@@ -6,6 +6,8 @@ from graphs.chains import (
     create_code_reviewer_chain,
     create_static_analyzer_chain,
     create_title_description_reviewer_chain,
+    create_cross_reference_generator_chain,
+    create_cross_reference_reflector_chain,
 )
 from graphs.nodes import (
     CommentFilterer,
@@ -36,6 +38,8 @@ class CodeReviewerWorkflow:
 
         self.model = models.get_azure_openai()
 
+        self.empty_context = DefaultContext()
+
         self.github_context = DefaultContext(
             github=github_ops,
         )
@@ -56,6 +60,13 @@ class CodeReviewerWorkflow:
             github=github_ops,
         )
 
+        self.cross_reference_generator_context = DefaultContext(
+            chain=create_cross_reference_generator_chain(self.model),
+        )
+
+        self.cross_reference_reflector_context = DefaultContext(
+            chain=create_cross_reference_reflector_chain(self.model),
+        )
         self.comment_filterer_context = DefaultContext(chain=create_comment_filter_chain(self.model))
 
     def run(self):
@@ -66,10 +77,10 @@ class CodeReviewerWorkflow:
         workflow.add_node("code_reviewer", CodeReviewer(self.code_review_context))
         workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_context))
         workflow.add_node("comment_filterer", CommentFilterer(self.comment_filterer_context))
-        workflow.add_node("cross_reference_initializer", CrossReferenceInitializer(self.github_context, self.model))
-        workflow.add_node("cross_reference_generator", CrossReferenceGenerator(self.github_context, self.model))
-        workflow.add_node("cross_reference_reflector", CrossReferenceReflector(self.github_context, self.model))
-        workflow.add_node("cross_reference_commenter", CrossReferenceCommenter(self.github_context, self.model))
+        workflow.add_node("cross_reference_initializer", CrossReferenceInitializer(self.github_context))
+        workflow.add_node("cross_reference_generator", CrossReferenceGenerator(self.cross_reference_generator_context))
+        workflow.add_node("cross_reference_reflector", CrossReferenceReflector(self.cross_reference_reflector_context))
+        workflow.add_node("cross_reference_commenter", CrossReferenceCommenter(self.empty_context))
         workflow.add_node("commenter", Commenter(self.github_context))
 
         def should_continue(state: GitHubPRState):
@@ -92,5 +103,4 @@ class CodeReviewerWorkflow:
 
         init_state = create_default_github_pr_state()
         graph = workflow.compile()
-        graph.get_graph().draw_mermaid_png(output_file_path="graph.png")
         return graph.invoke(init_state)

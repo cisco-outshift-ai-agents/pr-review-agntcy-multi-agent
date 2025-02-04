@@ -21,10 +21,9 @@ class File:
 
 
 class CrossReferenceInitializer:
-    def __init__(self, context: DefaultContext, model: BaseChatModel, name: str = "cross_reference_initializer"):
+    def __init__(self, context: DefaultContext, name: str = "cross_reference_initializer"):
         self.context = context
         self.name = name
-        self.model = model
         self.file_type = "blob"
         self.file_extension = (".tf", ".tfvars")
 
@@ -90,84 +89,39 @@ class CrossReferenceInitializer:
 
 
 class CrossReferenceGenerator:
-    def __init__(self, context: DefaultContext, model: BaseChatModel, name: str = "cross_reference_generator"):
+    def __init__(self, context: DefaultContext, name: str = "cross_reference_generator"):
         self.context = context
         self.name = name
-        self.model = model
-        self.chain = _create_cross_reference_generator_chain(model)
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name} called")
 
-        message = self.chain.invoke(state["messages"])
+        if self.context.chain is None:
+            raise ValueError(f"{self.name}: Chain is not set in the context")
+
+        message = self.context.chain.invoke(state["messages"])
         return {"messages": [message]}
 
 
-def _create_cross_reference_generator_chain(model: BaseChatModel):
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", "You are a senior Terraform engineer. You are given a Terraform codebase and a task to complete."),
-            MessagesPlaceholder(variable_name="messages"),
-        ]
-    )
-
-    generate = prompt | model
-    return generate
-
-
 class CrossReferenceReflector:
-    def __init__(self, context: DefaultContext, model: BaseChatModel, name: str = "cross_reference_reflector"):
+    def __init__(self, context: DefaultContext, name: str = "cross_reference_reflector"):
         self.context = context
         self.name = name
-        self.model = model
-        self.chain = _create_cross_reference_reflector_chain(model)
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name} called")
+
+        if self.context.chain is None:
+            raise ValueError(f"{self.name}: Chain is not set in the context")
 
         # Other messages we need to adjust
         cls_map = {"ai": HumanMessage, "human": AIMessage}
         # First message is the original user request. We hold it the same for all nodes
         translated = [state["messages"][0]] + [cls_map[msg.type](content=msg.content) for msg in state["messages"][1:]]
 
-        res = self.chain.invoke(translated)
+        res = self.context.chain.invoke(translated)
         # We treat the output of this as human feedback for the generator
         return {"messages": [HumanMessage(content=res.content)]}
-
-
-def _create_cross_reference_reflector_chain(model: BaseChatModel):
-    reflector_prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "You are a senior Terraform professional acting as a verification agent. "
-                "Your task is to validate the cross-reference analysis by:\n\n"
-                "1. Verify each reported cross-reference issue by:\n"
-                "   - Checking the git diff for relevant changes\n"
-                "   - Confirming the issue exists in the head codebase\n"
-                "   - Validating that the reported file paths and references are accurate\n"
-                "   - Ensuring the severity level is appropriate\n\n"
-                "2. For each questionable or invalid issue:\n"
-                "   - Explain why the issue might be incorrect\n"
-                "   - Provide evidence from the codebase\n"
-                "   - Suggest how the generator should adjust its analysis\n\n"
-                "3. Check for false negatives in critical areas:\n"
-                "   - Variable references in modified files\n"
-                "   - Resource dependencies affected by changes\n"
-                "   - Module interface changes\n\n"
-                "Format your response as:\n"
-                "### Validation Results\n"
-                "- Confirmed Issues: [list verified issues]\n"
-                "- Incorrect Issues: [list with explanations]\n"
-                "- Additional Concerns: [only if critical issues were missed]\n\n"
-                "Focus on accuracy and thoroughness in your verification.",
-            ),
-            MessagesPlaceholder(variable_name="messages"),
-        ]
-    )
-
-    reflector = reflector_prompt | model
-    return reflector
 
 
 def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str) -> str:
@@ -215,10 +169,9 @@ def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str) -
 
 
 class CrossReferenceCommenter:
-    def __init__(self, context: DefaultContext, model: BaseChatModel, name: str = "cross_reference_commenter"):
+    def __init__(self, context: DefaultContext, name: str = "cross_reference_commenter"):
         self.context = context
         self.name = name
-        self.model = model
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name} called")
