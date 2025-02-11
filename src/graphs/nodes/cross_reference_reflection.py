@@ -8,9 +8,7 @@ from github.GitTree import GitTree
 from github.GitBlob import GitBlob
 from github.GitTreeElement import GitTreeElement
 
-from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from utils.models import IssueComment
 
 
@@ -18,6 +16,9 @@ class File:
     def __init__(self, path: str, content: str):
         self.path: str = path
         self.content: str = content
+
+    def __str__(self):
+        return f"##FILE: {self.path}\n{self.content}\n##END_OF_FILE\n\n"
 
 
 class CrossReferenceInitializer:
@@ -81,9 +82,7 @@ class CrossReferenceInitializer:
     def _codebase(self, files: list[File]) -> str:
         codebase = ""
         for file in files:
-            codebase += f"##FILE: {file.path}\n"
-            codebase += file.content
-            codebase += "\n##END_OF_FILE\n\n"
+            codebase += str(file)
 
         return codebase
 
@@ -169,8 +168,7 @@ def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str) -
 
 
 class CrossReferenceCommenter:
-    def __init__(self, context: DefaultContext, name: str = "cross_reference_commenter"):
-        self.context = context
+    def __init__(self, name: str = "cross_reference_commenter"):
         self.name = name
 
     def __call__(self, state: GitHubPRState) -> dict:

@@ -38,8 +38,6 @@ class CodeReviewerWorkflow:
 
         self.model = models.get_azure_openai()
 
-        self.empty_context = DefaultContext()
-
         self.github_context = DefaultContext(
             github=github_ops,
         )
@@ -80,7 +78,7 @@ class CodeReviewerWorkflow:
         workflow.add_node("cross_reference_initializer", CrossReferenceInitializer(self.github_context))
         workflow.add_node("cross_reference_generator", CrossReferenceGenerator(self.cross_reference_generator_context))
         workflow.add_node("cross_reference_reflector", CrossReferenceReflector(self.cross_reference_reflector_context))
-        workflow.add_node("cross_reference_commenter", CrossReferenceCommenter(self.empty_context))
+        workflow.add_node("cross_reference_commenter", CrossReferenceCommenter())
         workflow.add_node("commenter", Commenter(self.github_context))
 
         def should_continue(state: GitHubPRState):
