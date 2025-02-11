@@ -6,6 +6,8 @@ from graphs.chains import (
     create_code_reviewer_chain,
     create_static_analyzer_chain,
     create_title_description_reviewer_chain,
+    create_cross_reference_generator_chain,
+    create_cross_reference_reflector_chain,
 )
 from graphs.nodes import (
     CommentFilterer,
@@ -15,6 +17,10 @@ from graphs.nodes import (
     TitleDescriptionReviewer,
     CodeReviewer,
     StaticAnalyzer,
+    CrossReferenceGenerator,
+    CrossReferenceReflector,
+    CrossReferenceInitializer,
+    CrossReferenceCommenter,
 )
 from graphs.states import GitHubPRState, create_default_github_pr_state
 from utils.github_operations import GitHubOperations
@@ -30,45 +36,66 @@ class CodeReviewerWorkflow:
         if user_config is None:
             log.info("User config not found. Continuing without custom configuration.")
 
-        model = models.get_azure_openai()
+        self.model = models.get_azure_openai()
 
         self.github_context = DefaultContext(
             github=github_ops,
         )
 
         self.static_analyzer_context = DefaultContext(
-            chain=create_static_analyzer_chain(model),
+            chain=create_static_analyzer_chain(self.model),
             github=github_ops,
         )
 
-        self.code_reviewer_context = DefaultContext(
-            chain=create_code_reviewer_chain(model),
+        self.code_review_context = DefaultContext(
+            chain=create_code_reviewer_chain(self.model),
             user_config=user_config,
         )
 
-        self.title_desc_reviewer_context = DefaultContext(
-            chain=create_title_description_reviewer_chain(model),
+        self.title_desc_context = DefaultContext(
+            chain=create_title_description_reviewer_chain(self.model),
             user_config=user_config,
             github=github_ops,
         )
 
-        self.comment_filterer_context = DefaultContext(chain=create_comment_filter_chain(model))
+        self.cross_reference_generator_context = DefaultContext(
+            chain=create_cross_reference_generator_chain(self.model),
+        )
+
+        self.cross_reference_reflector_context = DefaultContext(
+            chain=create_cross_reference_reflector_chain(self.model),
+        )
+        self.comment_filterer_context = DefaultContext(chain=create_comment_filter_chain(self.model))
 
     def run(self):
         workflow = StateGraph(GitHubPRState)
 
         workflow.add_node("fetch_pr", FetchPR(self.github_context))
         workflow.add_node("static_analyzer", StaticAnalyzer(self.static_analyzer_context))
-        workflow.add_node("code_reviewer", CodeReviewer(self.code_reviewer_context))
-        workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_reviewer_context))
+        workflow.add_node("code_reviewer", CodeReviewer(self.code_review_context))
+        workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_context))
         workflow.add_node("comment_filterer", CommentFilterer(self.comment_filterer_context))
+        workflow.add_node("cross_reference_initializer", CrossReferenceInitializer(self.github_context))
+        workflow.add_node("cross_reference_generator", CrossReferenceGenerator(self.cross_reference_generator_context))
+        workflow.add_node("cross_reference_reflector", CrossReferenceReflector(self.cross_reference_reflector_context))
+        workflow.add_node("cross_reference_commenter", CrossReferenceCommenter())
         workflow.add_node("commenter", Commenter(self.github_context))
+
+        def should_continue(state: GitHubPRState):
+            if len(state["messages"]) > 4:
+                # End after 3 iterations
+                return "cross_reference_commenter"
+            return "cross_reference_reflector"
 
         workflow.add_edge("fetch_pr", "static_analyzer")
         workflow.add_edge("fetch_pr", "title_description_reviewer")
+        workflow.add_edge("static_analyzer", "cross_reference_initializer")
         workflow.add_edge("static_analyzer", "code_reviewer")
-        workflow.add_edge(["code_reviewer", "title_description_reviewer"], "comment_filterer")
-        workflow.add_edge("comment_filterer", "commenter")
+        workflow.add_edge("cross_reference_initializer", "cross_reference_generator")
+        workflow.add_conditional_edges("cross_reference_generator", should_continue)
+        workflow.add_edge("cross_reference_reflector", "cross_reference_generator")
+        workflow.add_edge(["cross_reference_commenter", "code_reviewer"], "comment_filterer")
+        workflow.add_edge(["comment_filterer", "title_description_reviewer"], "commenter")
 
         workflow.set_entry_point("fetch_pr")
 

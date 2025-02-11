@@ -38,7 +38,7 @@ class FetchPR:
             raise Exception(f"Error fetching PR files: {e}") from e
 
         filenames_not_to_review: Set[str] = set()
-        new_issue_comments: list[IssueComment] = []
+        new_issue_comments: List[IssueComment] = []
 
         for file in self.pr_files:
             filename = file.filename

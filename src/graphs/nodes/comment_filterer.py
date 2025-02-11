@@ -49,6 +49,9 @@ class CommentFilterer:
 
         log.debug("comment filterer finished.")
 
+        # Clean-up Issue Comments and set only the unique ones
+        state["new_issue_comments"].clear()
+
         return {
             "new_review_comments": filtered_review_comments,
             "new_issue_comments": filtered_issue_comments,
@@ -78,7 +81,7 @@ class CommentFilterer:
                     }
                 )
 
-                filtered_review_comments = result.issues
+                filtered_review_comments: List[ReviewComment] = result.issues
 
             if not filtered_review_comments:
                 # Since there are no new comments, create a simple response for the user

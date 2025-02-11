@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 from github.IssueComment import IssueComment as GHIssueComment
 
 
@@ -12,7 +12,7 @@ class ReviewComment(BaseModel):
 
 class IssueComment(BaseModel):
     body: str
-    conditions: List[str]
+    conditions: Optional[List[str]] = None
 
 
 class GitHubIssueCommentUpdate(GHIssueComment):

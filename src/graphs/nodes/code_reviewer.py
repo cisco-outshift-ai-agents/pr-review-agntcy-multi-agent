@@ -2,12 +2,12 @@ import concurrent.futures
 import json
 
 import concurrent
-
+from typing import List
 from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
 from .contexts import DefaultContext
 from utils.wrap_prompt import wrap_prompt
-from utils.models import ReviewComments
+from utils.models import ReviewComments, ReviewComment
 from langchain_core.runnables import RunnableSerializable
 
 
@@ -20,12 +20,12 @@ class CodeReviewer:
         log.info(f"{self.name} called")
 
         try:
-            comments = []
+            comments: List[ReviewComment] = []
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                results = list(executor.map(lambda _: self.__code_review(state), range(5)))
+                results: List[List[ReviewComment]] = list(executor.map(lambda _: self.__code_review(state), range(5)))
 
             for res in results:
-                comments += res
+                comments.extend(res)
 
         except Exception as e:
             log.error(f"Error in {self.name}: {e}")
@@ -38,7 +38,7 @@ class CodeReviewer:
 
         return {"new_review_comments": comments}
 
-    def __code_review(self, state: GitHubPRState) -> ReviewComments:
+    def __code_review(self, state: GitHubPRState) -> List[ReviewComment]:
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
 

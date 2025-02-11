@@ -12,6 +12,7 @@ from utils.constants import GITHUB_EVENT_HEADER
 
 app = FastAPI()
 
+
 @app.post("/api/webhook")
 @fastapi_validate_github_signature
 async def webhook(request: Request):
@@ -26,4 +27,4 @@ async def webhook(request: Request):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main_local:app", host="0.0.0.0", port=5500, reload=True, log_level="debug")
+    uvicorn.run("main_local:app", host="0.0.0.0", port=5500, reload=False, log_level="debug")
