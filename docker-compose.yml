@@ -17,3 +17,5 @@ services:
       - alfred-app
     env_file:
       - .env
+
+# add a new agent from the agent directory
