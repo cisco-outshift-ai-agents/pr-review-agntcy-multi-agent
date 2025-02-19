@@ -1,0 +1,19 @@
+version: '1.0'
+services:
+  alfred-app:
+    image: containers.cisco.com/shridhsh/alfred:docker
+    env_file:
+      - .env
+    volumes:
+      - /Users/shridhsh/Desktop/alpha.pem:/app/alpha.pem
+    ports:
+      - "5500:5500"
+  smee-client:
+    image: node:lts-alpine
+    container_name: smee_client
+    entrypoint: ["npx", "smee-client"]
+    command: ["--url", "${SMEE_URL}", "--target", "http://alfred-app:5500/api/webhook"]
+    depends_on:
+      - alfred-app
+    env_file:
+      - .env

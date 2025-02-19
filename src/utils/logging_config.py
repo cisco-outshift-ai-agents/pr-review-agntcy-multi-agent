@@ -2,7 +2,7 @@ import logging
 import os
 
 # Constants for log levels
-DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
 DEFAULT_LOGGER_NAME = "alfred"
 
 
