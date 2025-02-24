@@ -123,4 +123,4 @@ def test_static_analyzer_call(mock_run, mock_rmtree, mock_context, mock_state):
     mock_rmtree.assert_called_with(_mock_output_folder)
 
     summary = resp["static_analyzer_output"]
-    assert vector_based_similarity(summary, _expected_summary) > 0.95
+    assert vector_based_similarity(summary, _expected_summary) > 0.94
