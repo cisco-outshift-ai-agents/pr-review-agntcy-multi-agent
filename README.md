@@ -6,7 +6,7 @@ Alfred is a GitHub application designed to help developers improve their pull re
 
 ![Overview of Alfred](./docs/resources/overview.svg)
 
-## Installation
+## Installation steps
 
 ### SaaS Installation
 
