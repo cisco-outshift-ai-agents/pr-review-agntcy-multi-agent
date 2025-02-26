@@ -1,4 +1,4 @@
-from subprocess import CalledProcessError, run
+from subprocess import CalledProcessError, run, PIPE
 from typing import Any
 import os
 import shutil
@@ -40,32 +40,39 @@ class StaticAnalyzer:
             raise
 
         try:
-            # Need tf init to download the necessary third party dependencies, otherwise most linters would fail
-            # This will fail if there are module level errors which block the build (like duplicated outputs)
-            run(
-                ["terraform", "init", "-backend=false"],
-                check=True,
-                cwd=output_folder,
-                capture_output=True,
-                text=True,
-            )
-
             tf_validate_out = run(
                 ["terraform", "validate", "-no-color"],
                 cwd=output_folder,
-                capture_output=True,
+                stdout=PIPE,
+                stderr=PIPE,
                 text=True,
             )
+            lint_stdout, lint_stderr = "", "":qsrc/graphs/nodes/static_analyzer.py
+            # If terraform validate passes, run tflint
+            if tf_validate_out.returncode == 0:
+                # Need tf init to download the necessary third party dependencies, otherwise most linters would fail
+                run(
+                    ["terraform", "init", "-backend=false"],
+                    check=True,
+                    cwd=output_folder,
+                    capture_output=True,
+                    text=True,
+                )
 
-            tflint_out = run(
-                ["tflint", "--format=compact", "--recursive"],
-                cwd=output_folder,
-                capture_output=True,
-                text=True,
-            )
-
+                tflint_out = run(
+                    ["tflint", "--format=compact", "--recursive"],
+                    cwd=output_folder,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    text=True,
+                )
+                lint_stdout = tflint_out.stdout
+                lint_stderr = tflint_out.stderr
         except CalledProcessError as e:
-            log.error(f"Error while running static checks in the users repo: {e.stderr}")
+            log.error(f"Error while running static checks: {e.stderr}")
+            return {}
+        except FileNotFoundError:
+            log.error("Terraform or tflint executables not found. Please install both tools and ensure they are in your system PATH.")
             return {}
 
         try:
@@ -84,8 +91,8 @@ class StaticAnalyzer:
                         f"{tf_validate_out.stdout}",
                         "",
                         "tflint output:",
-                        f"{tflint_out.stderr}",
-                        f"{tflint_out.stdout}",
+                        f"{lint_stderr}",
+                        f"{lint_stdout}",
                     )
                 }
             )
