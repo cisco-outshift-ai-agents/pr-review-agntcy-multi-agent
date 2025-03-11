@@ -57,7 +57,7 @@ def create_code_reviewer_chain(model: BaseChatModel) -> RunnableSerializable[dic
 
     prompt_template = ChatPromptTemplate([
         ("system", system_message),
-        ("user", "Review this terraform code changes in the files: {terraform_changes}")
+        ("user", "Review terraform code changes in the pull request: {terraform_changes}")
     ])
 
     return prompt_template | llm_with_structured_output
