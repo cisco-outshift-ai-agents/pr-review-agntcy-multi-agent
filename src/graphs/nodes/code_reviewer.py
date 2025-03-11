@@ -48,7 +48,7 @@ class CodeReviewer:
 
         response: ReviewComments = self.context.chain.invoke(
             {
-                "question": wrap_prompt(
+                "terraform_changes": wrap_prompt(
                     "FILES:",
                     f"{'\n'.join(map(str, state['context_files']))}",
                     "",
