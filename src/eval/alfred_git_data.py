@@ -43,8 +43,8 @@ class PR(BaseModel):
     url: Optional[str] = None
     body: Optional[str] = None
     state: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     base_branch: Optional[str] = None
     final_merged_branch: Optional[str] = None
     commits: Optional[List[Commit]] = Field(default_factory=list)

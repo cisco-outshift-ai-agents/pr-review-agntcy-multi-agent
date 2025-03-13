@@ -86,12 +86,91 @@ def populate_pr(pr: PR, pull):
     pr.title = pull.title
     pr.state = pull.state
     pr.body = pull.body
-    pr.created_at = str(pull.created_at)
-    pr.updated_at = str(pull.updated_at)
+    pr.created_at = parser.parse(str(pull.created_at))
+    pr.updated_at = parser.parse(str(pull.updated_at))
     # pr.merged_at = str(pull.merged_at)
     pr.base_branch = pull.base.ref
     pr.final_merged_branch = pull.head.ref
     # pr.author = pull.user.login
+    return pr
+
+
+def collect_commit_files(repo, commit_obj, loc):
+    folder_path = os.path.join(loc, "commits", f"{commit_obj.sha}")
+    # Get the commit object to access the raw data
+    # commit_obj = repo.get_commit(commit.sha)
+
+    # Iterate over the files modified in the commit
+    for file in commit_obj.files:
+        if not file.filename.endswith(".tf") or file.filename.endswith(".tfvars"):
+            continue
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        basepath = os.path.join(folder_path, "base_code")
+        changedpath = os.path.join(folder_path, "changed_code")
+
+        if not os.path.exists(basepath):
+            os.makedirs(basepath)
+
+        if not os.path.exists(changedpath):
+            os.makedirs(changedpath)
+
+        filename = file.filename
+        logger.info(f"File: {filename}")
+        fname = filename.replace("/", "_")
+        basefilenamepath = os.path.join(basepath, fname)
+        changedfilenamepath = os.path.join(changedpath, fname)
+
+        try:
+            # Get the base code (content before the change)
+            base_code = (
+                repo.get_contents(
+                    filename, ref=f"{commit_obj.parents[0].sha}"
+                ).decoded_content.decode()
+                if commit_obj.parents
+                else ""
+            )
+            logger.info("  Base Code:")
+            logger.info(base_code)
+            with open(basefilenamepath, "w") as file:
+                file.write(base_code)
+        except UnknownObjectException:
+            base_code = ""
+            logger.info("  Base Code:  ")
+            with open(basefilenamepath, "w") as file:
+                file.write(base_code)
+
+        try:
+            # Get the changed code (content after the change)
+            logger.info(f"Filename: {filename}")
+            changed_code = repo.get_contents(
+                filename, ref=commit_obj.sha
+            ).decoded_content.decode()
+            logger.info("  Changed Code:")
+            logger.info(changed_code)
+            with open(changedfilenamepath, "w") as file:
+                file.write(changed_code)
+        except UnknownObjectException:
+            changed_code = ""
+            logger.info("  Changed Code:  ")
+            logger.info(changed_code)
+            with open(changedfilenamepath, "w") as file:
+                file.write(changed_code)
+
+
+def determine_alfred_review_on_PR(pr):
+    found_file = False
+    for comment in pr.comments:
+        if comment.comment_timestamp > pr.created_at:
+            if comment.type == CommentType.filec:
+                found_file = True
+                for commit in pr.commits:
+                    if commit.id == comment.original_commit_id:
+                        commit.should_alfred_review = True
+                if found_file:
+                    # need to to contiue looking for comments
+                    return pr
     return pr
 
 
@@ -103,7 +182,6 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
         repo_name (str): The name of the GitHub repository (e.g., "owner/repo").
         github_token (str): Your GitHub personal access token.
     """
-
     g = Github(github_token)
     repo = g.get_repo(repo_name)
     logger.info(f"Starting to extract data from {repo_name}")
@@ -156,6 +234,9 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
             commits_list = []
             curr_pr = populate_commits(curr_pr, commits_data)
             for commit in commits_data:
+                collect_commit_files(
+                    repo, commit, os.path.join(folder_path, f"{curr_pr.pr_number}")
+                )
                 commit_sha = commit.sha
                 commit_author = commit.author.login if commit.author else "None"
                 commit_message = commit.commit.message
@@ -221,14 +302,16 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
             curr_pr = populate_review_comments(curr_pr, reviews)
             logger.info(f"url: {pull.html_url}")
             files = pull.get_files()
-
+            logger.info(f"Extracting files from PR{curr_pr.pr_number}")
             for file in tqdm(files):
+                logger.info(f"YYY File {file.filename}")
                 if file.filename.endswith(".tf") or file.filename.endswith(".tfvars"):
+                    logger.info(f"XXX{file.filename}")
                     ofile = FileObject(filename=file.filename)
 
                     pr_folder = str(pull.number)
                     path0 = os.path.join(folder_path, pr_folder)
-
+                    logger.info(f"path0:{path0}")
                     if not os.path.exists(path0):
                         os.makedirs(path0)
 
@@ -351,10 +434,10 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
             curr_pr.comments = sorted(
                 curr_pr.comments, key=lambda commt: commt.comment_timestamp
             )
+            curr_pr = determine_alfred_review_on_PR(curr_pr)
             dst_prs.PRs.append(curr_pr)
             logger.info("-" * 30)
-            ct += 1
-            if limit and ct >= 10:
+            if limit and ct >= 15:
                 break
     return comm_dict, sorted_merged_pulls, dst_prs
 
@@ -372,7 +455,7 @@ if __name__ == "__main__":
         )
     logger.info(f"***Processing data from REPO: {repo_name}****")
     pr_comments, key3, prs_dst = extract_terraform_pr_comments(
-        repo_name, github_token, limit=False
+        repo_name, github_token, limit=True
     )
     logger.info(len(pr_comments))
     key2 = pr_comments.keys()
