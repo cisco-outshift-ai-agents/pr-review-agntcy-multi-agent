@@ -29,7 +29,6 @@ class Commit(BaseModel):
     commit_message: Optional[str] = None
     commit_timestamp: Optional[datetime] = None
     comments: Optional[List[Comment]] = Field(default_factory=list)
-    should_alfred_review: Optional[bool] = False
 
 
 class FileObject(BaseModel):
