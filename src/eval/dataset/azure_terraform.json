@@ -1,0 +1,1547 @@
+{
+    "PRs": [
+        {
+            "pr_number": 2,
+            "title": "AzureRM Terraform Provider Contribution Guide",
+            "url": "https://github.com/Azure/terraform/pull/2",
+            "body": "This PR provides documentation to get started to contribute to the Azure RM Terraform Provider.",
+            "state": "closed",
+            "created_at": "2019-04-23T15:12:31Z",
+            "updated_at": "2019-05-15T12:03:55Z",
+            "base_branch": "contrib",
+            "final_merged_branch": "jcorioland/contrib",
+            "commits": [
+                {
+                    "commit_sha": "9a78fe6869c7cd0e15802ea372a2c6ab7ccf3a1f",
+                    "commit_author": "jcorioland",
+                    "commit_message": "provider contribute guide",
+                    "commit_timestamp": "2019-04-08T11:26:30Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "8004c1761931d28667c1f439cb33f2c77bc05ca5",
+                    "commit_author": "jcorioland",
+                    "commit_message": "contributing on AzureRM",
+                    "commit_timestamp": "2019-04-23T15:10:21Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "dd927286fd571728b7ca32daf61df90c1111882f",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add how to for debugging azurerm tf provider",
+                    "commit_timestamp": "2019-05-02T16:40:43Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "e6612d29704ef85e2af6ddb7126ddba4bd603cc9",
+                    "commit_author": "jcorioland",
+                    "commit_message": "addings/corrections after review",
+                    "commit_timestamp": "2019-05-13T14:03:06Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [
+                {
+                    "id": "235820566",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-09T21:10:39Z",
+                    "commit_id": "9a78fe6869c7cd0e15802ea372a2c6ab7ccf3a1f",
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "Looks great @jcorioland \r\nAdding @jeffreyCline to add any additional comments as he is an expert in this area.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "235827834",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-09T21:17:43Z",
+                    "commit_id": "dd927286fd571728b7ca32daf61df90c1111882f",
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "Looks like there is new content so adding a few more comments.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "236699136",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-13T14:06:58Z",
+                    "commit_id": "e6612d29704ef85e2af6ddb7126ddba4bd603cc9",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "",
+                    "reference_filename": null
+                },
+                {
+                    "id": "236699388",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-13T14:07:26Z",
+                    "commit_id": "e6612d29704ef85e2af6ddb7126ddba4bd603cc9",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "",
+                    "reference_filename": null
+                },
+                {
+                    "id": "491837901",
+                    "type": "issue",
+                    "comment_timestamp": "2019-05-13T14:08:36Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "@grayzu thanks for your review. I've just pushed some updates according to your comments/suggestions. LMK if you see anything else that should be updated.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "236981214",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-14T00:42:11Z",
+                    "commit_id": "dd927286fd571728b7ca32daf61df90c1111882f",
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "",
+                    "reference_filename": null
+                },
+                {
+                    "id": "492036276",
+                    "type": "issue",
+                    "comment_timestamp": "2019-05-14T00:44:10Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "Thank you!",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 3,
+            "title": "Update contribution guide",
+            "url": "https://github.com/Azure/terraform/pull/3",
+            "body": "- Update the how to work with locally built provider section\r\n- Add instruction on how to get started with developing the Azure RM provider, using the Azure SDK for Go etc...",
+            "state": "closed",
+            "created_at": "2019-05-15T14:09:53Z",
+            "updated_at": "2019-05-24T18:00:44Z",
+            "base_branch": "contrib",
+            "final_merged_branch": "contrib",
+            "commits": [
+                {
+                    "commit_sha": "ce248d03ef7a09c3f1536d2f8b1c29f134e74bd2",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add instructions to develop the provider",
+                    "commit_timestamp": "2019-05-15T12:59:18Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "99ae52231c5807bd0bc8a9e2b4a35ba1a650ca5c",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add link to official docs",
+                    "commit_timestamp": "2019-05-15T13:30:09Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "3b18e78dcd32fbc364fb0c913629a9d6e5308d5c",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update local built provider",
+                    "commit_timestamp": "2019-05-15T14:08:10Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "eaef681e00ef945add6fb03d5da4a40dac75d8c8",
+                    "commit_author": "jcorioland",
+                    "commit_message": "fix typo and few additions",
+                    "commit_timestamp": "2019-05-17T08:11:21Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "e8d6b4f92c6c3d376272ee53c242fd5351b0cea4",
+                    "commit_author": "jcorioland",
+                    "commit_message": "few changes after @JunyiYi review",
+                    "commit_timestamp": "2019-05-21T07:58:42Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "8b65cc21c022fa06fa45f33f4f253d2dfb302068",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add data source/resource registration in provider.go",
+                    "commit_timestamp": "2019-05-24T07:27:35Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [
+                {
+                    "id": "492671391",
+                    "type": "issue",
+                    "comment_timestamp": "2019-05-15T14:10:55Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "@grayzu fyi",
+                    "reference_filename": null
+                },
+                {
+                    "id": "238757137",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-17T06:45:08Z",
+                    "commit_id": "3b18e78dcd32fbc364fb0c913629a9d6e5308d5c",
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "Few minor changes to wording.\r\n\r\n@JunyiYi can you have a quick look to ensure that best practices are being suggested here.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "493364684",
+                    "type": "issue",
+                    "comment_timestamp": "2019-05-17T08:12:52Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "@grayzu I've just done the update you have requested",
+                    "reference_filename": null
+                },
+                {
+                    "id": "239678894",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-20T19:36:29Z",
+                    "commit_id": "eaef681e00ef945add6fb03d5da4a40dac75d8c8",
+                    "original_commit_id": null,
+                    "user": "JunyiYi",
+                    "comment": "Thanks @jcorioland for the contributions. The documentation looks good to me. I have provided some comments here, and it would be good to go when they are resolved.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "239880432",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-21T07:59:17Z",
+                    "commit_id": "e8d6b4f92c6c3d376272ee53c242fd5351b0cea4",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "",
+                    "reference_filename": null
+                },
+                {
+                    "id": "239880467",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-21T07:59:22Z",
+                    "commit_id": "e8d6b4f92c6c3d376272ee53c242fd5351b0cea4",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "",
+                    "reference_filename": null
+                },
+                {
+                    "id": "239880494",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-21T07:59:26Z",
+                    "commit_id": "e8d6b4f92c6c3d376272ee53c242fd5351b0cea4",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "",
+                    "reference_filename": null
+                },
+                {
+                    "id": "239880543",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-21T07:59:31Z",
+                    "commit_id": "e8d6b4f92c6c3d376272ee53c242fd5351b0cea4",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "",
+                    "reference_filename": null
+                },
+                {
+                    "id": "494283811",
+                    "type": "issue",
+                    "comment_timestamp": "2019-05-21T08:00:11Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "Thanks @JunyiYi for the review. I have pushed updates according to your comments.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "240897187",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-22T21:46:27Z",
+                    "commit_id": "e8d6b4f92c6c3d376272ee53c242fd5351b0cea4",
+                    "original_commit_id": null,
+                    "user": "JunyiYi",
+                    "comment": "Thanks @jcorioland for the update, approved.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "241874371",
+                    "type": "review",
+                    "comment_timestamp": "2019-05-24T17:58:40Z",
+                    "commit_id": "8b65cc21c022fa06fa45f33f4f253d2dfb302068",
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 25,
+            "title": "Merging Contrib branch to master",
+            "url": "https://github.com/Azure/terraform/pull/25",
+            "body": "",
+            "state": "closed",
+            "created_at": "2019-05-28T20:17:31Z",
+            "updated_at": "2022-04-13T20:53:33Z",
+            "base_branch": "master",
+            "final_merged_branch": "contrib",
+            "commits": [
+                {
+                    "commit_sha": "69b2da19212004951c7fb0e676538515b508efbd",
+                    "commit_author": "None",
+                    "commit_message": "added submodules for TF modules and providers",
+                    "commit_timestamp": "2018-10-29T22:44:56Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "9a78fe6869c7cd0e15802ea372a2c6ab7ccf3a1f",
+                    "commit_author": "jcorioland",
+                    "commit_message": "provider contribute guide",
+                    "commit_timestamp": "2019-04-08T11:26:30Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "8004c1761931d28667c1f439cb33f2c77bc05ca5",
+                    "commit_author": "jcorioland",
+                    "commit_message": "contributing on AzureRM",
+                    "commit_timestamp": "2019-04-23T15:10:21Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "dd927286fd571728b7ca32daf61df90c1111882f",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add how to for debugging azurerm tf provider",
+                    "commit_timestamp": "2019-05-02T16:40:43Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "e6612d29704ef85e2af6ddb7126ddba4bd603cc9",
+                    "commit_author": "jcorioland",
+                    "commit_message": "addings/corrections after review",
+                    "commit_timestamp": "2019-05-13T14:03:06Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "649503b5e1fbd7e62039c7fafd3dc2f55650c6a5",
+                    "commit_author": "grayzu",
+                    "commit_message": "Merge pull request #2 from jcorioland/jcorioland/contrib\n\nAzureRM Terraform Provider Contribution Guide",
+                    "commit_timestamp": "2019-05-14T00:47:11Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "ce248d03ef7a09c3f1536d2f8b1c29f134e74bd2",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add instructions to develop the provider",
+                    "commit_timestamp": "2019-05-15T12:59:18Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "99ae52231c5807bd0bc8a9e2b4a35ba1a650ca5c",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add link to official docs",
+                    "commit_timestamp": "2019-05-15T13:30:09Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "3b18e78dcd32fbc364fb0c913629a9d6e5308d5c",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update local built provider",
+                    "commit_timestamp": "2019-05-15T14:08:10Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "eaef681e00ef945add6fb03d5da4a40dac75d8c8",
+                    "commit_author": "jcorioland",
+                    "commit_message": "fix typo and few additions",
+                    "commit_timestamp": "2019-05-17T08:11:21Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "e8d6b4f92c6c3d376272ee53c242fd5351b0cea4",
+                    "commit_author": "jcorioland",
+                    "commit_message": "few changes after @JunyiYi review",
+                    "commit_timestamp": "2019-05-21T07:58:42Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "8b65cc21c022fa06fa45f33f4f253d2dfb302068",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add data source/resource registration in provider.go",
+                    "commit_timestamp": "2019-05-24T07:27:35Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "3d6183de4b969a70c542d3263ead7e141de6748d",
+                    "commit_author": "grayzu",
+                    "commit_message": "Merge pull request #3 from jcorioland/contrib\n\nUpdate contribution guide",
+                    "commit_timestamp": "2019-05-24T18:00:43Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [],
+            "use_cases": []
+        },
+        {
+            "pr_number": 31,
+            "title": "Adding module contribution guide",
+            "url": "https://github.com/Azure/terraform/pull/31",
+            "body": "Adding v1 of module contribution guide",
+            "state": "closed",
+            "created_at": "2019-06-12T03:13:17Z",
+            "updated_at": "2019-06-12T18:22:47Z",
+            "base_branch": "master",
+            "final_merged_branch": "modulecontributionguide",
+            "commits": [
+                {
+                    "commit_sha": "1c4804a006c31f70220f6ffb10a81f750841b792",
+                    "commit_author": "echuvyrov",
+                    "commit_message": "Initial draft",
+                    "commit_timestamp": "2019-05-07T08:22:00Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "3ba339f80e616fba7ac7ab3d342f990fc5a1ee21",
+                    "commit_author": "echuvyrov",
+                    "commit_message": "Adding Terraform Module Contribution Guide",
+                    "commit_timestamp": "2019-06-12T03:10:56Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [],
+            "use_cases": []
+        },
+        {
+            "pr_number": 32,
+            "title": "Add initial Quickstart templates",
+            "url": "https://github.com/Azure/terraform/pull/32",
+            "body": "Scaffold out the first ~20 quickstart templates, most of which have content and are ready to go.  More to follow soon.",
+            "state": "closed",
+            "created_at": "2019-11-06T21:42:50Z",
+            "updated_at": "2019-11-07T18:16:24Z",
+            "base_branch": "master",
+            "final_merged_branch": "master",
+            "commits": [
+                {
+                    "commit_sha": "415e3caa9780a31a20dfd78a75bb5e24f80f6602",
+                    "commit_author": "jlorich",
+                    "commit_message": "reorganize, add scaffold folder\n\nupdate readmes\n\nclean up tf provider\n\nadd readme and initial templates\n\nadd initial pass at readmes\n\nmore readme updates\n\nupdate various quickstarts\n\nfinish cleaning up 101s\n\nmore updates\n\nlots fo template updates\n\nadd remaining\n\nmore updates",
+                    "commit_timestamp": "2019-10-15T19:03:36Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "5f390fa368b6253cb8dd3f4ef3d4a0b5658569e0",
+                    "commit_author": "jlorich",
+                    "commit_message": "update aks enterprise",
+                    "commit_timestamp": "2019-11-06T21:36:10Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [
+                {
+                    "filename": "quickstart/101-storage-static-website/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-storage-static-website/storage_account.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-storage-static-website/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-web-app-linux-container/app_service.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-web-app-linux-container/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-web-app-linux-container/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-web-app-linux-java/app_service.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-web-app-linux-java/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-web-app-linux-java/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-web-app-windows-dotnet/app_service.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-web-app-windows-dotnet/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/101-web-app-windows-dotnet/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-acr-identity/acr.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-acr-identity/aks.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-acr-identity/azuread.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-acr-identity/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-acr-identity/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-helm/aks.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-helm/azuread.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-helm/helm.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-helm/kubernetes.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-helm/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-helm/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-log-analytics/aks.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-log-analytics/analytics.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-log-analytics/azuread.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-log-analytics/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-log-analytics/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-rbac-dashboard-admin/aks.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-rbac-dashboard-admin/azuread.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-rbac-dashboard-admin/kubernetes.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-rbac-dashboard-admin/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-aks-rbac-dashboard-admin/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-docker-acr/acr.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-docker-acr/app_service.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-docker-acr/azurerm_role_assignment.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-docker-acr/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-docker-acr/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-postgres-keyvault/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-postgres-keyvault/mysql.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-postgres-keyvault/output.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-postgres-keyvault/providers.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-postgres-keyvault/terraform.tfvars",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-postgres-keyvault/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/201-web-app-postgres-keyvault/webapp.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-enterprise/aks.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-enterprise/azuread.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-enterprise/helm.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-enterprise/kubernetes.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-enterprise/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-enterprise/monitoring.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-enterprise/networking.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-enterprise/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric-apim/apim.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric-apim/azuread.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric-apim/keyvault.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric-apim/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric-apim/network.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric-apim/service_fabric.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric-apim/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric-apim/vmss.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric/azuread.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric/keyvault.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric/network.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric/service_fabric.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric/variables.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-service-fabric/vmss.tf",
+                    "comments": []
+                }
+            ],
+            "comments": [
+                {
+                    "id": "551200166",
+                    "type": "issue",
+                    "comment_timestamp": "2019-11-07T18:16:23Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "Thank you Joey! This is fantastic!!",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 33,
+            "title": "fix quickstart readme grammar",
+            "url": "https://github.com/Azure/terraform/pull/33",
+            "body": "",
+            "state": "closed",
+            "created_at": "2019-11-09T02:13:57Z",
+            "updated_at": "2019-12-02T22:47:02Z",
+            "base_branch": "master",
+            "final_merged_branch": "fix-readme-grammar",
+            "commits": [
+                {
+                    "commit_sha": "0b8f7162f495a2c42cb56419a0751050a86b3a70",
+                    "commit_author": "None",
+                    "commit_message": "fix quickstart readme grammar",
+                    "commit_timestamp": "2019-11-09T02:12:11Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [
+                {
+                    "id": "560800558",
+                    "type": "issue",
+                    "comment_timestamp": "2019-12-02T22:47:02Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "lgtm",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 43,
+            "title": "Add Sample: Integration Testing",
+            "url": "https://github.com/Azure/terraform/pull/43",
+            "body": "This PR adds a sample about how to implement integration testing on a Terraform project, using Azure DevOps and several other tools.",
+            "state": "closed",
+            "created_at": "2020-06-08T10:26:50Z",
+            "updated_at": "2020-06-11T08:35:54Z",
+            "base_branch": "master",
+            "final_merged_branch": "samples/integration-testing",
+            "commits": [
+                {
+                    "commit_sha": "6e099bc290c8d35ff43d401975faecf40e33c07f",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add samples for integration testing",
+                    "commit_timestamp": "2020-06-08T10:23:35Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "bad27280c7282458c91cc1327273493e77ae9ff4",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add samples README",
+                    "commit_timestamp": "2020-06-08T10:24:48Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [
+                {
+                    "filename": "samples/integration-testing/src/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "samples/integration-testing/src/output.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "samples/integration-testing/src/provider.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "samples/integration-testing/src/variables.tf",
+                    "comments": []
+                }
+            ],
+            "comments": [
+                {
+                    "id": "426105370",
+                    "type": "review",
+                    "comment_timestamp": "2020-06-08T10:35:08Z",
+                    "commit_id": "bad27280c7282458c91cc1327273493e77ae9ff4",
+                    "original_commit_id": null,
+                    "user": "scubaninja",
+                    "comment": "Looks great!!! happy to approve",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 44,
+            "title": "Added samples for compliance testing",
+            "url": "https://github.com/Azure/terraform/pull/44",
+            "body": "Added samples for compliance testing with terraform-compliance",
+            "state": "closed",
+            "created_at": "2020-06-11T09:01:16Z",
+            "updated_at": "2020-06-16T07:31:49Z",
+            "base_branch": "master",
+            "final_merged_branch": "samples/compliance-testing",
+            "commits": [
+                {
+                    "commit_sha": "708a45ea5ae43565383944135bf8a4fa7e14a952",
+                    "commit_author": "aheumaier",
+                    "commit_message": "Added samples for compliance testing with terraform-compliance",
+                    "commit_timestamp": "2020-06-11T08:57:02Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "9dd87817cf675322b36a3965f81e8e303daab212",
+                    "commit_author": "aheumaier",
+                    "commit_message": "Update samples/compliance-testing/README.md\n\nCo-authored-by: Julien Corioland <jcorioland@users.noreply.github.com>",
+                    "commit_timestamp": "2020-06-15T16:07:58Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [
+                {
+                    "filename": "samples/compliance-testing/src/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "samples/compliance-testing/src/output.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "samples/compliance-testing/src/provider.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "samples/compliance-testing/src/variables.tf",
+                    "comments": []
+                }
+            ],
+            "comments": [
+                {
+                    "id": "430382524",
+                    "type": "review",
+                    "comment_timestamp": "2020-06-15T07:42:43Z",
+                    "commit_id": "708a45ea5ae43565383944135bf8a4fa7e14a952",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "Just a few corrections requested, otherwise, LGTM.",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 46,
+            "title": "Samples/compliance testing",
+            "url": "https://github.com/Azure/terraform/pull/46",
+            "body": "",
+            "state": "closed",
+            "created_at": "2020-06-16T12:10:49Z",
+            "updated_at": "2020-06-16T12:53:03Z",
+            "base_branch": "master",
+            "final_merged_branch": "samples/compliance-testing",
+            "commits": [
+                {
+                    "commit_sha": "708a45ea5ae43565383944135bf8a4fa7e14a952",
+                    "commit_author": "aheumaier",
+                    "commit_message": "Added samples for compliance testing with terraform-compliance",
+                    "commit_timestamp": "2020-06-11T08:57:02Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "9dd87817cf675322b36a3965f81e8e303daab212",
+                    "commit_author": "aheumaier",
+                    "commit_message": "Update samples/compliance-testing/README.md\n\nCo-authored-by: Julien Corioland <jcorioland@users.noreply.github.com>",
+                    "commit_timestamp": "2020-06-15T16:07:58Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "452680862c9021614651d48ab201095c0dcf8c88",
+                    "commit_author": "aheumaier",
+                    "commit_message": "Sync README from azure-dev-docs-pr on best-practice-compliance-testing",
+                    "commit_timestamp": "2020-06-16T12:06:24Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "ac6f9729b02060d51ccf52d0a13c759ce216f86e",
+                    "commit_author": "aheumaier",
+                    "commit_message": "Sync README from azure-dev-docs-pr on best-practice-compliance-testing",
+                    "commit_timestamp": "2020-06-16T12:07:51Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "a1f201a7b0a40dbe34145219896d0ec72de51ac6",
+                    "commit_author": "aheumaier",
+                    "commit_message": "Sync README from azure-dev-docs-pr on best-practice-compliance-testing",
+                    "commit_timestamp": "2020-06-16T12:09:58Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "8d795d595b452855a61f6c2236c94dc160a874ea",
+                    "commit_author": "aheumaier",
+                    "commit_message": "Fix: Sync README from azure-dev-docs-pr on best-practice-compliance-testing",
+                    "commit_timestamp": "2020-06-16T12:39:39Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [
+                {
+                    "id": "644724016",
+                    "type": "issue",
+                    "comment_timestamp": "2020-06-16T12:12:33Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "aheumaier",
+                    "comment": "@jcorioland  can you take a look here",
+                    "reference_filename": null
+                },
+                {
+                    "id": "431445344",
+                    "type": "review",
+                    "comment_timestamp": "2020-06-16T12:21:15Z",
+                    "commit_id": "a1f201a7b0a40dbe34145219896d0ec72de51ac6",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "Hey @aheumaier Not sure why you added the header, prerequesites, and next steps in this file, as it is the sample and not the documentation. This is not required. Can you remove it? Thanks!",
+                    "reference_filename": null
+                },
+                {
+                    "id": "644737110",
+                    "type": "issue",
+                    "comment_timestamp": "2020-06-16T12:40:54Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "aheumaier",
+                    "comment": "> Hey @aheumaier Not sure why you added the header, prerequesites, and next steps in this file, as it is the sample and not the documentation. This is not required. Can you remove it? Thanks!\r\n\r\nResolved",
+                    "reference_filename": null
+                },
+                {
+                    "id": "431469558",
+                    "type": "review",
+                    "comment_timestamp": "2020-06-16T12:52:28Z",
+                    "commit_id": "8d795d595b452855a61f6c2236c94dc160a874ea",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "LGTM. Thanks @aheumaier !",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 47,
+            "title": "Samples: end-to-end testing",
+            "url": "https://github.com/Azure/terraform/pull/47",
+            "body": "This PR adds a sample of end-to-end testing using Terratest.",
+            "state": "closed",
+            "created_at": "2020-06-17T10:05:06Z",
+            "updated_at": "2020-06-18T12:48:42Z",
+            "base_branch": "master",
+            "final_merged_branch": "samples/end-to-end-testing",
+            "commits": [
+                {
+                    "commit_sha": "e0804c70bd5625b285de1438e883b184ea2b1081",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update samples README.md",
+                    "commit_timestamp": "2020-06-17T08:52:13Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "34d87727dd19ac8d6785497c37276fd7163ff8bb",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add tf configuration for end to end sample",
+                    "commit_timestamp": "2020-06-17T08:52:41Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "02ff674c460bcc02325a79ee6999be0f8366e608",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add intro + scenario of e2e sample in README.md",
+                    "commit_timestamp": "2020-06-17T08:53:16Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "cc22b8cd751ff3739357f6e4a896fe06b3d12e57",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update .gitignore",
+                    "commit_timestamp": "2020-06-17T09:59:34Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "ba017e13724ea146e9a8f51b78056d9f9a3bbc6f",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add basic structure for end-to-end go test",
+                    "commit_timestamp": "2020-06-17T10:00:16Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "5300781f586a2ecf06d26b35c6d09b5c99bb063a",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update README.md for end to end sample",
+                    "commit_timestamp": "2020-06-17T10:00:37Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "603a38a3283b82650c9a3c688a56766e285df34f",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update e2e test sample code",
+                    "commit_timestamp": "2020-06-17T13:11:21Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "1e04a1f51f5420f3a01234a0d4ae2495eb84ee97",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update e2e test code",
+                    "commit_timestamp": "2020-06-17T13:30:37Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "0686756a394d673769000ed12f462ee9bc7e147e",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update e2e test README.md",
+                    "commit_timestamp": "2020-06-17T13:33:44Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "0dea88448296da2f939ee023ce8fdf70b22747c2",
+                    "commit_author": "jcorioland",
+                    "commit_message": "udpate README.md for end-to-end sample",
+                    "commit_timestamp": "2020-06-18T12:46:47Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [
+                {
+                    "filename": "samples/end-to-end-testing/src/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "samples/end-to-end-testing/src/output.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "samples/end-to-end-testing/src/provider.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "samples/end-to-end-testing/src/variables.tf",
+                    "comments": []
+                }
+            ],
+            "comments": [
+                {
+                    "id": "432323590",
+                    "type": "review",
+                    "comment_timestamp": "2020-06-17T11:54:34Z",
+                    "commit_id": "5300781f586a2ecf06d26b35c6d09b5c99bb063a",
+                    "original_commit_id": null,
+                    "user": "aheumaier",
+                    "comment": "",
+                    "reference_filename": null
+                },
+                {
+                    "id": "645328727",
+                    "type": "issue",
+                    "comment_timestamp": "2020-06-17T11:55:00Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "aheumaier",
+                    "comment": "Looks good for me  - beside the 2 small glitches ",
+                    "reference_filename": null
+                },
+                {
+                    "id": "433080508",
+                    "type": "review",
+                    "comment_timestamp": "2020-06-18T09:28:25Z",
+                    "commit_id": "0686756a394d673769000ed12f462ee9bc7e147e",
+                    "original_commit_id": null,
+                    "user": "aheumaier",
+                    "comment": "LGTM. You might think of the small additions noted",
+                    "reference_filename": null
+                },
+                {
+                    "id": "433244639",
+                    "type": "review",
+                    "comment_timestamp": "2020-06-18T12:45:17Z",
+                    "commit_id": "0686756a394d673769000ed12f462ee9bc7e147e",
+                    "original_commit_id": null,
+                    "user": "jcorioland",
+                    "comment": "",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 51,
+            "title": "Update the Terraform Azurerm Provider Resource Contribute.md",
+            "url": "https://github.com/Azure/terraform/pull/51",
+            "body": "1. Terraform code style, code sample, variable definition and corresponding code reference link has changed. We need to refresh and update the content to guide how to contribute to Azurerm Provider\r\n2. Test with local build is not exactly how it works, I have changed to how it works now.",
+            "state": "closed",
+            "created_at": "2020-06-23T02:33:57Z",
+            "updated_at": "2020-07-27T03:45:54Z",
+            "base_branch": "master",
+            "final_merged_branch": "wyp-20200622",
+            "commits": [
+                {
+                    "commit_sha": "70eb0555e3df723c69e0d0c45fb6dc1828a8891d",
+                    "commit_author": "None",
+                    "commit_message": "update",
+                    "commit_timestamp": "2020-06-22T08:34:59Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "359f0633f8cb49df1420b0651491335916cff27d",
+                    "commit_author": "None",
+                    "commit_message": "update",
+                    "commit_timestamp": "2020-06-23T02:29:58Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "ef757830e6dcbb65b292ee02a0670aa33008e385",
+                    "commit_author": "None",
+                    "commit_message": "r1",
+                    "commit_timestamp": "2020-06-28T02:10:30Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [
+                {
+                    "id": "435455515",
+                    "type": "review",
+                    "comment_timestamp": "2020-06-23T06:34:33Z",
+                    "commit_id": "359f0633f8cb49df1420b0651491335916cff27d",
+                    "original_commit_id": null,
+                    "user": "WodansSon",
+                    "comment": "@yupwei68, thank you so much for this PR, this look fantastic! 🚀 I have left a couple of minor comments on the PR for you to consider... but, other than that this is good stuff! Thanks so much! ",
+                    "reference_filename": null
+                },
+                {
+                    "id": "648372062",
+                    "type": "issue",
+                    "comment_timestamp": "2020-06-23T19:29:19Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "TomArcherMsft",
+                    "comment": "@yupwei68 This looks fine to me. The only change I would suggest is to change the anchor text where you're using verbiage like \"this page\". I would recommend using the actual product being installed as the anchor text.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "650672277",
+                    "type": "issue",
+                    "comment_timestamp": "2020-06-28T02:13:02Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "yupwei68",
+                    "comment": "Hi @WodansSon @TomArcherMsft Thanks for your comments. Corresponding changes have been pushed. Please continue reviewing.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "455454264",
+                    "type": "review",
+                    "comment_timestamp": "2020-07-27T03:43:35Z",
+                    "commit_id": "ef757830e6dcbb65b292ee02a0670aa33008e385",
+                    "original_commit_id": null,
+                    "user": "WodansSon",
+                    "comment": "@yupwei68, thanks for pushing those changes, this LGTM now! 🚀  ",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 56,
+            "title": "Update testing samples README files",
+            "url": "https://github.com/Azure/terraform/pull/56",
+            "body": "This PR updates the README files of testing samples with the link of the published Terraform on Azure documentation.",
+            "state": "closed",
+            "created_at": "2020-08-26T12:24:27Z",
+            "updated_at": "2020-08-27T06:29:46Z",
+            "base_branch": "master",
+            "final_merged_branch": "samples/update-readme",
+            "commits": [
+                {
+                    "commit_sha": "e0804c70bd5625b285de1438e883b184ea2b1081",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update samples README.md",
+                    "commit_timestamp": "2020-06-17T08:52:13Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "34d87727dd19ac8d6785497c37276fd7163ff8bb",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add tf configuration for end to end sample",
+                    "commit_timestamp": "2020-06-17T08:52:41Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "02ff674c460bcc02325a79ee6999be0f8366e608",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add intro + scenario of e2e sample in README.md",
+                    "commit_timestamp": "2020-06-17T08:53:16Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "cc22b8cd751ff3739357f6e4a896fe06b3d12e57",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update .gitignore",
+                    "commit_timestamp": "2020-06-17T09:59:34Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "ba017e13724ea146e9a8f51b78056d9f9a3bbc6f",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add basic structure for end-to-end go test",
+                    "commit_timestamp": "2020-06-17T10:00:16Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "5300781f586a2ecf06d26b35c6d09b5c99bb063a",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update README.md for end to end sample",
+                    "commit_timestamp": "2020-06-17T10:00:37Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "603a38a3283b82650c9a3c688a56766e285df34f",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update e2e test sample code",
+                    "commit_timestamp": "2020-06-17T13:11:21Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "1e04a1f51f5420f3a01234a0d4ae2495eb84ee97",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update e2e test code",
+                    "commit_timestamp": "2020-06-17T13:30:37Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "0686756a394d673769000ed12f462ee9bc7e147e",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update e2e test README.md",
+                    "commit_timestamp": "2020-06-17T13:33:44Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "0dea88448296da2f939ee023ce8fdf70b22747c2",
+                    "commit_author": "jcorioland",
+                    "commit_message": "udpate README.md for end-to-end sample",
+                    "commit_timestamp": "2020-06-18T12:46:47Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "01b6266e8ad2ff07e37f6200e9b2aea6ebb01025",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update readme with docs links",
+                    "commit_timestamp": "2020-08-26T12:18:54Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "56e84d1e7014813a872cb16bdc0dfe7a3ac7df64",
+                    "commit_author": "jcorioland",
+                    "commit_message": "update from upstream and merge master",
+                    "commit_timestamp": "2020-08-26T12:21:18Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [
+                {
+                    "id": "680936316",
+                    "type": "issue",
+                    "comment_timestamp": "2020-08-26T15:02:25Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "TomArcherMsft",
+                    "comment": "@jcorioland LGTM",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 53,
+            "title": "Add quickstart sample for AKS private cluster with custom DNS",
+            "url": "https://github.com/Azure/terraform/pull/53",
+            "body": "Add a quick-start sample for AKS private cluster with custom DNS.",
+            "state": "closed",
+            "created_at": "2020-08-24T05:58:16Z",
+            "updated_at": "2021-02-05T05:20:13Z",
+            "base_branch": "master",
+            "final_merged_branch": "aks-quickstart",
+            "commits": [
+                {
+                    "commit_sha": "713cbfc0a79a108622caef0de428e12a205dd3e0",
+                    "commit_author": "feiskyer",
+                    "commit_message": "Add quickstart sample for private AKS cluster with custom DNS",
+                    "commit_timestamp": "2020-08-24T05:49:38Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [
+                {
+                    "filename": "quickstart/301-aks-private-cluster/aks.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-private-cluster/dns-zone.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-private-cluster/main.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-private-cluster/output.tf",
+                    "comments": []
+                },
+                {
+                    "filename": "quickstart/301-aks-private-cluster/variables.tf",
+                    "comments": []
+                }
+            ],
+            "comments": [
+                {
+                    "id": "473847880",
+                    "type": "review",
+                    "comment_timestamp": "2020-08-24T20:54:08Z",
+                    "commit_id": "713cbfc0a79a108622caef0de428e12a205dd3e0",
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "Mostly looks great. One question regarding the script. It would be great if this could be done without the script and just use native providers.",
+                    "reference_filename": null
+                },
+                {
+                    "id": "474012013",
+                    "type": "review",
+                    "comment_timestamp": "2020-08-25T00:22:01Z",
+                    "commit_id": "713cbfc0a79a108622caef0de428e12a205dd3e0",
+                    "original_commit_id": null,
+                    "user": "feiskyer",
+                    "comment": "",
+                    "reference_filename": null
+                },
+                {
+                    "id": "683667181",
+                    "type": "issue",
+                    "comment_timestamp": "2020-08-31T09:19:34Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "feiskyer",
+                    "comment": "@grayzu could you help to have a look again?",
+                    "reference_filename": null
+                },
+                {
+                    "id": "773328275",
+                    "type": "issue",
+                    "comment_timestamp": "2021-02-04T14:10:03Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "dejiaja",
+                    "comment": "\r\n@feiskyer thanks. this works as expected except when there is an error with the cluster provisioning. When this is run via Azure devops for instance and there is an error with the AKS resource (say the resource already exists), I would want the wait for resource group to timeout and display the aks failure error but the the wait for resource group keeps running till you cancel the release. I'm experimenting with the timeout but havent gotten this to work as desired. Any recommendations?",
+                    "reference_filename": null
+                },
+                {
+                    "id": "773795767",
+                    "type": "issue",
+                    "comment_timestamp": "2021-02-05T05:20:13Z",
+                    "commit_id": null,
+                    "original_commit_id": null,
+                    "user": "feiskyer",
+                    "comment": "@dejiaja what errors have you got when you said \"an error with AKS resource\"?",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        },
+        {
+            "pr_number": 58,
+            "title": "Fix integration testing sample path",
+            "url": "https://github.com/Azure/terraform/pull/58",
+            "body": "This PR fixes the path in the azure-pipeline.yaml for the integration testing samples. The issue has been reported [here](https://github.com/MicrosoftDocs/azure-dev-docs/issues/320)",
+            "state": "closed",
+            "created_at": "2020-10-09T08:20:47Z",
+            "updated_at": "2020-10-09T08:22:25Z",
+            "base_branch": "master",
+            "final_merged_branch": "fix/integration-testing-sample-path",
+            "commits": [
+                {
+                    "commit_sha": "b51304442f91b11c06f647419167fc00cc731457",
+                    "commit_author": "jcorioland",
+                    "commit_message": "fix path in pipeline for integration-testing sample",
+                    "commit_timestamp": "2020-10-09T08:13:12Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                },
+                {
+                    "commit_sha": "8c5cbe0385967a0b7a9ec3e321f16926e11199c0",
+                    "commit_author": "jcorioland",
+                    "commit_message": "add exec permission on checkov.sh",
+                    "commit_timestamp": "2020-10-09T08:18:21Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [],
+            "use_cases": []
+        },
+        {
+            "pr_number": 62,
+            "title": "Update README.md",
+            "url": "https://github.com/Azure/terraform/pull/62",
+            "body": "Fixed typo",
+            "state": "closed",
+            "created_at": "2020-12-24T16:20:16Z",
+            "updated_at": "2021-04-07T01:06:08Z",
+            "base_branch": "master",
+            "final_merged_branch": "patch-1",
+            "commits": [
+                {
+                    "commit_sha": "023dcf520144e48b1be580157535cc20224b7d25",
+                    "commit_author": "mgrotheer",
+                    "commit_message": "Update README.md\n\nFixed typo",
+                    "commit_timestamp": "2020-12-24T16:20:08Z",
+                    "comments": [],
+                    "should_alfred_review": false
+                }
+            ],
+            "files": [],
+            "comments": [
+                {
+                    "id": "629506235",
+                    "type": "review",
+                    "comment_timestamp": "2021-04-07T00:31:02Z",
+                    "commit_id": "023dcf520144e48b1be580157535cc20224b7d25",
+                    "original_commit_id": null,
+                    "user": "grayzu",
+                    "comment": "",
+                    "reference_filename": null
+                }
+            ],
+            "use_cases": []
+        }
+    ]
+}
