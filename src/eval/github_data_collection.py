@@ -159,21 +159,6 @@ def collect_commit_files(repo, commit_obj, loc):
                 file.write(changed_code)
 
 
-def determine_alfred_review_on_PR(pr):
-    found_file = False
-    for comment in pr.comments:
-        if comment.comment_timestamp > pr.created_at:
-            if comment.type == CommentType.filec:
-                found_file = True
-                for commit in pr.commits:
-                    if commit.id == comment.original_commit_id:
-                        commit.should_alfred_review = True
-                if found_file:
-                    # need to to contiue looking for comments
-                    return pr
-    return pr
-
-
 def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=True):
     """
     Extracts comments from merged pull requests that include Terraform files.
@@ -434,7 +419,6 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
             curr_pr.comments = sorted(
                 curr_pr.comments, key=lambda commt: commt.comment_timestamp
             )
-            curr_pr = determine_alfred_review_on_PR(curr_pr)
             dst_prs.PRs.append(curr_pr)
             logger.info("-" * 30)
             if limit and ct >= 15:
@@ -455,7 +439,7 @@ if __name__ == "__main__":
         )
     logger.info(f"***Processing data from REPO: {repo_name}****")
     pr_comments, key3, prs_dst = extract_terraform_pr_comments(
-        repo_name, github_token, limit=True
+        repo_name, github_token, limit=False
     )
     logger.info(len(pr_comments))
     key2 = pr_comments.keys()
