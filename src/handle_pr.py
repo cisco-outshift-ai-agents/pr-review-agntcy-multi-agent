@@ -20,9 +20,11 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
                 pr_number = payload["pull_request"]["number"]
                 repo_name = payload["repository"]["full_name"]
                 installation_id = payload["installation"]["id"]
+                log.info(f"GitHub Action: {action}")
                 # handle_pull_request(pr_number, repo_name, installation_id)
         elif github_event == "issue_comment" and payload.get("action") == "created":
             # Get the comment body and convert to lowercase for case-insensitive comparison
+            log.info(f"GitHub Action: {github_event}")
             comment_body = payload["comment"]["body"].lower()
             # Check if both "@alfred" and "review" appear in the comment in that order
             if "alfred" in comment_body and "review" in comment_body[comment_body.index("alfred") :]:
@@ -36,6 +38,7 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
         # elif github_event == "installation_repositories" and payload.get("action") == "added":
         #     handle_installation(payload, "repositories_added")
         elif github_event == "pull_request_review_comment" and payload.get("action") in ["created"] and __is_commented_by_human(payload):
+            log.info(f"GitHub Action: {github_event}")
             # TODO: handle edited comments
             handle_pull_request_comment(payload)
         return JSONResponse(content={"status": "ok"})

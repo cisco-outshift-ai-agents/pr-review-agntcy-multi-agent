@@ -25,6 +25,7 @@ class TitleDescriptionReviewer:
             raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
 
         user_input = ""
+        log.info(f"User config is set in the context: {self.context.user_config}")
         if self.context.user_config:
             user_input = self.context.user_config.get("PR Title and Description", "")
 
@@ -43,6 +44,7 @@ class TitleDescriptionReviewer:
         )
 
         title_desc_chain_result_content = str(title_desc_chain_result.content)
+        log.info(f"{title_desc_chain_result_content}")
         new_title_desc_comment = IssueComment(body=title_desc_chain_result_content, conditions=["PR title suggestion", "PR description suggestion"])
 
         log.debug(f"""

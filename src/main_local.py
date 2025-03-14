@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException, Request
 import handle_pr
 from auth import fastapi_validate_github_signature
 from utils.constants import GITHUB_EVENT_HEADER
-
+from utils.logging_config import logger as log
 app = FastAPI()
 
 
@@ -20,6 +20,7 @@ async def webhook(request: Request):
     if not x_github_event:
         raise HTTPException(HTTPStatus.BAD_REQUEST, "missing x-github-event header")
 
+    log.info(f"Received event: {x_github_event}")
     payload = await request.json()
     return handle_pr.handle_github_event(payload, x_github_event)
 

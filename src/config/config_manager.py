@@ -58,8 +58,12 @@ class ConfigManager:
         """Loads and parses the config file from a PR or default branch"""
         # Try to get config from PR branch
         content = self._get_config_from_pr()
+        if content:
+            log.info("using PR branch")
+
         if not content:
             # Try to get config from default branch
+            log.info("using default branch")
             content = self._get_config_from_default_branch()
 
         if not content:
@@ -69,6 +73,7 @@ class ConfigManager:
         try:
             content_reader = io.StringIO(content)
             config = AgentConfig(content_reader, MarkdownParser())
+            log.info(f"Config loaded, {config.data}")
             return config.data
         except ParseContentError as e:
             log.error(f"Error parsing config content: {e.content}")

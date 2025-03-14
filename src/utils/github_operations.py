@@ -80,6 +80,8 @@ class GitHubOperations:
             app_id = self._get_app_id()
             git_integration = GithubIntegration(auth=github.Auth.AppAuth(app_id, private_key))
 
+            log.info(f"installation_id: {installation_id}")
+
             github_token = git_integration.get_access_token(int(installation_id)).token
             self.__github_token = github_token
 
@@ -146,8 +148,10 @@ class GitHubOperations:
             "comments": comments_as_dict,
         }
 
+
         try:
             headers, data = self.pr._requester.requestJsonAndCheck("POST", f"{self.pr.url}/reviews", input=post_parameters)
+            print("Creating review comments")
             PullRequestComment(self.pr._requester, headers, data, completed=True)
         except Exception as e:
             log.error(f"Error during create a new pending pull request: {e}")
