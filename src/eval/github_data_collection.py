@@ -293,6 +293,9 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
     for pull in tqdm(sorted_merged_pulls):
         if pull.merged:
             curr_pr = PR(pr_number=pull.number)
+            path_b0 = os.path.join(folder_path, str(pull.number))
+            if os.path.exists(path_b0):
+                continue
             curr_pr = populate_pr(curr_pr, pull)
             commits_data = pull.get_commits()
             commits_list = []
@@ -365,6 +368,9 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
             #         )
             curr_pr = populate_review_comments(curr_pr, reviews)
             logger.info(f"url: {pull.html_url}")
+            path0 = os.path.join(folder_path, str(pull.number))
+            if os.path.exists(path0):
+                continue
             files = pull.get_files()
             logger.info(f"Extracting files from PR{curr_pr.pr_number}")
             for file in tqdm(files):
@@ -381,7 +387,10 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
 
                     path1 = os.path.join(path0, "base_file")
                     path2 = os.path.join(path0, "final_merged_file")
-
+                    if os.path.exists(path1):
+                        continue
+                    if os.path.exists(path2):
+                        continue
                     if not os.path.exists(path1):
                         os.makedirs(path1)
 
@@ -530,7 +539,7 @@ if __name__ == "__main__":
     # difference = [item for item in key2 if item not in key3]
     # logger.info(difference)
 
-    # reps = repo_name.split("/")
+    reps = repo_name.split("/")
     file_name = f"{'_'.join(reps)}v1.json".lower()
     local_dir = "dataset"
     os.makedirs(local_dir, exist_ok=True)
