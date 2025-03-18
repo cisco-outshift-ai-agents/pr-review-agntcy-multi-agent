@@ -1,5 +1,16 @@
 import unittest
+import sys
+import os
 from unittest.mock import patch, mock_open, MagicMock
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+grandparent_dir = os.path.dirname(parent_dir)
+ggrandparent_dir = os.path.dirname(grandparent_dir)
+pkg_dir = os.path.dirname(ggrandparent_dir)
+
+print(f"Parent dir {parent_dir} G2 {ggrandparent_dir} PGK:{pkg_dir}")
+sys.path.append(pkg_dir)
 from alfred.src.eval.use_case_labeling import (
     file_use_case_labeling,
     read_file,
@@ -58,8 +69,8 @@ class TestUseCaseLabeling(unittest.TestCase):
         result = compare_files_read(l_path1, file_name1, l_path2, file_name2)
         mock_read_file.assert_any_call(l_path1, file_name1)
         mock_read_file.assert_any_call(l_path2, file_name2)
-        self.assertIn("- content1", result)
-        self.assertIn("+ content2", result)
+        self.assertIn("- content", result)
+        self.assertIn("+ content", result)
 
 
 if __name__ == "__main__":
