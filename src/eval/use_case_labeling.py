@@ -7,7 +7,7 @@ from langchain_openai import AzureChatOpenAI
 from alfred_git_data import PRDataset
 import difflib
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 from langchain.prompts import PromptTemplate
 
 
@@ -184,5 +184,5 @@ if __name__ == "__main__":
     with open(config["data_path"].replace(".json", f"{config['output_append']}.json"), "w") as fp:
          fp.write(dst_pr.model_dump_json(indent=4))
          
-    with open(f"file_stats_{config['data_path']}", "w") as fp:
+    with open(f"{config['data_path']}".replace(".json", f"_file_stats.json"), "w") as fp:
          json.dump(count_stats, fp, indent=4)
