@@ -111,27 +111,30 @@ def diff_content(a: str, b: str) -> str:
     """
     Generates a diff between two strings and applies styling for visualization.
     """
-    line_color = {"+": 32, "-": 31}  # Define colors for added and removed lines
+    try:
+        line_color = {"+": 32, "-": 31}  # Define colors for added and removed lines
 
-    diffs = difflib.ndiff(a.splitlines(keepends=True), b.splitlines(keepends=True))
-    diff_list = list(diffs)
-    styled: list[str] = []
-    for prev, next in zip(diff_list, diff_list[1:] + [""]):
-        color = line_color.get(prev[0], 0)
-        match prev[0]:
-            case " ":
-                styled.append(prev)  # Unchanged lines
-            case "+" | "-":
-                index = [i for i, c in enumerate(next) if c == "^"]
-                _prev = list(prev)
-                for idx in index:
-                    _prev[idx] = f"\x1b[97;{color+10};1m{_prev[idx]}\x1b[0;{color}m"
-                styled.append(f'\x1b[{color}m{"".join(_prev)}\x1b[0m')  # Styled diff
-            case "?":
-                continue  # Ignore metadata lines
-    return "".join(styled)
-
-
+        diffs = difflib.ndiff(a.splitlines(keepends=True), b.splitlines(keepends=True))
+        diff_list = list(diffs)
+        styled: list[str] = []
+        for prev, next in zip(diff_list, diff_list[1:] + [""]):
+            color = line_color.get(prev[0], 0)
+            match prev[0]:
+                case " ":
+                    styled.append(prev)  # Unchanged lines
+                case "+" | "-":
+                    index = [i for i, c in enumerate(next) if c == "^"]
+                    _prev = list(prev)
+                    for idx in index:
+                        _prev[idx] = f"\x1b[97;{color+10};1m{_prev[idx]}\x1b[0;{color}m"
+                    styled.append(f'\x1b[{color}m{"".join(_prev)}\x1b[0m')  # Styled diff
+                case "?":
+                    continue  # Ignore metadata lines
+        return "".join(styled)
+    except Exception as e:
+        logging.error(f"Error in diff_content: {e}")
+        return ""
+    
 def compare_files_read(l_path1, file_name1, l_path2, file_name2):
     """
     Reads two files and generates a diff of their content.
