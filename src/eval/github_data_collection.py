@@ -195,7 +195,7 @@ def collect_files(pr: PR, pull, repo, comments, files, folder_path):
             ofile.comments = file_comments
 
 
-def collect_commit_files(repo, commit_obj, loc):
+def collect_commit_files(repo, commit_obj, loc, skip_local_file_writing=True):
     folder_path = os.path.join(loc, "commits", f"{commit_obj.sha}")
     # Get the commit object to access the raw data
     # commit_obj = repo.get_commit(commit.sha)
@@ -206,6 +206,9 @@ def collect_commit_files(repo, commit_obj, loc):
             continue
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
+        else:
+            if skip_local_file_writing:
+                continue
 
         basepath = os.path.join(folder_path, "base_code")
         changedpath = os.path.join(folder_path, "changed_code")
@@ -257,6 +260,44 @@ def collect_commit_files(repo, commit_obj, loc):
             logger.info(changed_code)
             with open(changedfilenamepath, "w") as file:
                 file.write(changed_code)
+
+
+def read_and_write_file(repo, file, pull, path1, path2, fname):
+    try:
+        base_content = repo.get_contents(
+            file.filename, ref=pull.base.sha
+        ).decoded_content.decode()
+        logger.info(f"File: {file.filename}")
+        logger.info("Original Content:")
+        logger.info(base_content)
+        logger.info("\n" + "=" * 80 + "\n")
+        with open(os.path.join(path1, fname), "w") as f:
+            f.write(base_content)
+    except UnknownObjectException:
+        logger.info(f"File: {file.filename}")
+        logger.info("Original Content:")
+        base_content = ""
+        logger.info(base_content)
+        logger.info("\n" + "=" * 80 + "\n")
+        with open(os.path.join(path1, fname), "w") as f:
+            f.write(base_content)
+    try:
+        final_merged_content = repo.get_contents(
+            file.filename, ref=pull.head.sha
+        ).decoded_content.decode()
+        logger.info("\nChanged Content:")
+        logger.info(final_merged_content)
+        logger.info("\n" + "=" * 80 + "\n")
+        with open(os.path.join(path2, fname), "w") as f:
+            f.write(final_merged_content)
+    except UnknownObjectException:
+        final_merged_content = ""
+        logger.info(f"File: {file.filename}")
+        logger.info("\nChanged Content:")
+        logger.info(final_merged_content)
+        logger.info("\n" + "=" * 80 + "\n")
+        with open(os.path.join(path2, fname), "w") as f:
+            f.write(final_merged_content)
 
 
 # Function to extract comments from merged pull requests that include Terraform files
@@ -312,12 +353,12 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
         os.makedirs(folder_path)
     ct = 0
     dst_prs = PRDataset()
+    skip_local_file_writing = True
     for pull in tqdm(sorted_merged_pulls):
         if pull.merged:
             curr_pr = PR(pr_number=pull.number)
             path_b0 = os.path.join(folder_path, str(pull.number))
-            if os.path.exists(path_b0):
-                continue
+            path_b0_present = os.path.exists(path_b0)
             curr_pr = populate_pr(curr_pr, pull)
             commits_data = pull.get_commits()
             commits_list = []
@@ -349,9 +390,9 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
             reviews = pull.get_reviews()
             curr_pr = populate_review_comments(curr_pr, reviews)
             logger.info(f"url: {pull.html_url}")
-            path0 = os.path.join(folder_path, str(pull.number))
-            if os.path.exists(path0):
-                continue
+            # path0 = os.path.join(folder_path, str(pull.number))
+            # if os.path.exists(path0):
+            #    continue
             files = pull.get_files()
             logger.info(f"Extracting files from PR{curr_pr.pr_number}")
             for file in tqdm(files):
@@ -368,10 +409,10 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
 
                     path1 = os.path.join(path0, "base_file")
                     path2 = os.path.join(path0, "final_merged_file")
-                    if os.path.exists(path1):
-                        continue
-                    if os.path.exists(path2):
-                        continue
+                    # if os.path.exists(path1):
+                    #    continue
+                    # if os.path.exists(path2):
+                    #    continue
                     if not os.path.exists(path1):
                         os.makedirs(path1)
 
@@ -379,43 +420,11 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
                         os.makedirs(path2)
 
                     fname = file.filename.replace("/", "_")
-
-                    try:
-                        base_content = repo.get_contents(
-                            file.filename, ref=pull.base.sha
-                        ).decoded_content.decode()
-                        logger.info(f"File: {file.filename}")
-                        logger.info("Original Content:")
-                        logger.info(base_content)
-                        logger.info("\n" + "=" * 80 + "\n")
-                        with open(os.path.join(path1, fname), "w") as f:
-                            f.write(base_content)
-                    except UnknownObjectException:
-                        logger.info(f"File: {file.filename}")
-                        logger.info("Original Content:")
-                        base_content = ""
-                        logger.info(base_content)
-                        logger.info("\n" + "=" * 80 + "\n")
-                        with open(os.path.join(path1, fname), "w") as f:
-                            f.write(base_content)
-                    try:
-                        final_merged_content = repo.get_contents(
-                            file.filename, ref=pull.head.sha
-                        ).decoded_content.decode()
-                        logger.info("\nChanged Content:")
-                        logger.info(final_merged_content)
-                        logger.info("\n" + "=" * 80 + "\n")
-                        with open(os.path.join(path2, fname), "w") as f:
-                            f.write(final_merged_content)
-                    except UnknownObjectException:
-                        final_merged_content = ""
-                        logger.info(f"File: {file.filename}")
-                        logger.info("\nChanged Content:")
-                        logger.info(final_merged_content)
-                        logger.info("\n" + "=" * 80 + "\n")
-                        with open(os.path.join(path2, fname), "w") as f:
-                            f.write(final_merged_content)
-
+                    logger.info(f"Path Present for {pull.number} {path_b0_present}")
+                    if path_b0_present:
+                        logger.info(f"Skipping writing files for {pull.number}")
+                    else:
+                        read_and_write_file(repo, file, pull, path1, path2, fname)
                     file_comments = populate_file_comments(
                         curr_pr, comments, file.filename
                     )
