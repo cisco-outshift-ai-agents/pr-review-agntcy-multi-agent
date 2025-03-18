@@ -49,7 +49,7 @@ class PR(BaseModel):
     commits: Optional[List[Commit]] = Field(default_factory=list)
     files: Optional[List[FileObject]] = Field(default_factory=list)
     comments: Optional[List[Comment]] = Field(default_factory=list)
-    use_cases: Optional[List[str]] = Field(default_factory=list)
+    use_cases: Optional[List[Dict]] = Field(default_factory=list)
 
 
 class PRDataset(BaseModel):
