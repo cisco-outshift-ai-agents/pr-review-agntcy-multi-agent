@@ -1,3 +1,4 @@
+# Import necessary libraries and modules
 import os
 from github import Github
 import json
@@ -9,28 +10,35 @@ from alfred_git_data import PRDataset, PR, Comment, Commit, FileObject, CommentT
 from dateutil import parser
 import yaml
 
+# Configure logging for the script
 logger = logging.getLogger()
 formatter = logging.Formatter("%(asctime)s | %(name)s |  %(levelname)s: %(message)s")
 logger.setLevel(logging.DEBUG)
 
+# Stream handler for console logging
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.ERROR)
 stream_handler.setFormatter(formatter)
 
+# File handler for logging to a file
 logFilePath = "generation.log"
 file_handler = logging.FileHandler(filename=logFilePath)
 file_handler.setFormatter(formatter)
 file_handler.setLevel(logging.INFO)
 
+# Add handlers to the logger
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
+# Set the default logging level
 logging.basicConfig(level=logging.ERROR)
 
 
+# Function to populate commit details into a PR object
 def populate_commits(pr, commits_data):
     for commit in commits_data:
         try:
+            # Create a Commit object and populate its attributes
             curr_commit = Commit()
             curr_commit.commit_sha = commit.sha
             curr_commit.commit_author = commit.author.login if commit.author else "None"
@@ -42,9 +50,11 @@ def populate_commits(pr, commits_data):
     return pr
 
 
+# Function to populate issue comments into a PR object
 def populate_issue_comments(pr, issue_comments):
-    for ic in issue_comments:  # this doesn't have a comment commit id
+    for ic in issue_comments:
         try:
+            # Create a Comment object for each issue comment
             comment = Comment(id=str(ic.id), type=CommentType.issue)
             comment.user = ic.user.login
             comment.comment = ic.body
@@ -52,13 +62,14 @@ def populate_issue_comments(pr, issue_comments):
             pr.comments.append(comment)
         except Exception as e:
             logger.error(f"issue with processing issue_comment: {e}")
-
     return pr
 
 
+# Function to populate review comments into a PR object
 def populate_review_comments(pr, review_comments):
     for rev in review_comments:
         try:
+            # Create a Comment object for each review comment
             comment = Comment(id=str(rev.id), type=CommentType.review)
             comment.user = rev.user.login
             comment.comment = rev.body
@@ -70,16 +81,20 @@ def populate_review_comments(pr, review_comments):
     return pr
 
 
+# Function to populate file-specific comments into a PR object
 def populate_file_comments(pr, comments, filename):
     file_comments = []
     for comment in comments:
         try:
+            # Skip comments not related to the specified file
             if comment.path != filename:
                 continue
+            # Determine the commenter
             if comment.user is not None:
                 commenter = comment.user.login
             else:
                 commenter = "None"
+            # Create a Comment object for each file comment
             file_comment = Comment(id=str(comment.id), type=CommentType.filec)
             file_comment.comment_timestamp = parser.parse(str(comment.created_at))
             file_comment.commit_id = str(comment.commit_id)
@@ -94,30 +109,33 @@ def populate_file_comments(pr, comments, filename):
     return file_comments
 
 
+# Function to populate general PR details into a PR object
 def populate_pr(pr: PR, pull):
     try:
+        # Populate PR attributes from the pull request object
         pr.url = pull.html_url
         pr.title = pull.title
         pr.state = pull.state
         pr.body = pull.body
         pr.created_at = parser.parse(str(pull.created_at))
         pr.updated_at = parser.parse(str(pull.updated_at))
-        # pr.merged_at = str(pull.merged_at)
         pr.base_branch = pull.base.ref
         pr.final_merged_branch = pull.head.ref
-        # pr.author = pull.user.login
     except Exception as e:
         logger.error(f"Problem with PR info: {e}")
     return pr
 
 
+# Function to collect files and their comments from a pull request
 def collect_files(pr: PR, pull, repo, comments, files, folder_path):
     for file in tqdm(files):
         logger.info(f"YYY File {file.filename}")
+        # Process only Terraform files
         if file.filename.endswith(".tf") or file.filename.endswith(".tfvars"):
             logger.info(f"XXX{file.filename}")
             ofile = FileObject(filename=file.filename)
 
+            # Create necessary directories for storing file data
             pr_folder = str(pull.number)
             path0 = os.path.join(folder_path, pr_folder)
             logger.info(f"path0:{path0}")
@@ -136,6 +154,7 @@ def collect_files(pr: PR, pull, repo, comments, files, folder_path):
             fname = file.filename.replace("/", "_")
 
             try:
+                # Retrieve and save the base file content
                 base_content = repo.get_contents(
                     file.filename, ref=pull.base.sha
                 ).decoded_content.decode()
@@ -154,6 +173,7 @@ def collect_files(pr: PR, pull, repo, comments, files, folder_path):
                 with open(os.path.join(path1, fname), "w") as f:
                     f.write(base_content)
             try:
+                # Retrieve and save the final merged file content
                 final_merged_content = repo.get_contents(
                     file.filename, ref=pull.head.sha
                 ).decoded_content.decode()
@@ -170,6 +190,7 @@ def collect_files(pr: PR, pull, repo, comments, files, folder_path):
                 logger.info("\n" + "=" * 80 + "\n")
                 with open(os.path.join(path2, fname), "w") as f:
                     f.write(final_merged_content)
+            # Populate file comments
             file_comments = populate_file_comments(pr, comments, file.filename)
             ofile.comments = file_comments
 
@@ -238,6 +259,7 @@ def collect_commit_files(repo, commit_obj, loc):
                 file.write(changed_code)
 
 
+# Function to extract comments from merged pull requests that include Terraform files
 def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=True):
     """
     Extracts comments from merged pull requests that include Terraform files.
@@ -322,50 +344,9 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
 
             # Get issue comments:
             issue_comments = pull.get_issue_comments()
-            # issue_comments_list = []
-
-            # for ic in issue_comments:  # this doesn't have a comment commit id
-            #     comment_id = ic.id
-            #     comment_author = ic.user.login
-            #     comment_body = ic.body
-            #     comment_timestamp = ic.created_at
-            #     issue_comments_list.append(
-            #         {
-            #             "comment_id": comment_id,
-            #             "comment_author": comment_author,
-            #             "comment_body": comment_body,
-            #             "comment_timestamp": comment_timestamp,
-            #         }
-            #     )
             curr_pr = populate_issue_comments(curr_pr, issue_comments)
-            # sorted_ic_dic = sorted(
-            #     issue_comments_list, key=lambda issue: issue["comment_timestamp"]
-            # )
 
             reviews = pull.get_reviews()
-            # reviews_dic = {}
-
-            # for rev in reviews:  # this doesnt have a timestamp # no original commit id
-            #     comment_id = rev.id
-            #     comment_author = rev.user.login
-            #     comment_body = rev.body
-            #     comment_commit_id = rev.commit_id
-            #     if comment_id not in reviews_dic:
-            #         reviews_dic[comment_id] = [
-            #             {
-            #                 "comment_author": comment_author,
-            #                 "comment_body": comment_body,
-            #                 "comment_commit_id": comment_commit_id,
-            #             }
-            #         ]
-            #     else:
-            #         reviews_dic[comment_id].append(
-            #             {
-            #                 "comment_author": comment_author,
-            #                 "comment_body": comment_body,
-            #                 "comment_commit_id": comment_commit_id,
-            #             }
-            #         )
             curr_pr = populate_review_comments(curr_pr, reviews)
             logger.info(f"url: {pull.html_url}")
             path0 = os.path.join(folder_path, str(pull.number))
@@ -435,75 +416,11 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
                         with open(os.path.join(path2, fname), "w") as f:
                             f.write(final_merged_content)
 
-                    # comm_lt = []
-                    # for comment in comments:
-                    #     if comment.path == file.filename:
-                    #         if comment.user is not None:
-                    #             commenter = comment.user.login
-                    #         else:
-                    #             commenter = "None"
-                    #         comm_lt.append(
-                    #             {
-                    #                 "id": comment.id,
-                    #                 "comment_timestamp": comment.created_at,
-                    #                 "commit_id": comment.commit_id,
-                    #                 "original_commit_id": comment.original_commit_id,
-                    #                 "user": commenter,
-                    #                 "comment": comment.body,
-                    #             }
-                    #         )
-                    #         # logger.info("*************")
                     file_comments = populate_file_comments(
                         curr_pr, comments, file.filename
                     )
                     ofile.comments = file_comments
-                    # sorted_comm_lt = sorted(
-                    #     comm_lt, key=lambda commt: commt["comment_timestamp"]
-                    # )
-
-                    # if pull.number not in comm_dict:
-                    #     comm_dict[pull.number] = []
-                    #     comm_dict[pull.number].append(
-                    #         {
-                    #             "title": pull.title,
-                    #             "url": pull.html_url,
-                    #             "filename": file.filename,
-                    #             "state": pull.state,
-                    #             "body": pull.body,
-                    #             "created_at": str(pull.created_at),
-                    #             "updated_at": str(pull.updated_at),
-                    #             "merged_at": str(pull.merged_at),
-                    #             "base_branch": pull.base.ref,
-                    #             "final_merged_branch": pull.head.ref,
-                    #             "Author": pull.user.login,
-                    #             "Commits": commits_list,
-                    #             "File_Comments": sorted_comm_lt,
-                    #             "Issue_Comments": sorted_ic_dic,
-                    #             "Review_Comments": reviews_dic,
-                    #         }
-                    #     )
-                    # else:
-                    #     comm_dict[pull.number].append(
-                    #         {
-                    #             "title": pull.title,
-                    #             "url": pull.html_url,
-                    #             "filename": file.filename,
-                    #             "state": pull.state,
-                    #             "body": pull.body,
-                    #             "created_at": str(pull.created_at),
-                    #             "updated_at": str(pull.updated_at),
-                    #             "merged_at": str(pull.merged_at),
-                    #             "base_branch": pull.base.ref,
-                    #             "final_merged_branch": pull.head.ref,
-                    #             "Author": pull.user.login,
-                    #             "Commits": commits_list,
-                    #             "File_Comments": sorted_comm_lt,
-                    #             "Issue_Comments": sorted_ic_dic,
-                    #             "Review_Comments": reviews_dic,
-                    #         }
-                    #     )
                     curr_pr.files.append(ofile)
-            # logger.info(comm_dict)
             curr_pr.comments = sorted(
                 curr_pr.comments, key=lambda commt: commt.comment_timestamp
             )
@@ -511,7 +428,6 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
             logger.info("-" * 30)
             if limit and ct >= 15:
                 break
-    # return comm_dict, sorted_merged_pulls, dst_prs
     return dst_prs
 
 
@@ -528,23 +444,12 @@ if __name__ == "__main__":
         )
     logger.info(f"***Processing data from REPO: {repo_name}****")
     prs_dst = extract_terraform_pr_comments(repo_name, github_token, limit=True)
-    # pr_comments, key3, prs_dst = extract_terraform_pr_comments(
-    #     repo_name, github_token, limit=False
-    # )
-    # logger.info(len(pr_comments))
-    # key2 = pr_comments.keys()
-    # logger.info(key2)
     logger.info(("****@@@@@@@_____"))
-
-    # difference = [item for item in key2 if item not in key3]
-    # logger.info(difference)
 
     reps = repo_name.split("/")
     file_name = f"{'_'.join(reps)}v1.json".lower()
     local_dir = "dataset"
     os.makedirs(local_dir, exist_ok=True)
-    # with open(os.path.join(local_dir, file_name), "w") as file:
-    #     json.dump(pr_comments, file, default=str)
 
     with open(os.path.join(local_dir, file_name.replace("v1", "")), "w") as outfile:
         outfile.write(prs_dst.model_dump_json(indent=4))
