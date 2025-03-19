@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch
 from github import Github, UnknownObjectException
 from alfred_git_data import PR, CommentType
 from dateutil import parser
-from alfred.eval.github_data_collection import (
+from eval.github_data_collection import (
     populate_commits,
     populate_issue_comments,
     populate_review_comments,
