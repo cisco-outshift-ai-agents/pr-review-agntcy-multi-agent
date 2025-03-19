@@ -9,6 +9,7 @@ ggrandparent_dir = os.path.dirname(grandparent_dir)
 pkg_dir = os.path.dirname(ggrandparent_dir)
 
 print(f"Parent dir {parent_dir} G2 {ggrandparent_dir} PGK:{pkg_dir}")
+sys.path.append(parent_dir)
 sys.path.append(pkg_dir)
 from unittest.mock import MagicMock, patch
 from github import Github, UnknownObjectException
