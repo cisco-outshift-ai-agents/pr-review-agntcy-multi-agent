@@ -10,7 +10,7 @@ Alfred is a GitHub application designed to help developers improve their pull re
 
 ### SaaS Installation
 
-TBD
+TBD 
 
 ### Local Run
 
@@ -57,23 +57,23 @@ TBD
    - `AZURE_OPENAI_API_VERSION`
    - set `ENVIRONMENT` to `"local"`
 
-##### Automatic way to install python environment with dependecies
+##### Automatic way to install python environment with dependencies
 
 Run `make setup` in this project folder
 
-##### Manual way to install with dependecies
+##### Manual way to install with dependencies
 
-1. Install [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) and install Python 3.12.6
+1. Install [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) and install Python 3.12.9
    ```bash
    brew update && brew install pyenv &&
-   pyenv install 3.12.6
+   pyenv install 3.12.9
    ```
 2. Create venv and activate
    ```bash
-   ~/.pyenv/versions/3.12.6/bin/python3 -m venv .venv &&
+   ~/.pyenv/versions/3.12.9/bin/python3 -m venv .venv &&
    source .venv/bin/activate
    ```
-3. Install [poetry](https://python-poetry.org/docs/#installing-manually) and install project dependecies
+3. Install [poetry](https://python-poetry.org/docs/#installing-manually) and install project dependencies
    ```bash
    pip install -U pip setuptools;
    pip install poetry &&

@@ -46,9 +46,9 @@ format:
 .PHONY: setup
 setup:
 	brew update && brew install pyenv && \
-	pyenv install 3.12.6
+	pyenv install 3.12.9
 
-	~/.pyenv/versions/3.12.6/bin/python3 -m venv .venv && \
+	~/.pyenv/versions/3.12.9/bin/python3 -m venv .venv && \
 	source .venv/bin/activate
 
 	pip install -U pip setuptools; \
