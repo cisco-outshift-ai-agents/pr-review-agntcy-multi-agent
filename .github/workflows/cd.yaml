@@ -14,7 +14,8 @@ permissions:
 jobs:
   set-environment-variables:
     name: Set Environment Variables
-    runs-on: ubuntu
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
     outputs:
       image_name: ${{ steps.set-environment-variables.outputs.IMAGE_NAME }}
       image_tag: ${{ steps.set-environment-variables.outputs.IMAGE_TAG }}
@@ -102,7 +103,8 @@ jobs:
   deploy-lambda:
     name: Deploy Lambda
     needs: [ call-docker-build-push, set-environment-variables ]
-    runs-on: ubuntu
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
     container:
       image: ${{ vars.SRE_BUILD_IMAGE }}
       options: --user root
@@ -196,7 +198,8 @@ jobs:
     # This should be an array of ALL active jobs that are used/run
     needs: [ set-environment-variables, deploy-lambda, call-docker-build-push ]
     if: always()
-    runs-on: ubuntu
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
     steps:
       - name: report success
         if: ${{ cancelled() || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'failure') }}
