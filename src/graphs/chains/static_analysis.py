@@ -22,10 +22,7 @@ def create_static_analyzer_chain(model: BaseChatModel) -> RunnableSerializable[d
 
     prompt = ChatPromptTemplate.from_messages(
         [
-            (
-                "system",
-                system_message,
-            ),
+            ("system",system_message),
             ("user", "{linter_outputs}"),
         ]
     )

@@ -41,33 +41,18 @@ class StaticAnalyzer:
 
         try:
             tf_validate_out = run(
-                ["terraform", "validate", "-no-color"],
+            ["terraform", "validate", "-no-color"],
+            cwd=output_folder,
+            capture_output=True,
+            text=True,
+            )
+
+            tflint_out = run(
+                ["tflint", "--format=compact", "--recursive"],
                 cwd=output_folder,
-                stdout=PIPE,
-                stderr=PIPE,
+                capture_output=True,
                 text=True,
             )
-            lint_stdout, lint_stderr = "", "":qsrc/graphs/nodes/static_analyzer.py
-            # If terraform validate passes, run tflint
-            if tf_validate_out.returncode == 0:
-                # Need tf init to download the necessary third party dependencies, otherwise most linters would fail
-                run(
-                    ["terraform", "init", "-backend=false"],
-                    check=True,
-                    cwd=output_folder,
-                    capture_output=True,
-                    text=True,
-                )
-
-                tflint_out = run(
-                    ["tflint", "--format=compact", "--recursive"],
-                    cwd=output_folder,
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    text=True,
-                )
-                lint_stdout = tflint_out.stdout
-                lint_stderr = tflint_out.stderr
         except CalledProcessError as e:
             log.error(f"Error while running static checks: {e.stderr}")
             return {}
@@ -91,9 +76,8 @@ class StaticAnalyzer:
                         f"{tf_validate_out.stdout}",
                         "",
                         "tflint output:",
-                        f"{lint_stderr}",
-                        f"{lint_stdout}",
-                    )
+                        f"{tflint_out.stderr}",
+                        f"{tflint_out.stdout}",)
                 }
             )
 
