@@ -14,6 +14,7 @@ permissions:
 jobs:
   set-environment-variables:
     name: Set Environment Variables
+    runs-on: ubuntu
     outputs:
       image_name: ${{ steps.set-environment-variables.outputs.IMAGE_NAME }}
       image_tag: ${{ steps.set-environment-variables.outputs.IMAGE_TAG }}
