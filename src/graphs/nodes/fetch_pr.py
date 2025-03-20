@@ -18,12 +18,12 @@ class FetchPR:
     terraform_file_types_review_allowed = (".tf", ".tfvars")
     terraform_file_types_push_forbidden = (".tfplan", ".tfstate")
     file_type_warning_template = "The following files are not suggested being pushed to the repository, since those likely contain sensitive data:"
-    pr_files: list[File] = []
-    pr_files_to_review: list[File] = []
 
     def __init__(self, context: DefaultContext, name: str = "fetch_pr"):
         self.context = context
         self.name = name
+        self.pr_files: list[File] = []
+        self.pr_files_to_review: list[File] = []
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name}: called")

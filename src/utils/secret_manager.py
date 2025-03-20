@@ -2,6 +2,8 @@ import base64
 import binascii
 import json
 import os
+import uuid
+from datetime import datetime
 from typing import Optional, Dict, Any, Literal, List, Union
 
 import boto3
@@ -11,6 +13,12 @@ from utils.constants import ENVIRONMENT_ENV, GCP_SERVICE_ACCOUNT_FILE_PATH_ENV, 
     GITHUB_APP_PRIVATE_KEY_FILE_PATH_ENV, GITHUB_APP_PRIVATE_KEY_ENV, AZURE_OPENAI_API_KEY_ENV, AWS_SECRET_REGION_ENV, \
     GITHUB_WEBHOOK_SECRET_ENV, AWS_SECRET_NAME_ENV, AWS_GCP_SA_SECRET_NAME_ENV
 from utils.logging_config import logger as log
+
+unique_id = uuid.uuid4()
+timestamp = datetime.now().isoformat()
+
+log.info(
+    f"Launching Alfred app instance - [ID: {unique_id}] [Timestamp: {timestamp}] ")
 
 
 class SecretManager:

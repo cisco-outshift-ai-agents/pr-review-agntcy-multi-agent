@@ -58,6 +58,7 @@ class GitHubOperations:
             self._repo: Repository = self._github.get_repo(repo_name)
             if pr_number:
                 self._pr: PullRequest = self._repo.get_pull(pr_number)
+                log.debug(f"PR #{pr_number}: {self._pr}")
         except Exception as e:
             log.error(f"Failed to initialize GitHub client: {e}")
             raise InvalidGitHubInitialization(f"Failed to initialize GitHub client: {e}") from e
