@@ -82,7 +82,6 @@ jobs:
       ghcr-username: ${{ secrets.GHCR_USERNAME }}
       ghcr-token: ${{ secrets.GHCR_TOKEN }}
       ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     with:
       ### REQUIRED
       runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
