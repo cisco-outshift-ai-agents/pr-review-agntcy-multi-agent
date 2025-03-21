@@ -1,5 +1,5 @@
 # Use the official Python image from the Docker Hub
-FROM public.ecr.aws/lambda/python:3.12 as base
+FROM ghcr.io/cisco-outshift-alfred/lambda/python:3.12.9 as base
 
 WORKDIR /app
 
