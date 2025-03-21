@@ -73,8 +73,6 @@ jobs:
     name: Call Docker Build & Push
     needs: [ set-environment-variables ]
     uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
-    permissions:
-      packages: read
     secrets:
       # Only needed if with:ecr-enabled or with:gar-enabled is true below
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
