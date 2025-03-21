@@ -1,7 +1,13 @@
 name: Pull and Push Python Image
 
 on:
-  workflow_dispatch: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "main"
+  workflow_dispatch:
 
 jobs:
   pull-and-push:
