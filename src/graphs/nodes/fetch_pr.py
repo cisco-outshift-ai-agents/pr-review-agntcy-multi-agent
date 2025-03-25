@@ -154,6 +154,9 @@ class FetchPR:
             new_filetype_restriction_comment = IssueComment(body=wrong_files_to_push_message, conditions=[self.file_type_warning_template])
             new_issue_comments.append(new_filetype_restriction_comment)
 
+        # get github details for static analyzer
+        github_details = self.context.github.get_github_details()
+
         log.debug(f"""
         fetch pr finished.
         changes: {json.dumps(changes, indent=4)},
@@ -173,6 +176,7 @@ class FetchPR:
             "new_issue_comments": new_issue_comments,
             # "modified_files": modified_files,
             "context_files": context_files,
+            "github_details": github_details,
         }
 
     def __get_modified_files(self) -> List[ContextFile]:

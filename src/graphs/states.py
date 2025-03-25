@@ -16,7 +16,13 @@ class FileChange(TypedDict):
     status: str
 
 
+class GithubRequest(TypedDict):
+    repo_url: str
+    branch: str
+    github_token: str
+
 class GitHubPRState(TypedDict):
+    github_details: GithubRequest
     changes: list[FileChange]
     context_files: list[ContextFile]
     description: str

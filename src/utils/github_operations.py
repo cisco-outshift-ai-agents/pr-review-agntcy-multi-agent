@@ -54,11 +54,14 @@ class GitHubOperations:
             raise InvalidGitHubInitialization("Invalid input parameters")
 
         try:
-            self._github: Github = self._init_github(installation_id)
+            self._github_token: str = self._get_access_token(installation_id)
+            self._github: Github = self._init_github(self._github_token)
+            log.info("GitHub client initialized successfully")
             self._repo: Repository = self._github.get_repo(repo_name)
             if pr_number:
                 self._pr: PullRequest = self._repo.get_pull(pr_number)
                 log.debug(f"PR #{pr_number}: {self._pr}")
+            log.info("GitHub repository and pull request initialized successfully")
         except Exception as e:
             log.error(f"Failed to initialize GitHub client: {e}")
             raise InvalidGitHubInitialization(f"Failed to initialize GitHub client: {e}") from e
@@ -71,23 +74,24 @@ class GitHubOperations:
     def pr(self) -> PullRequest:
         return self._pr
 
-    def _init_github(self, installation_id: str) -> Github:
+    def _init_github(self, github_token: str) -> Github:
         """Initialize GitHub client with app credentials"""
         try:
-            if secret_manager is None:
-                raise ValueError("Secret manager is not initialized")
-
-            private_key = secret_manager.github_app_private_key
-            app_id = self._get_app_id()
-            git_integration = GithubIntegration(auth=github.Auth.AppAuth(app_id, private_key))
-
-            github_token = git_integration.get_access_token(int(installation_id)).token
-            self.__github_token = github_token
-
             return Github(github_token)
         except Exception as e:
             log.error(f"Invalid GitHub credentials: {e}")
             raise
+
+    def _get_access_token(self, installation_id: str) -> str:
+        if secret_manager is None:
+            raise ValueError("Secret manager is not initialized")
+
+        private_key = secret_manager.github_app_private_key
+        app_id = self._get_app_id()
+        git_integration = GithubIntegration(auth=github.Auth.AppAuth(app_id, private_key))
+
+        github_token = git_integration.get_access_token(int(installation_id)).token
+        return github_token
 
     @staticmethod
     def _get_app_id() -> str:
@@ -96,6 +100,13 @@ class GitHubOperations:
         if not app_id:
             raise ValueError("GITHUB_APP_ID environment variable is not set")
         return app_id
+
+    def get_github_details(self) -> dict:
+        return {
+            "repo_url": self._repo.html_url,
+            "branch": self._pr.head.ref,
+            "github_token": self._github_token,
+        }
 
     def create_comments(
         self,
@@ -163,7 +174,7 @@ class GitHubOperations:
 
         zip_link = repo.get_archive_link("zipball", pr.head.ref)
 
-        response = requests.get(zip_link, headers={"Authorization": f"token {self.__github_token}"})
+        response = requests.get(zip_link, headers={"Authorization": f"token {self._github_token}"})
 
         if response.status_code != HTTPStatus.OK:
             raise ValueError(f"Error while downloading the repo as ZIP, status code: {response.status_code}")

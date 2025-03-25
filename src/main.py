@@ -17,7 +17,7 @@ set_environment_variables()
 
 
 @lambda_validate_github_signature
-def handle_event(event: dict[str, Any], context):
+async def handle_event(event: dict[str, Any], context):
     # The body is coming as a stringified json object, the headers is a proper dict
     body_string: str = event.get("body", "")
     headers: dict[str, Any] = event.get("headers", {})
@@ -31,5 +31,5 @@ def handle_event(event: dict[str, Any], context):
     except json.JSONDecodeError as _e:
         return lambdaResponse("Invalid request body", HTTPStatus.BAD_REQUEST)
 
-    res = handle_github_event(payload, x_github_event)
+    res = await handle_github_event(payload, x_github_event)
     return lambdaResponse("", res.status_code)

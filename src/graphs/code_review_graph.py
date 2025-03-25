@@ -1,3 +1,4 @@
+import os
 from langgraph.graph import StateGraph
 
 from config import ConfigManager
@@ -22,7 +23,12 @@ from graphs.nodes import (
     CrossReferenceInitializer,
     CrossReferenceCommenter,
 )
+from graphs.nodes.remote_graphs.ap.static_analyzer import stateless_remote_static_analyzer_request
+from graphs.nodes.remote_graphs.ap.code_reviewer import stateless_remote_code_review_request
+from graphs.nodes.remote_graphs.agp.static_analyzer import node_remote_agp
+from graphs.nodes.remote_graphs.agp.code_reviewer import node_remote_agp as code_reviewer_agp
 from graphs.states import GitHubPRState, create_default_github_pr_state
+from utils.constants import AGENT_MODE_ENV
 from utils.github_operations import GitHubOperations
 from utils.logging_config import logger as log
 from utils.modelfactory import models
@@ -67,12 +73,29 @@ class CodeReviewerWorkflow:
         )
         self.comment_filterer_context = DefaultContext(chain=create_comment_filter_chain(self.model))
 
-    def run(self):
-        workflow = StateGraph(GitHubPRState)
-
+    async def run(self):
+        agent_mode = os.getenv(AGENT_MODE_ENV, "local").lower()
+        log.info(f"Running in {agent_mode} mode")
+        workflow = StateGraph( GitHubPRState)
+ 
         workflow.add_node("fetch_pr", FetchPR(self.github_context))
-        workflow.add_node("static_analyzer", StaticAnalyzer(self.static_analyzer_context))
-        workflow.add_node("code_reviewer", CodeReviewer(self.code_review_context))
+        if agent_mode == "local":
+            workflow.add_node("static_analyzer", StaticAnalyzer(self.static_analyzer_context))
+            workflow.add_node("code_reviewer", CodeReviewer(self.code_review_context))
+        elif agent_mode == "langchain_ap":
+            workflow.add_node(
+                "static_analyzer",
+                lambda state: stateless_remote_static_analyzer_request(state, "http://localhost:8133/api/v1/runs")
+            )
+            workflow.add_node(
+                "code_reviewer",
+                lambda state: stateless_remote_code_review_request(state, "http://localhost:8123/api/v1/runs")
+            )
+        elif agent_mode == "agp":
+            workflow.add_node("static_analyzer", node_remote_agp)
+            workflow.add_node("code_reviewer", code_reviewer_agp)
+        else:
+            raise ValueError(f"Invalid agent mode: {agent_mode}. Must be one of 'local', 'langchain_ap', 'agp'")
         workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_context))
         workflow.add_node("comment_filterer", CommentFilterer(self.comment_filterer_context))
         workflow.add_node("cross_reference_initializer", CrossReferenceInitializer(self.github_context))
@@ -101,4 +124,5 @@ class CodeReviewerWorkflow:
 
         init_state = create_default_github_pr_state()
         graph = workflow.compile()
-        return graph.invoke(init_state)
+        result = await graph.ainvoke(init_state)
+        return result

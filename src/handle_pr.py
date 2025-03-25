@@ -11,7 +11,7 @@ from utils.github_operations import CheckRunConclusion, GitHubOperations
 from utils.logging_config import logger as log
 
 
-def handle_github_event(payload: dict[str, Any], github_event: str):
+async def handle_github_event(payload: dict[str, Any], github_event: str):
     try:
         log.debug(f"Header: {github_event}")
         if github_event == "pull_request" and payload["pull_request"]["head"]["ref"] != ALFRED_CONFIG_BRANCH:
@@ -29,7 +29,7 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
                 pr_number = payload["issue"]["number"]
                 repo_name = payload["repository"]["full_name"]
                 installation_id = payload["installation"]["id"]
-                handle_pull_request(pr_number, repo_name, installation_id)
+                await handle_pull_request(pr_number, repo_name, installation_id)
         # TODO: handle installation correctly
         # elif github_event == "installation" and payload.get("action") == "created":
         #     handle_installation(payload, "repositories")
@@ -44,7 +44,7 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
         return JSONResponse(content={"status": "server error"}, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
+async def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
     github_ops = GitHubOperations(str(installation_id), repo_name, pr_number)
     check_run = github_ops.create_pull_request_check_run()
 
@@ -53,7 +53,8 @@ def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
         agency_provider = os.environ.get("agency_provider")
         if agency_provider is None or agency_provider == "graph":
             graph = CodeReviewerWorkflow(str(installation_id), repo_name, pr_number)
-            print(graph.run())
+            result = await graph.run()
+            print(result)
     except Exception as e:
         log.error("Error handling pull request", e)
         github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure)

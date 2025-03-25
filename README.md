@@ -57,6 +57,8 @@ TBD
    - `AZURE_OPENAI_API_VERSION`
    - set `ENVIRONMENT` to `"local"`
 
+2. If planning on running remote agents, set `AGENT_MODE` to `agp` or `langchain_ap` based on your requirements.
+
 ##### Automatic way to install python environment with dependencies
 
 Run `make setup` in this project folder

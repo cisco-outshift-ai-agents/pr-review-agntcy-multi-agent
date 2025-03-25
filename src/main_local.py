@@ -21,7 +21,8 @@ async def webhook(request: Request):
         raise HTTPException(HTTPStatus.BAD_REQUEST, "missing x-github-event header")
 
     payload = await request.json()
-    return handle_pr.handle_github_event(payload, x_github_event)
+    result = await handle_pr.handle_github_event(payload, x_github_event)
+    return result
 
 
 if __name__ == "__main__":
