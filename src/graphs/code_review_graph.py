@@ -30,6 +30,8 @@ from utils.modelfactory import models
 
 class CodeReviewerWorkflow:
     def __init__(self, installation_id: str, repo_name: str, pr_number: int):
+        log.debug(
+            f"Initializing CodeReviewerWorkflow with installation_id: {installation_id}, repo_name: {repo_name}, pr_number: {pr_number}")
         github_ops = GitHubOperations(installation_id, repo_name, pr_number)
         config_manager = ConfigManager(github_ops)
         user_config = config_manager.load_config()

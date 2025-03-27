@@ -2,6 +2,7 @@ from typing import Dict, Any
 
 from langgraph.constants import END
 from langgraph.graph import StateGraph
+from utils.logging_config import logger as log
 
 from graphs.chains import create_review_chat_assistant_chain
 from graphs.nodes import (
@@ -29,6 +30,8 @@ BOT_USER_TYPE = "Bot"
 
 class ReviewChatWorkflow:
     def __init__(self, installation_id: int, pr_number: int, repo_name: str, comment: Dict[str, Any]):
+        log.debug(
+            f"Initializing ReviewChatWorkflow with installation_id: {installation_id}, pr_number: {pr_number}, repo_name: {repo_name}, comment: {comment}")
         self.__repo_name = repo_name
         self.__pr_number = pr_number
         self.__comment = comment

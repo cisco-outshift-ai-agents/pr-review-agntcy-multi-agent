@@ -25,7 +25,7 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
             # Get the comment body and convert to lowercase for case-insensitive comparison
             comment_body = payload["comment"]["body"].lower()
             # Check if both "@alfred" and "review" appear in the comment in that order
-            if "alfred" in comment_body and "review" in comment_body[comment_body.index("alfred") :]:
+            if "alfred" in comment_body and "review" in comment_body[comment_body.index("alfred"):]:
                 pr_number = payload["issue"]["number"]
                 repo_name = payload["repository"]["full_name"]
                 installation_id = payload["installation"]["id"]
@@ -35,12 +35,14 @@ def handle_github_event(payload: dict[str, Any], github_event: str):
         #     handle_installation(payload, "repositories")
         # elif github_event == "installation_repositories" and payload.get("action") == "added":
         #     handle_installation(payload, "repositories_added")
-        elif github_event == "pull_request_review_comment" and payload.get("action") in ["created"] and __is_commented_by_human(payload):
+        elif github_event == "pull_request_review_comment" and payload.get("action") in [
+            "created"] and __is_commented_by_human(payload):
             # TODO: handle edited comments
             handle_pull_request_comment(payload)
         return JSONResponse(content={"status": "ok"})
     except Exception as e:
         log.error(f"Error processing webhook: {e}")
+        log.debug(f"Error processing webhook: Payload: {payload}")
         return JSONResponse(content={"status": "server error"}, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
@@ -56,11 +58,13 @@ def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
             print(graph.run())
     except Exception as e:
         log.error("Error handling pull request", e)
+        log.debug(f"Error handling pull request: repo: {repo_name}, pr number:{pr_number}, installation id:{installation_id}")
         github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure)
 
         raise
 
     github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success)
+
 
 def handle_installation(payload, repositories_key):
     try:
@@ -95,9 +99,12 @@ def handle_pull_request_comment(payload):
     installation_id = payload.get("installation", {}).get("id")
     if installation_id is None:
         raise ValueError("Installation ID is missing in the payload")
+    log.debug(
+        f"Handling pull request comment: comment={comment}, repo_name={repo_name}, pr_number={pr_number}, installation_id={installation_id}")
 
     graph = ReviewChatWorkflow(installation_id, pr_number, repo_name, comment)
     print(graph.run())
+#     todo - better exception handling for ReviewChatWorkflow
 
 
 def __is_commented_by_human(payload: dict[str, Any]) -> bool:
