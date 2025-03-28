@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass
 from enum import Enum
 from http import HTTPStatus
 from typing import Optional
-
+from openai import BadRequestError
 import github.Auth
 import requests
 from github import Github, GithubException, GithubIntegration, UnknownObjectException
@@ -199,18 +199,18 @@ class GitHubOperations:
         return self._repo.create_check_run(name="Alfred review", head_sha=self._pr.head.sha, status="in_progress")
 
     @staticmethod
-    def complete_pull_request_check_run(check_run: CheckRun, conclusion: CheckRunConclusion, error_message: str):
+    def complete_pull_request_check_run(check_run: CheckRun, conclusion: CheckRunConclusion, error = None):
         try:
-            if conclusion.name == "success":
-                log.info("Check run completed successfully")
-                check_run.edit(status="completed", conclusion=conclusion.name, output={"title": "PR review successful", "summary": "Alfred review completed successfully"})
-            else:
-                log.info("Check run completed with failure")
-                check_run.edit(
-                    status="completed",
-                    conclusion=conclusion.name,
-                    output={"title": "PR review failed", "summary": error_message},
-                )
+            if error or conclusion.name == "failure":
+                if type(error) == BadRequestError:
+                    check_run.edit(status="completed", conclusion=conclusion.name,
+                                   output={
+                                       "title": "Context Window Exceeded Error",  # Provide a title
+                                       "summary": "The context window exceeded the allowable size. Please check the input data.",
+                                       # Provide a summary
+                                       "text": "Error: The input exceeds the allowed token limit."
+                                   })
+            check_run.edit(status="completed", conclusion=conclusion.name)
         except Exception as e:
             log.error(f"Unable to edit pull request check run: {e}")
 
