@@ -57,6 +57,7 @@ class ChatModelFactory:
             api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
             api_key=SecretStr(secret_manager.azure_openai_api_key),
             temperature=0,
+            request_timeout=60, # Increase timout
         )
 
 

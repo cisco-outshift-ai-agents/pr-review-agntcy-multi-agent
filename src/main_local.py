@@ -22,10 +22,11 @@ async def webhook(request: Request):
 
     payload = await request.json()
     result = await handle_pr.handle_github_event(payload, x_github_event)
+    print("The resopnse of the handle github event", result)
     return result
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main_local:app", host="0.0.0.0", port=5500, reload=False, log_level="debug")
+    uvicorn.run("main_local:app", host="0.0.0.0", port=5500, reload=False, log_level="debug", timeout_keep_alive=3600)

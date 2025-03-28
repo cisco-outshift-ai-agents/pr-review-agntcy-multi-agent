@@ -1,9 +1,8 @@
 import os
 from http import HTTPStatus
 from typing import Any
-
+import openai
 from fastapi.responses import JSONResponse
-
 from config import ConfigManager
 from graphs import CodeReviewerWorkflow, ReviewChatWorkflow
 from utils.constants import ALFRED_CONFIG_BRANCH
@@ -29,7 +28,10 @@ async def handle_github_event(payload: dict[str, Any], github_event: str):
                 pr_number = payload["issue"]["number"]
                 repo_name = payload["repository"]["full_name"]
                 installation_id = payload["installation"]["id"]
-                await handle_pull_request(pr_number, repo_name, installation_id)
+                pull_request_result =  handle_pull_request(pr_number, repo_name, installation_id)
+                if not pull_request_result[0]:
+                    # The context window limit exceed error or openAI timeout error
+                    return JSONResponse(content=pull_request_result[1], status_code=HTTPStatus.OK)
         # TODO: handle installation correctly
         # elif github_event == "installation" and payload.get("action") == "created":
         #     handle_installation(payload, "repositories")
@@ -56,12 +58,22 @@ async def handle_pull_request(pr_number: int, repo_name: str, installation_id: i
             result = await graph.run()
             print(result)
     except Exception as e:
+        # If the error is due to openAI connection Error
+        if type(e) == openai.APIConnectionError:
+            log.error("Error handling pull request because of open AI timeout", openai.APIConnectionError.message)
+            return [False, "APIConnectionError"]
+        # If the error is due to token limit exceed
+        if type(e) == openai.BadRequestError:
+            log.error("Error handling pull request because of open AI timeout", openai.BadRequestError.message)
+            github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure, e)
+            return [False, "BadRequestError"]
         log.error("Error handling pull request", e)
         github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure)
 
         raise
 
     github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success)
+    return [True,"Successful"]
 
 def handle_installation(payload, repositories_key):
     try:
