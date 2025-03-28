@@ -22,6 +22,7 @@ async def webhook(request: Request):
 
     payload = await request.json()
     result = await handle_pr.handle_github_event(payload, x_github_event)
+    print("The resopnse of the handle github event", result)
     return result
 
 
