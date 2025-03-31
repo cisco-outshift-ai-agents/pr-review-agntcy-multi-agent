@@ -9,7 +9,6 @@ from utils.constants import ALFRED_CONFIG_BRANCH
 from utils.github_operations import CheckRunConclusion, GitHubOperations
 from utils.logging_config import logger as log
 
-
 async def handle_github_event(payload: dict[str, Any], github_event: str):
     try:
         log.debug(f"Header: {github_event}")
