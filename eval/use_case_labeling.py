@@ -21,74 +21,68 @@ def file_use_case_labeling(config, file_data, file_comment):
         azure_endpoint=config["AZURE_OPENAI_ENDPOINT"],
         api_version=f"{config['api_version']}",  # unsupported param
     )
-    
-    # Define prompt templates for different scenarios
-    judge_prompt_template = """HUMAN:
-    <role>: You are an expert on Terraform files. </role>
-    <task1> Analyze the provided diff for the Terraform file: {diff}. Determine which of the following three diff use cases apply. </task1>
-    <diff use cases>
-    1. The terraform has cross references to other files or variables.
-    2. it has network configuration, ip addresses
-    3. it has change on IAM policy
-    </diff use cases>
-    <task2> Analyze the provided diff for the Terraform file: {diff} in conjection of the comment {comment} and determiee if the following comment use cases. </task2>
-    <comment use cases>
-    4. Review comments for application of best practices for File structure & module usage
-    5. Review comments for basic TF coding best practices.
-    </comment use cases>
-    <output format> Provide your answer in a multi-label format (e.g., 1, 0, 1, 0, 0, 1) for diff use cases and comment use cases where each position corresponds to a use case, and '1' indicates applicability. </output format>
-    "
-    ANSWER:
-    """
-    judge_prompt1_template = """HUMAN:
-<role> You are an expert on Terraform files. </role>
+    judge_prompt3_task1_and_task2 = """HUMAN:
+<role> You are an expert on Terraform code with a strong understanding of its syntax, structure, and best practices. You are adept at analyzing code changes and comments to identify key aspects such as cross-references, network configurations, IAM policies, module modifications, and coding best practices. </role>
 <task 1> Analyze the provided diff for the Terraform file: {diff}. Determine which of the following diff use cases apply:
-1. The Terraform has cross references to other files or variables.
-2. It has network configuration, IP addresses.
-3. It has changes on IAM policy.
+1.	The Terraform has cross-references to other files or variables.
+2.	It has network configuration, IP addresses.
+3.	It has changes on IAM policy.
+4.	It involves modification to a module or creation of a new module.
 </task 1>
-<output format> Provide your answer in a multi-label format (e.g., 1, 0, 1, 0, 0, 1) where each position corresponds to a use case, and '1' indicates applicability.</output format>
-ANSWER:
-"""
-    judge_prompt2_template = """HUMAN:
-<role> You are an expert on Terraform files. </role>
-<task 1> Analyze the provided diff for the Terraform file: {diff}. Determine which of the following diff use cases apply:
-1. The Terraform has cross references to other files or variables.
-2. It has network configuration, IP addresses.
-3. It has changes on IAM policy.
-</task 1>
-<task 2> 
-Analyze the provided diff for the Terraform file: {diff} in conjunction with the comment {comment} and determine if the following comment use cases apply:
-1. Review comments for application of best practices for file structure and module usage.
-2. Review comments for basic Terraform coding best practices.
+<task 2> Analyze the provided comments {comment} in relation to the diff and assess the following comment use cases:
+5.	References to variables.
+6.	Module usage.
+7.	Terraform coding best practices.
 </task 2>
-<output format> Provide your answer in a multi-label format (e.g., 1, 0, 1, 0, 0, 1) for both diff use cases and comment use cases, where each position corresponds to a use case, and '1' indicates applicability.</output format>
+<output format> Provide your answer in a multi-label format (e.g., 1, 0, 1, 0, 0, 1, 0) for both diff use cases and comment use cases, where each position corresponds to a use case, and '1' indicates applicability.</output format>
 ANSWER:
 """
+
+    judge_prompt_only_task1 = """HUMAN:
+<role> You are an expert on Terraform code with a strong understanding of its syntax, structure, and best practices. You are adept at analyzing code changes and comments to identify key aspects such as cross-references, network configurations, IAM policies, module modifications, and coding best practices. </role>
+<task 1> Analyze the provided diff for the Terraform file: {diff}. Determine which of the following diff use cases apply:
+1.	The Terraform has cross-references to other files or variables.
+2.	It has network configuration, IP addresses.
+3.	It has changes on IAM policy.
+4.	It involves modification to a module or creation of a new module.
+</task 1>
+<output format> Provide your answer in a multi-label format (e.g., 1, 0, 1, 0, 0, 1, 0) for both diff use cases and comment use cases, where each position corresponds to a use case, and '1' indicates applicability.</output format>
+ANSWER:
+"""
+
     # Select the appropriate prompt template based on the presence of comments
-    judge_prompt_template = judge_prompt1_template
+    judge_prompt_template = judge_prompt3_task1_and_task2
     if file_comment:
         logging.debug(f"NOT Empty Comments: {file_comment}")
-        judge_prompt_template = judge_prompt2_template
-
+        judge_prompt_template = judge_prompt_only_task1
+    else:
+        file_comment = ""
     # Format the prompt and invoke the LLM
     judge_prompt = PromptTemplate.from_template(judge_prompt_template)
-    output = llm.invoke(judge_prompt.format(diff=file_data, comment=file_comment))
-    logging.debug(output)
+    try:
+        output = llm.invoke(judge_prompt.format(diff=file_data, comment=file_comment))
+    except Exception as e:
+        logging.error(f"Error in invoking LLM: {e}")
+        output = None
+        #logging.debug(f"Output from LLM: {output}")
+        label_values = (None, None, None, None, None, None, None)
+    #logging.debug(output)
     
     # Define label names and parse the LLM output
     label_names = (
         "cross_reference",
         "network_configuration",
         "iam_policy",
-        "application_best_practice",
+        "modification_to_module",
+        "reference_to_variable",
+        "module_usage",
         "terraform_best_practice",
     )
     try:
         label_values = eval(f"({output.content})")
     except:
-        logging.error(f"We had issue wr processing {output.content}")
-        label_values = (None, None, None, None, None)
+        logging.error(f"We had issue wr processing {output}")
+        label_values = (None, None, None, None, None, None, None)
     
     # Create a result dictionary with default values and update with parsed labels
     result = dict(zip(label_names, [0 for x in range(len(label_names))]))
