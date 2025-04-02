@@ -1,0 +1,4 @@
+  repo_name: opentofu/opentofu
+  format: tofu
+  merged_only: True
+  GITHUB_TOKEN: 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

@@ -109,6 +109,26 @@ def populate_file_comments(pr, comments, filename):
     return file_comments
 
 
+def check_file_with_extension(filename, format="tf"):
+    if format == "tf":
+        if filename.endswith(".tf") or filename.endswith(".tfvars"):
+            return True
+        else:
+            return False
+    elif format == "tofu":
+        if (
+            filename.endswith(".tf")
+            or filename.endswith(".tfvars")
+            or filename.endswith(".tofu")
+        ):
+            return True
+        else:
+            return False
+    else:
+        logger.error(f"Unknown format {format} for file {filename}")
+        return False
+
+
 # Function to populate general PR details into a PR object
 def populate_pr(pr: PR, pull):
     try:
@@ -127,11 +147,11 @@ def populate_pr(pr: PR, pull):
 
 
 # Function to collect files and their comments from a pull request
-def collect_files(pr: PR, pull, repo, comments, files, folder_path):
+def collect_files(pr: PR, pull, repo, comments, files, folder_path, repo_format):
     for file in tqdm(files):
         logger.info(f"YYY File {file.filename}")
         # Process only Terraform files
-        if file.filename.endswith(".tf") or file.filename.endswith(".tfvars"):
+        if check_file_with_extension(file.filename, format=repo_format):
             logger.info(f"XXX{file.filename}")
             ofile = FileObject(filename=file.filename)
 
@@ -195,14 +215,20 @@ def collect_files(pr: PR, pull, repo, comments, files, folder_path):
             ofile.comments = file_comments
 
 
-def collect_commit_files(repo, commit_obj, loc, skip_local_file_writing=True):
+def collect_commit_files(
+    repo,
+    commit_obj,
+    loc,
+    repo_format,
+    skip_local_file_writing=True,
+):
     folder_path = os.path.join(loc, "commits", f"{commit_obj.sha}")
     # Get the commit object to access the raw data
     # commit_obj = repo.get_commit(commit.sha)
 
     # Iterate over the files modified in the commit
     for file in commit_obj.files:
-        if not file.filename.endswith(".tf") or file.filename.endswith(".tfvars"):
+        if not check_file_with_extension(file.filename, format=repo_format):
             continue
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -301,7 +327,15 @@ def read_and_write_file(repo, file, pull, path1, path2, fname):
 
 
 # Function to extract comments from merged pull requests that include Terraform files
-def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=True):
+def extract_terraform_pr_comments(
+    repo_name,
+    github_token,
+    repo_format,
+    limit=True,
+    cache=True,
+    pr_state="closed",
+    merged_only=True,
+):
     """
     Extracts comments from merged pull requests that include Terraform files.
 
@@ -312,7 +346,7 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
     g = Github(github_token)
     repo = g.get_repo(repo_name)
     logger.info(f"Starting to extract data from {repo_name}")
-    # Retrieve closed pull requests
+    # Retrieve pull requests with the specified state
     cache_path = ".prcache"
     if cache and os.path.exists(cache_path):
         # Load data (deserialize)
@@ -320,31 +354,40 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
         with open(cache_path, "rb") as handle:
             closed_pulls = pickle.load(handle)
     else:
-        closed_pulls = repo.get_pulls(state="closed")
+        closed_pulls = repo.get_pulls(state=pr_state)
         if cache:
             logger.info(f"Writing to cache")
             with open(cache_path, "wb") as handle:
                 pickle.dump(closed_pulls, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    logger.info(f"We have list of closed PRs")
+    logger.info(f"We have list of closed PRs {closed_pulls.totalCount}")
 
     # Filter for merged pull requests and sort by merge timestamp
     merged_cache_path = ".mergedcache"
     if cache and os.path.exists(merged_cache_path):
         logger.info(f"loading from merged cache")
         with open(merged_cache_path, "rb") as handle:
-            merged_pulls = pickle.load(handle)
+            target_pulls = pickle.load(handle)
     else:
-        merged_pulls = [pr for pr in closed_pulls if pr.merged]
+        if merged_only:
+            logger.info(f"We are iterating over closed PRs to filter merged ones")
+            target_pulls = [pr for pr in tqdm(closed_pulls) if pr.merged_at is not None]
+            logger.info(f"Found {len(target_pulls)} merged PRs")
+            # Filter only merged pull requests
+            if not closed_pulls:
+                logger.warning("No merged pull requests found.")
+            # target_pulls = [pr for pr in closed_pulls if pr.merged]
+        else:
+            target_pulls = closed_pulls
         if cache:
-            logger.info(f"Writing merged to cache")
+            logger.info(f"Writing target PR to cache")
             with open(merged_cache_path, "wb") as handle:
-                pickle.dump(merged_pulls, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump(target_pulls, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    logger.info(f"The only merged PRs are {len(merged_pulls)}")
-
-    sorted_merged_pulls = sorted(merged_pulls, key=lambda pr: pr.merged_at)
-    logger.info(len(sorted_merged_pulls))
+    logger.info(f"The only target PRs are {len(target_pulls)}")
+    if merged_only and False:
+        target_pulls = sorted(target_pulls, key=lambda pr: pr.merged_at)
+        logger.info(len(target_pulls))
 
     comm_dict = {}
     folder_path = f"dataset/pr_data_latest/{repo_name}"
@@ -353,95 +396,92 @@ def extract_terraform_pr_comments(repo_name, github_token, limit=True, cache=Tru
         os.makedirs(folder_path)
     ct = 0
     dst_prs = PRDataset()
-    skip_local_file_writing = True
-    for pull in tqdm(sorted_merged_pulls):
-        if pull.merged:
-            curr_pr = PR(pr_number=pull.number)
-            path_b0 = os.path.join(folder_path, str(pull.number))
-            path_b0_present = os.path.exists(path_b0)
-            curr_pr = populate_pr(curr_pr, pull)
-            commits_data = pull.get_commits()
-            commits_list = []
-            curr_pr = populate_commits(curr_pr, commits_data)
-            for commit in commits_data:
-                collect_commit_files(
-                    repo, commit, os.path.join(folder_path, f"{curr_pr.pr_number}")
-                )
-                commit_sha = commit.sha
-                commit_author = commit.author.login if commit.author else "None"
-                commit_message = commit.commit.message
-                commit_timestamp = commit.commit.author.date
-                commits_list.append(
-                    {
-                        "commit_sha": commit_sha,
-                        "commit_author": commit_author,
-                        "commit_message": commit_message,
-                        "commit_timestamp": commit_timestamp,
-                    }
-                )
-
-            logger.info(f"Pull Request: {pull.number} - {pull.title}")
-            comments = pull.get_comments()
-
-            # Get issue comments:
-            issue_comments = pull.get_issue_comments()
-            curr_pr = populate_issue_comments(curr_pr, issue_comments)
-
-            reviews = pull.get_reviews()
-            curr_pr = populate_review_comments(curr_pr, reviews)
-            logger.info(f"url: {pull.html_url}")
-            # path0 = os.path.join(folder_path, str(pull.number))
-            # if os.path.exists(path0):
-            #    continue
-            files = pull.get_files()
-            logger.info(f"Extracting files from PR{curr_pr.pr_number}")
-            for file in tqdm(files):
-                logger.info(f"YYY File {file.filename}")
-                if file.filename.endswith(".tf") or file.filename.endswith(".tfvars"):
-                    logger.info(f"XXX{file.filename}")
-                    ofile = FileObject(filename=file.filename)
-
-                    pr_folder = str(pull.number)
-                    path0 = os.path.join(folder_path, pr_folder)
-                    logger.info(f"path0:{path0}")
-                    if not os.path.exists(path0):
-                        os.makedirs(path0)
-
-                    path1 = os.path.join(path0, "base_file")
-                    path2 = os.path.join(path0, "final_merged_file")
-                    # if os.path.exists(path1):
-                    #    continue
-                    # if os.path.exists(path2):
-                    #    continue
-                    if not os.path.exists(path1):
-                        os.makedirs(path1)
-
-                    if not os.path.exists(path2):
-                        os.makedirs(path2)
-
-                    fname = file.filename.replace("/", "_")
-                    logger.info(f"Path Present for {pull.number} {path_b0_present}")
-                    if path_b0_present:
-                        logger.info(f"Skipping writing files for {pull.number}")
-                    else:
-                        read_and_write_file(repo, file, pull, path1, path2, fname)
-                    file_comments = populate_file_comments(
-                        curr_pr, comments, file.filename
-                    )
-                    ofile.comments = file_comments
-                    curr_pr.files.append(ofile)
-            curr_pr.comments = sorted(
-                curr_pr.comments, key=lambda commt: commt.comment_timestamp
+    skip_local_file_writing = False
+    for pull in tqdm(target_pulls):
+        curr_pr = PR(pr_number=pull.number)
+        path_b0 = os.path.join(folder_path, str(pull.number))
+        path_b0_present = os.path.exists(path_b0)
+        curr_pr = populate_pr(curr_pr, pull)
+        commits_data = pull.get_commits()
+        commits_list = []
+        curr_pr = populate_commits(curr_pr, commits_data)
+        for commit in commits_data:
+            collect_commit_files(
+                repo,
+                commit,
+                os.path.join(folder_path, f"{curr_pr.pr_number}"),
+                repo_format=repo_format,
+                skip_local_file_writing=skip_local_file_writing,
             )
-            dst_prs.PRs.append(curr_pr)
-            logger.info("-" * 30)
-            if limit and ct >= 15:
-                break
+            commit_sha = commit.sha
+            commit_author = commit.author.login if commit.author else "None"
+            commit_message = commit.commit.message
+            commit_timestamp = commit.commit.author.date
+            commits_list.append(
+                {
+                    "commit_sha": commit_sha,
+                    "commit_author": commit_author,
+                    "commit_message": commit_message,
+                    "commit_timestamp": commit_timestamp,
+                }
+            )
+
+        logger.info(f"Pull Request: {pull.number} - {pull.title}")
+        comments = pull.get_comments()
+
+        # Get issue comments:
+        issue_comments = pull.get_issue_comments()
+        curr_pr = populate_issue_comments(curr_pr, issue_comments)
+
+        reviews = pull.get_reviews()
+        curr_pr = populate_review_comments(curr_pr, reviews)
+        logger.info(f"url: {pull.html_url}")
+        files = pull.get_files()
+        logger.info(f"Extracting files from PR{curr_pr.pr_number}")
+        for file in tqdm(files):
+            logger.info(f"YYY File {file.filename}")
+            if check_file_with_extension(file.filename, format=repo_format):
+                logger.info(f"XXX{file.filename}")
+                ofile = FileObject(filename=file.filename)
+
+                pr_folder = str(pull.number)
+                path0 = os.path.join(folder_path, pr_folder)
+                logger.info(f"path0:{path0}")
+                if not os.path.exists(path0):
+                    os.makedirs(path0)
+                path1 = os.path.join(path0, "base_file")
+                path2 = os.path.join(path0, "final_merged_file")
+                if not os.path.exists(path1):
+                    os.makedirs(path1)
+
+                if not os.path.exists(path2):
+                    os.makedirs(path2)
+
+                fname = file.filename.replace("/", "_")
+                logger.info(f"Path Present for {pull.number} {path_b0_present}")
+                if path_b0_present:
+                    logger.info(f"Skipping writing files for {pull.number}")
+                else:
+                    read_and_write_file(repo, file, pull, path1, path2, fname)
+                file_comments = populate_file_comments(curr_pr, comments, file.filename)
+                ofile.comments = file_comments
+                curr_pr.files.append(ofile)
+            else:
+                logger.info(
+                    f"Skipping non-Terraform/non-OpenTofu file: {file.filename}"
+                )
+        curr_pr.comments = sorted(
+            curr_pr.comments, key=lambda commt: commt.comment_timestamp
+        )
+        dst_prs.PRs.append(curr_pr)
+        logger.info("-" * 30)
+        if limit and ct >= 5:
+            break
     return dst_prs
 
 
 if __name__ == "__main__":
-    config = yaml.safe_load(open("config.yml", "r"))
+    config = yaml.safe_load(open("gen_config.yml", "r"))
     repo_name = config["repo_name"]
     if "GITHUB_TOKEN" in config:
         os.environ["GITHUB_TOKEN"] = config["GITHUB_TOKEN"]
@@ -452,7 +492,15 @@ if __name__ == "__main__":
             f"Please set the GITHUB_REPO and GITHUB_TOKEN environment variables. repo_name{repo_name} github_token {github_token}"
         )
     logger.info(f"***Processing data from REPO: {repo_name}****")
-    prs_dst = extract_terraform_pr_comments(repo_name, github_token, limit=True)
+    repo_format = config.get("repo_format", "tf")
+    merged_only = config.get("merged_only", True)
+    prs_dst = extract_terraform_pr_comments(
+        repo_name,
+        github_token,
+        repo_format=repo_format,
+        merged_only=merged_only,
+        limit=True,
+    )
     logger.info(("****@@@@@@@_____"))
 
     reps = repo_name.split("/")
