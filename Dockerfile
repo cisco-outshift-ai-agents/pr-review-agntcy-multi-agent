@@ -8,12 +8,13 @@ WORKDIR /app
 RUN pip install --no-cache-dir poetry
 
 # Install build essentials for Rust compilation
-RUN dnf update -y && \
-    dnf install -y \
+RUN apt-get update -y && \
+    apt-get install -y \
     gcc \
     gcc-c++ \
     make \
-    && dnf clean all
+    && apt-get clean all && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Rust for Python package compilation
 RUN curl --proto '=https' -sSf https://sh.rustup.rs | sh -s -- -y
