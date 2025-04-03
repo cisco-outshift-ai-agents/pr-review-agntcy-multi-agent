@@ -37,6 +37,8 @@ jobs:
         run: helm lint charts/prcoach --with-subcharts
 
       - name: Package and Push Helm Chart
+        env:
+          CHART_VERSION: "1.0.0" # Replace with a valid SemVer version
         run: |
-          helm package charts/prcoach --dependency-update --version latest
-          helm push prcoach-latest.tgz oci://ghcr.io/${{ github.repository_owner }}/helm
+          helm package charts/prcoach --dependency-update --version $CHART_VERSION
+          helm push prcoach-$CHART_VERSION.tgz oci://ghcr.io/${{ github.repository_owner }}/helm
