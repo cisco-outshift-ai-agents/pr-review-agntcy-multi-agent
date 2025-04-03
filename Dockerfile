@@ -9,11 +9,12 @@ RUN pip install --no-cache-dir poetry
 
 # Install build essentials for Rust compilation
 RUN apt-get update -y && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
     gcc \
-    gcc-c++ \
+    g++ \
     make \
-    && apt-get clean all && \
+    curl \
+    && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Rust for Python package compilation
@@ -37,13 +38,13 @@ WORKDIR /app
 
 # Install required system tools and clean up to reduce image size
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
     unzip \
     jq \
     ca-certificates \
     curl \
-    wget && \
-    apt-get clean && \
+    wget \
+    && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Terraform
