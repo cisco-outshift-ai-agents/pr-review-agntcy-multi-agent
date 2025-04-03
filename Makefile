@@ -75,4 +75,9 @@ start-lambda: build-lambda-image
 # Build the lambda image
 .PHONY: build-lambda-image
 build-lambda-image:
-	docker build -f docker/Dockerfile --platform=linux/amd64 -t alfred:local .
+	docker build --no-cache -f docker/Dockerfile.lamda --platform=linux/amd64 -t alfred:latest .
+
+# Build the k8s docker image
+.PHONY: build-docker-image
+build-docker-image:
+	docker build --no-cache -f docker/Dockerfile --platform=linux/amd64 -t alfred:latest .
