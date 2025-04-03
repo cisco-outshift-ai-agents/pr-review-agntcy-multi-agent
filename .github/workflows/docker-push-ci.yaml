@@ -1,0 +1,97 @@
+name: Docker push prcoach workflow
+
+on:
+  # todo- PR should not push docker image to registry
+  push:
+    branches:
+      - 'main'
+    # Only build when important files change
+    paths:
+      - 'src/**'
+      - '.github/workflows/docker-push-ci.yaml'
+      - 'Dockerfile'
+    # Build on tags
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'src/**'
+      - '.github/workflows/docker-push-ci.yaml'
+      - 'Dockerfile'
+    workflow_dispatch:
+
+
+# Grant read access for GITHUB_TOKEN on all jobs
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+  packages: write # Needed to push docker image to GAR or ECR
+
+jobs:
+  ################################## Code Checkout ##############################
+  ###############################################################################
+  checkout:
+    name: Checkout
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+    container:
+      image: ${{ vars.SRE_BUILD_IMAGE }}
+      options: --user root
+      credentials:
+        username: ${{ secrets.GHCR_USERNAME }}
+        password: ${{ secrets.GHCR_TOKEN }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          clean: true
+
+  #################### Docker Build & Push ######################
+  ###############################################################################
+  call-docker-build-push:
+    name: Call Docker Build & Push
+#    needs: [checkout-unit-tests]
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+    secrets:
+      # Only needed if with:ecr-enabled or with:gar-enabled is true below
+      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+      # These two secrets are ONLY needed when you are trying to access GAR/GCR in a venture-specific project.
+      # The values should be consistent with the vault namespace (set by 'VAULT_VENTURE_NAMESPACE' var)
+      # vault-venture-approle-role-id: ${{secrets.VAULT_SECURECN_APPROLE_ROLE_ID}}
+      # vault-venture-approle-secret-id: ${{secrets.VAULT_SECURECN_APPROLE_SECRET_ID}}
+      #######
+      ghcr-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-token: ${{ secrets.GHCR_TOKEN }}
+      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+    with:
+      runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+      image-name: "alfred/prcoach"
+      dockerfile: Dockerfile
+      ecr-enabled: true
+      ghcr-enabled: true
+      ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
+
+  ################################## Send Status for PR Checks ###########################
+  ########################################################################################
+  # This Job is REQUIRED, it is what allows for the WHOLE workflow to show up in the PR status checks as a requirement for branch rules
+  reusable-workflow-ci-status:
+    name: Reusable Workflow CI Status
+    needs: [call-docker-build-push ]
+    if: always()
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+    steps:
+      - name: Report Failure
+        if: ${{ cancelled() || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'failure') }}
+        run: |
+          echo -e "\033[31m*** WORKFLOW FAILED ***\033[0m"
+          exit 1
+      - name: Report Success
+        run: |
+          echo -e "\033[1;36m*** WORKFLOW SUCCESS ***\033[0m"
+          exit 0
