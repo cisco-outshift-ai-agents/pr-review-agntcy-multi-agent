@@ -73,7 +73,7 @@ jobs:
       image-name: "alfred/prcoach"
       dockerfile: Dockerfile
       ecr-enabled: true
-      ghcr-enabled: true
+      ghcr-enabled: false
       ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
 
   ################################## Send Status for PR Checks ###########################
