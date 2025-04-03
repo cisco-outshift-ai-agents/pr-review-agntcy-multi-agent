@@ -58,12 +58,13 @@ RUN curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/in
 # Copy Python dependencies from the base image
 COPY --from=base /app/.venv/ /app/.venv/
 
-# Copy source code into the working directory
-COPY src/ /app/src/
+# Copy only the necessary source code into the working directory
+COPY src /app/src
 
 # Set environment variables to use the virtual environment
 ENV VIRTUAL_ENV=/app/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Default command to run the Python script with the handler name as the first argument
+# Default command to run the Python script
+WORKDIR /app/src
 CMD ["python3", "main_local.py"]
