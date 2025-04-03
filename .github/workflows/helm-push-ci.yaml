@@ -12,7 +12,7 @@ on:
     branches:
       - 'main'
     paths:
-      - 'charts/**'
+      - 'deployments/**'
     workflow_dispatch:
 
 
