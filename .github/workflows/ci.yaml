@@ -1,13 +1,12 @@
 name: CI
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - "main"
-  workflow_dispatch:
+on: # Dummy on logic in order to not run but not error out in Github Actions
+  workflow_call:  # Allows the file to be valid, but it won't run on its own
+# on:
+#   push:
+#     branches:
+#       - main
+#   workflow_dispatch:
 
 jobs:
   test:
