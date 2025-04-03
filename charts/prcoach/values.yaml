@@ -7,14 +7,10 @@ appVersion: v1
 replicaCount: 1
 
 image:
-  org: ghcr.io
-  repository: cisco-outshift-alfred
-  name: prcoach
+  repository: 626007623524.dkr.ecr.us-east-2.amazonaws.com/alfred/prcoach
   tag: latest
   pullPolicy: Always
   pullSecret:
-
-tagversion: latest
 
 service:
   port: 5500

@@ -24,7 +24,7 @@ spec:
       serviceAccountName: {{ .Values.appName }}-sa
       containers:
       - name: {{ .Values.appName }}
-        image: {{ .Values.image.org }}/{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.tagversion }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{ if .Values.resources.enabled }}
         resources:

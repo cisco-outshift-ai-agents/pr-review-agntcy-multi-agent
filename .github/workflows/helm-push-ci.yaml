@@ -1,0 +1,74 @@
+name: Helm publish
+
+on:
+  push:
+    # Do not trigger this workflow on PRs, only try to publish helm chart on main branch
+    branches:
+      - 'main'
+    # Only build when important files change
+    paths:
+      - 'deployments/**'
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'deployments/**'
+    workflow_dispatch:
+
+
+permissions:
+  id-token: write
+  contents: read
+  packages: write
+
+jobs:
+  ################################## Helm Publish #################################
+  #################################################################################
+  checkout-repo:
+    name: Checkout Repo
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+    container:
+      image: ${{ vars.SRE_BUILD_IMAGE }}
+      options: --user root
+      credentials:
+        username: ${{ secrets.GHCR_USERNAME }}
+        password: ${{ secrets.GHCR_TOKEN }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          clean: true
+
+  call-helm-publish:
+    name: Helm Publish
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@enable-chartmuseum
+    with:
+      runner-group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+      enable-private-ecr: true
+      enable-public-ecr: false
+      chart-path: "deployments/helm/prcoach"
+      enable-chartmuseum: true
+    secrets:
+      ghcr-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-token: ${{ secrets.GHCR_TOKEN }}
+      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+
+  reusable-workflow-ci-status:
+    name: Reusable Workflow CI Status
+    needs: [call-helm-publish, checkout-repo]
+    if: always()
+    runs-on:
+      group: ${{ vars.DEFAULT_EC2_RUNNER_GROUP }}
+    steps:
+      - name: Report Failure
+        if: ${{ cancelled() || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'failure') }}
+        run: |
+          echo -e "\033[31m*** WORKFLOW FAILED ***\033[0m"
+          exit 1
+      - name: Report Success
+        run: |
+          echo -e "\033[1;36m*** WORKFLOW SUCCESS ***\033[0m"
+          exit 0
