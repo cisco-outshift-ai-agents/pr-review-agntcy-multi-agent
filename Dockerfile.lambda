@@ -23,7 +23,7 @@ RUN poetry config virtualenvs.create true
 RUN poetry config virtualenvs.in-project true
 RUN poetry install --no-root
 
-FROM public.ecr.aws/lambda/python:3.12 as build
+FROM ghcr.io/cisco-outshift-alfred/lambda/python:3.12.9 as build
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
