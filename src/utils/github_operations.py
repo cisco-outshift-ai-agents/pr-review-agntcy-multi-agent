@@ -199,9 +199,18 @@ class GitHubOperations:
         return self._repo.create_check_run(name="Alfred review", head_sha=self._pr.head.sha, status="in_progress")
 
     @staticmethod
-    def complete_pull_request_check_run(check_run: CheckRun, conclusion: CheckRunConclusion):
+    def complete_pull_request_check_run(check_run: CheckRun, conclusion: CheckRunConclusion, error_message: str):
         try:
-            check_run.edit(status="completed", conclusion=conclusion.name)
+            if conclusion.name == "success":
+                log.info("Check run completed successfully")
+                check_run.edit(status="completed", conclusion=conclusion.name, output={"title": "PR review successful", "summary": "Alfred review completed successfully"})
+            else:
+                log.info("Check run completed with failure")
+                check_run.edit(
+                    status="completed",
+                    conclusion=conclusion.name,
+                    output={"title": "PR review failed", "summary": error_message},
+                )
         except Exception as e:
             log.error(f"Unable to edit pull request check run: {e}")
 
