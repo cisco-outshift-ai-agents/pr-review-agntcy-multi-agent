@@ -24,10 +24,6 @@ def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[di
                                    - It just states a simple statement or positive feedback or what the user changed in the code without stating a clear issue.
                                    - It doesn't mention any actionable item.
 
-                                   Input Format:
-                                   comments: The set of comments that you need to filter.
-                                   {input_json_format}
-
                                    Response format:
                                    Return ONLY the remaining comments without changing the content or format or anything else in them.
                                    DO NOT USE markdown in the response.
