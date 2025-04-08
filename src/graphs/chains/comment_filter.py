@@ -36,7 +36,15 @@ def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[di
 
     system_message = SystemMessage(content=system_message_content)
 
-    user_message = HumanMessage(content="{question}")
+    user_message_content = wrap_prompt("""
+
+                                   Input Format:
+                                   comments: The set of comments that you need to filter.
+                                   {input_json_format}
+
+                                   """)
+
+    user_message = HumanMessage(content=user_message_content)
 
     prompt = ChatPromptTemplate.from_messages(
         messages=[system_message, user_message]
