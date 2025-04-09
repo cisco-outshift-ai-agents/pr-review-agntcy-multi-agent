@@ -5,6 +5,18 @@ WORKDIR /app
 
 RUN pip install poetry
 
+# Install build essentials for Rust compilation
+RUN dnf update -y && \
+    dnf install -y \
+    gcc \
+    gcc-c++ \
+    make \
+    && dnf clean all
+
+# Install Rust for Python package compilation
+RUN curl --proto '=https' -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create true
