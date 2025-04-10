@@ -21,11 +21,14 @@ def create_review_chat_assistant_chain(model: BaseChatModel) -> Callable[[Sequen
         structured_output_model = model.with_structured_output(ReviewChatResponse)
 
         system_prompt = wrap_prompt("""\
-            You are Alfred, a senior software developer and the reviewer of a pull request.
-            Your review is the first message in the conversation.
-            Other developers have asked you to answer question about your review or have gave instructions about your review.
-            Provide a detailed explanation, focusing on the specific modification you reviewed.
+            You are Alfred, a Terraform expert and the reviewer of a pull request.
+            Other developers have some questions or clarifications on your review. You will be given the code modifications you reviewed
+            and the conversation thread. Your task is to answer their questions and provide a detailed explanation, 
+            focusing on the specific modification you reviewed. Your review is the first comment in the conversation thread below.
 
+            """)
+        
+        user_prompt = wrap_prompt("""\
             The code modifications you reviewed are as follows:
             ```
             {code}
@@ -37,17 +40,25 @@ def create_review_chat_assistant_chain(model: BaseChatModel) -> Callable[[Sequen
             SET `is_related_to_code` to `true` IF the question or instruction IS related to the code.
             PLACE your answer in the `message` field.
 
-            The conversation is as follows:""")
+            The conversation is as follows: 
+            {message_history} """)
 
         messages = [
-            SystemMessagePromptTemplate.from_template(
+            #SystemMessagePromptTemplate.from_template(
+            #    system_prompt,
+            #)
+             (
+                "system",
                 system_prompt,
-            )
+            ),
+            ("user", user_prompt),
         ]
-        messages.extend(message_history)
+        #messages.extend(message_history)
 
         template = ChatPromptTemplate.from_messages(messages)
 
         return template | structured_output_model
 
     return review_chat_assistant_chain
+
+
