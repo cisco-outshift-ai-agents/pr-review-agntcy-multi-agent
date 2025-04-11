@@ -15,7 +15,6 @@ def create_cross_reference_generator_chain(model: BaseChatModel) -> RunnableSeri
     generate = prompt | model
     return generate
 
-
 def create_cross_reference_reflector_chain(model: BaseChatModel) -> RunnableSerializable[dict, BaseMessage]:
     reflector_prompt = ChatPromptTemplate.from_messages(
         [
