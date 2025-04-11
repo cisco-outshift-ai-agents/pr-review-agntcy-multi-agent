@@ -58,14 +58,14 @@ async def handle_pull_request(pr_number: int, repo_name: str, installation_id: i
             result = await graph.run()
             print(result)
     except Exception as e:
-        log.error("Error handling pull request", e)
+        log.error(f"Error handling pull request: {str(e)}")
         log.error(
             f"Error handling pull request: repo_name: {repo_name}, pr_number:{pr_number}, installation_id:{installation_id}")
-        github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure)
+        github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure, str(e))
 
         raise
 
-    github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success)
+    github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success, "")
 
 
 def handle_installation(payload, repositories_key):

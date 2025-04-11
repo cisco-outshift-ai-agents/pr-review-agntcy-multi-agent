@@ -115,7 +115,8 @@ class FetchPR:
                         else:
                             if current_change:
                                 changes.append(current_change)
-                            current_change = FileChange(filename=filename, start_line=start_line_removed, changed_code=line_number, status="removed")
+                            current_change = FileChange(filename=filename, start_line=start_line_removed,
+                                                        changed_code=line_number, status="removed")
                         start_line_removed += 1
                     elif line_number.startswith("+") and start_line_added is not None:
                         if current_change and current_change["status"] == "added":
@@ -123,7 +124,8 @@ class FetchPR:
                         else:
                             if current_change:
                                 changes.append(current_change)
-                            current_change = FileChange(filename=filename, start_line=start_line_added, changed_code=line_number, status="added")
+                            current_change = FileChange(filename=filename, start_line=start_line_added,
+                                                        changed_code=line_number, status="added")
                         start_line_added += 1
                     elif start_line_removed is not None and start_line_added is not None:
                         if current_change:
@@ -146,12 +148,13 @@ class FetchPR:
 
         if filenames_not_to_review:
             wrong_files_to_push_message = (
-                self.file_type_warning_template
-                + f"""
+                    self.file_type_warning_template
+                    + f"""
             {"\n - " + " \n  - ".join(filenames_not_to_review)}
             """
             )
-            new_filetype_restriction_comment = IssueComment(body=wrong_files_to_push_message, conditions=[self.file_type_warning_template])
+            new_filetype_restriction_comment = IssueComment(body=wrong_files_to_push_message,
+                                                            conditions=[self.file_type_warning_template])
             new_issue_comments.append(new_filetype_restriction_comment)
 
         # get github details for static analyzer
@@ -195,7 +198,8 @@ class FetchPR:
         if self.context.github is None:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
-        return [ContextFile(path=file.filename, content=self.__get_modified_file(file)) for file in self.pr_files_to_review]
+        return [ContextFile(path=file.filename, content=self.__get_modified_file(file)) for file in
+                self.pr_files_to_review]
 
     def __get_modified_file(self, pr_file: File) -> str:
         class Changes(BaseModel):
@@ -249,7 +253,7 @@ class FetchPR:
         merged_file: list[str] = []
         cursor_pos: int = 0
         for c in changes:
-            merged_file.extend(o_file[cursor_pos : c.start - 1])
+            merged_file.extend(o_file[cursor_pos: c.start - 1])
             merged_file.extend(c.change.splitlines())
             cursor_pos = c.end
         merged_file.extend(o_file[cursor_pos:])
@@ -277,13 +281,23 @@ class FetchPR:
         all_files: List[ContentFile] = []
         for directory in unique_dirs:
             try:
+                branch_name = self.context.github.pr.head.ref
+                validate_branch_name(branch_name)
+
                 contents = self.context.github.repo.get_contents(directory, ref=self.context.github.pr.head.ref)
                 if isinstance(contents, list):
                     all_files.extend(contents)
                 else:
                     all_files.append(contents)
-            except UnknownObjectException:
-                log.error(f"Error fetching directory: {directory}")
+            except UnknownObjectException as e:
+                log.error(f"Error fetching directory '{directory}': {e}")
+                raise
+            except GithubException as e:
+                log.error(f"GitHub API error while fetching directory '{directory}': {e}")
+                raise
+            except Exception as e:
+                log.error(f"Unexpected error while fetching directory '{directory}': {e}")
+                raise
         return [
             ContextFile(path=f.path, content=f.decoded_content.decode("utf-8"))
             for f in all_files
@@ -313,3 +327,15 @@ class FetchPR:
                 added_line_idx += 1
                 removed_line_idx += 1
                 lines[i] = f"{'0'.rjust(4)} {lines[i]}"
+
+
+def validate_branch_name(name):
+    """
+    Validates a branch name based on the given guidelines.
+    Raises an exception if the branch name is invalid.
+    """
+    if not re.match(r'^[a-zA-Z][a-zA-Z0-9./_-]*$', name):
+        log.info(f"Branch name '{name}' is not a valid branch name.")
+        raise ValueError(
+            f"Invalid branch name: '{name}'. Branch names must start with a letter and contain only letters, numbers, '.', '-', '_', or '/'.")
+    log.info(f"Branch name: {name} is a valid branch name.")
