@@ -8,7 +8,7 @@ def create_cross_reference_generator_chain(model: BaseChatModel) -> RunnableSeri
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system",
-             "You are a senior Terraform engineer. You are given a Terraform codebase and a task to complete."),
+             "You are a Terraform Agent. Given a codebase and a task, analyze and take necessary steps to complete it, following best practices."),
             MessagesPlaceholder(variable_name="messages"),
         ]
     )
