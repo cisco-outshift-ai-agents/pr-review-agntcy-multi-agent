@@ -5,14 +5,12 @@ This guide provides step-by-step instructions to set up and run the project.
 ## Prerequisites
 
 1. Ensure you have Python installed (version specified in `pyproject.toml`).
-2. Install `poetry` for dependency management:
+2. Install dependencies using requirement.txt:
+
    ```sh
-   pip install poetry
+   pip install -r requirements.txt
    ```
-3. Install project dependencies:
-   ```sh
-   poetry install
-   ```
+
 
 ## Steps to Run
 
