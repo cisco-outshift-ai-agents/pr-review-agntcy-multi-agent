@@ -1,5 +1,5 @@
-github_token: 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
-repo_name: Anusha-1209/Cisco-ETI-PRReplay
-pr_directory_path:  cisco-eti-platform-dataset/dataset/pr_data_latest/cisco-eti/platform-terraform-infra
-metadata_file: dataset/cisco-eti_platform-terraform-infra.json
-pr_to_run: []
+github_token: # REPLACE WITH YOUR GITHUB TOKEN
+repo_name: # REPLACE WITH GITHUB REPO WHERE PR REPLAY RUNS
+pr_directory_path: # REPLACE FILE PATH WHICH HAS BASE AND CHANGED CODE FOR ALL PR's
+metadata_file: #REPLACE WITH FILE THAT CONTAINS INFORMATION ABOUT LIST OF PR's AND COMMIT
+pr_to_run: # [REPLACE WITH LIST OF PR NUMBERS TO IT IS ALL LEAVE IT AS EMPTY LIST]
