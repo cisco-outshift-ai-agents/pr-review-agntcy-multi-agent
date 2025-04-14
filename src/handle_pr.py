@@ -3,7 +3,7 @@ from http import HTTPStatus
 from typing import Any
 
 from fastapi.responses import JSONResponse
-
+from openai import APIConnectionError, BadRequestError
 from config import ConfigManager
 from graphs import CodeReviewerWorkflow, ReviewChatWorkflow
 from utils.constants import ALFRED_CONFIG_BRANCH
@@ -41,9 +41,16 @@ async def handle_github_event(payload: dict[str, Any], github_event: str):
             handle_pull_request_comment(payload)
         return JSONResponse(content={"status": "ok"})
     except Exception as e:
-        log.error(f"Error processing webhook: {e}")
-        log.error(f"Error processing webhook:  repo_name: {payload['repository']['full_name']}, pr_number: {payload['issue']['number']}, installation_id: {payload['installation']['id']}")
-        return JSONResponse(content={"status": "server error"}, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
+        if type(e) == APIConnectionError:
+            log.error("Error handling pull request because of open AI timeout")
+            return JSONResponse(content={"status": "Open API Connection Error"}, status_code=HTTPStatus.OK)
+        elif type(e) == BadRequestError:
+            log.error("Error handling pull request because of context window exceed")
+            return JSONResponse(content={"status": "Context Window Exceed Error"}, status_code=HTTPStatus.OK)
+        else:
+            log.error(f"Error processing webhook: {e}")
+            log.error(f"Error processing webhook:  repo_name: {payload['repository']['full_name']}, pr_number: {payload['issue']['number']}, installation_id: {payload['installation']['id']}")
+            return JSONResponse(content={"status": "server error"}, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 async def handle_pull_request(pr_number: int, repo_name: str, installation_id: int):
@@ -62,7 +69,6 @@ async def handle_pull_request(pr_number: int, repo_name: str, installation_id: i
         log.error(
             f"Error handling pull request: repo_name: {repo_name}, pr_number:{pr_number}, installation_id:{installation_id}")
         github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure, str(e))
-
         raise
 
     github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success, "")
