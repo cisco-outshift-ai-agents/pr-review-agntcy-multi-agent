@@ -20,20 +20,24 @@ This guide provides step-by-step instructions to set up and run the project.
    - If a `.tar.gz` file (e.g., `azure_terraform_dataset.tar.gz`) is present along with the corresponding metadata (e.g., `prdataset.json`), you can skip this step.
    - Otherwise, generate or collect the required data by running:
      ```sh
-     python src/data_generation.py --config gen_config.yml
+     python github_data_collection.py --config initial_data_collection_repo_config.yml
      ```
    - This will create the necessary dataset and metadata files in the appropriate directory.
 
 ### 2. PR Replay
    - Replay the generated or collected data to prepare it for evaluation:
      ```sh
-     python src/prreplay.py --config replay_config.yml
+     python pr_replay.py --config replay_config.yml
      ```
-
-### 3. Evaluation
+### 3. Replay data collection
+      After replay is complete we need to collect the replay data from 1 via
+      ```sh
+     python github_data_collection.py --config replay_data_collection_repo_config.yml
+     ```
+### 4. Evaluation
    - Run the evaluation process on the replayed data:
      ```sh
-     python src/eval.py --config eval_config.yml
+     python eval.py --config eval_config.yml
      ```
 
 ## Additional Notes
@@ -51,11 +55,14 @@ This guide provides step-by-step instructions to set up and run the project.
 Here’s an example of running all steps end-to-end:
 ```sh
 # Step 1: Data Generation (if needed)
-python src/data_generation.py
+python github_data_collection.py --config initial_data_collection_repo_config.yml
 
 # Step 2: Replay
-python src/replay.py --input outshift-alfred-eval/azzure_terraform_dataset.tar.gz --output outshift-alfred-eval/replay_output
+python pr_replay.py --config replay_config.yml
 
-# Step 3: Evaluation
-python src/eval.py --input outshift-alfred-eval/replay_output --output outshift-alfred-eval/eval_results
+# Step 3: Replay Collect
+python github_data_collection.py --config replay_data_collection_repo_config.yml
+
+# Step 4: Evaluation
+python eval.py --config eval_config.yml
 ```
