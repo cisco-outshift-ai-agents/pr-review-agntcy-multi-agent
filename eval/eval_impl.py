@@ -1,8 +1,9 @@
-from llm_judge import prompt_template_file, llm_initialize, prompt_template_comment
+from eval import prompt_template_file, llm_initialize, prompt_template_comment
 import os
 import sys
 import json
 import logging
+import yaml
 
 
 imp_list = []
@@ -23,6 +24,7 @@ def get_list_prs(alfred_comments):
 
     key_to_extract = 'pr_number'
     extracted_values = [d[key_to_extract] for d in alfred_comments]
+
     return extracted_values
 
 
@@ -54,6 +56,7 @@ def get_list_files_from_folder(base_folder):
     """
 
     files = [f for f in os.listdir(base_folder) if os.path.isfile(os.path.join(base_folder, f))]
+
     return files
 
 
@@ -117,6 +120,7 @@ def get_file_contents(filepath):
 
     with open(filepath, 'r') as file:
         content = file.read()
+
         return content
 
 
@@ -162,14 +166,17 @@ def get_dictionary_by_key_value(dict_list, key, value):
     for dictionary in dict_list:
         if dictionary.get(key) == value:
             return dictionary
+
     return None
 
 
 if __name__ == '__main__':
 
-    GPT_DEPLOYMENT_NAME = os.environ.get("GPT_DEPLOYMENT_NAME")
-    AZURE_OPENAI_API_KEY = os.environ.get("AZURE_OPENAI_API_KEY")
-    AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
+    config = yaml.safe_load(open("eval_config.yml", "r"))
+
+    GPT_DEPLOYMENT_NAME = config["GPT_DEPLOYMENT_NAME"]
+    AZURE_OPENAI_API_KEY = config["AZURE_OPENAI_API_KEY"]
+    AZURE_OPENAI_ENDPOINT = config["AZURE_OPENAI_ENDPOINT"]
 
     if not GPT_DEPLOYMENT_NAME or not AZURE_OPENAI_API_KEY or not AZURE_OPENAI_ENDPOINT:
         print("Error: All GPT_DEPLOYMENT_NAME, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY environment variables must be set.")
@@ -177,15 +184,15 @@ if __name__ == '__main__':
 
     azure_llm = llm_initialize(AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT)
 
-    code_dir = "./eval/dataset"
-    alfred_comments_json = "anusha-1209_cisco-eti-prreplay.json"
+    code_dir = config["code_dir"]
+    alfred_comments_json = config["alfred_comments_json"]
 
     alfred_comments = read_alfred_comments_json(code_dir, alfred_comments_json)
 
     pr_list = get_list_prs(alfred_comments["PRs"])
 
-    outer_folder_path = "pr_data_latest"
-    repo_name = "Anusha-1209/Cisco-ETI-PRReplay"
+    outer_folder_path = config["outer_folder_path"]
+    repo_name = config["repo_name"]
 
     dataset_pr_path = code_dir + "/" + outer_folder_path + "/" + repo_name
 
@@ -217,9 +224,9 @@ if __name__ == '__main__':
                 else:
                     rating_dictionary[pr_num][file].append(rating_com)
 
-    rating_file_path = './rating_new_both.json'
-    except_file_path = './except_file_path.json'
-    error_file_path = './error_file_path.json'
+    rating_file_path = config["rating_file_path"]
+    except_file_path = config["except_file_path"]
+    error_file_path = config["error_file_path"]
 
     with open(rating_file_path, 'w') as json_file:
         json.dump(rating_dictionary, json_file, indent=4)

@@ -6,6 +6,17 @@ from langchain.prompts import PromptTemplate
 
 def llm_initialize(AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT):
 
+    """
+    This initialized the Azure LLM.
+
+    Args:
+        AZURE_OPENAI_API_KEY (str): AZURE_OPENAI_API_KEY string.
+        AZURE_OPENAI_ENDPOINT (str): AZURE_OPENAI_ENDPOINT string
+
+    Returns:
+        return azure_llm
+    """
+
     azure_llm = AzureChatOpenAI(
         api_key=AZURE_OPENAI_API_KEY,
         azure_endpoint=AZURE_OPENAI_ENDPOINT,
@@ -16,6 +27,18 @@ def llm_initialize(AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT):
 
 
 def prompt_template_diff(diff, comment): #The comment can be human or alfred comment
+
+    """
+    This is the prompt template which takes diff and comment for evaluation.
+
+    Args:
+        diff (str): The diff.
+        comment (str): The inline comment.
+
+    Returns:
+        returns the prompt_template 
+
+    """
 
     judge_prompt_template = """HUMAN:
     <role>You are an expert code reviewer performing a file-by-file review of a pull request. 
@@ -30,10 +53,24 @@ def prompt_template_diff(diff, comment): #The comment can be human or alfred com
     ANSWER:"""
 
     judge_prompt = PromptTemplate.from_template(judge_prompt_template)
+
     return judge_prompt
 
 
 def prompt_template_file(original_file, changed_file, comment): #The comment can be human or alfred comment
+
+    """
+    This is the prompt template which takes original_file, changed_file and comment for evaluation.
+
+    Args:
+        original_file (str): The original file.
+        changed_file (str): The changed file.
+        comment (str): The inline comment.
+
+    Returns:
+        returns the prompt_template.
+
+    """
 
     judge_prompt_template = """HUMAN:
     <role> You are an expert code reviewer performing a file-by-file review of a pull request. 
@@ -49,10 +86,22 @@ def prompt_template_file(original_file, changed_file, comment): #The comment can
     ANSWER:"""
 
     judge_prompt = PromptTemplate.from_template(judge_prompt_template)
+
     return judge_prompt
 
 
 def prompt_template_comment(comment): # The comment can be human or alfred comment
+
+    """
+    This is the prompt template which takes the comment for evaluation.
+
+    Args:
+        comment (str): The inline comment.
+
+    Returns:
+        returns the prompt_template.
+
+    """
 
     judge_prompt_template = """HUMAN:
     <role> You are an expert code reviewer performing review of a pull request. 
@@ -66,10 +115,24 @@ def prompt_template_comment(comment): # The comment can be human or alfred comme
     ANSWER:"""
 
     judge_prompt = PromptTemplate.from_template(judge_prompt_template)
+
     return judge_prompt
 
 
 def prompt_template_compare_merged_file(original_file, changed_file_human, changed_file_alfred):
+
+    """
+    This is the prompt template which takes original_file, changed_file_human and changed_file_alfred for evaluation.
+
+    Args:
+        original_file (str): The original file.
+        changed_file_human (str): The changed file by human.
+        changed_file_alfred (str): The changed file by alfred.
+
+    Returns:
+        returns the prompt_template.
+
+    """
 
     judge_prompt_template = """HUMAN:
     <role> You are an expert code reviewer performing a file review of a pull request.
@@ -82,6 +145,7 @@ def prompt_template_compare_merged_file(original_file, changed_file_human, chang
     ANSWER:"""
 
     judge_prompt = PromptTemplate.from_template(judge_prompt_template)
+
     return judge_prompt
 
 
