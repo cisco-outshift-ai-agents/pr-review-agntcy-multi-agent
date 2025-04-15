@@ -35,7 +35,7 @@ This guide provides step-by-step instructions to set up and run the project.
 ### 4. Evaluation
    - Run the evaluation process on the replayed data:
      ```sh
-     python eval.py --config eval_config.yml
+     python eval_impl.py --config eval_config.yml
      ```
 
 ## Additional Notes
