@@ -206,24 +206,39 @@ class AlfredReviewGeneration:
                                  "Commit_files": []
                                  }
                             )
-                            self.closeBranch("Pr_base")
+                            self.closeBranch("Pr_Base_{}".format(pr_number))
                             continue
                     else:
                         continue
                     if context_window_error:
+                        # If there is a context window error close both base and changed branch
                         results['AlfredPRs'][-1]["PR_replay_Status"] = "Failed At Alfred review Due to Context Window Error"
                         results['AlfredPRs'][-1]["Commit_files"] = []
+                        self.closeBranch("Pr_Base_{}".format(pr_number))
+                        self.closeBranch(f"PR_changed_{pr_number}")
                     # Close the base branch
                     elif no_commit_directory:
                         results['AlfredPRs'][-1]["PR_replay_Status"] = "Some commit files are missing"
                         results['AlfredPRs'][-1]["Commit_files"] = no_commit_directory
+                        self.closeBranch("Pr_Base_{}".format(pr_number))
+                        self.closeBranch(f"PR_changed_{pr_number}")
+
                     else:
+                        # If all the commits are successfully updated
                         results['AlfredPRs'][-1]["PR_replay_Status"] = "Success"
                         results['AlfredPRs'][-1]["Commit_files"] = []
+                        self.closeBranch("Pr_Base_{}".format(pr_number))
+
             return results
         except Exception as e:
-            print("The PR Replay run stopped due to Error", e)
-            return results
+            if pr_number:
+                print(f"The PR Replay run stopped for pr_number {pr_number} due to Error", e)
+                self.closeBranch("Pr_Base_{}".format(pr_number))
+                self.closeBranch(f"PR_changed_{pr_number}")
+                return results
+            else:
+                print("The PR Replay run stopped due to Error", e)
+                return results
 
 
 if __name__ == '__main__':
