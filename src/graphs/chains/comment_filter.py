@@ -16,17 +16,12 @@ def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[di
     system_message_content = wrap_prompt("""
 
                                    You are a review agent tasked with filtering a list of PR review comments.
-                                   Your peer has created several comments on a GitHub pull request but it could be that some of them are not useful.
+                                   Your peer has created several comments on a GitHub pull request but it could be that some of them are unhelpful.
                                    Your job is to filter these comments based on the instructions below, follow them carefully.
 
                                    Rules for Filtering:
-                                   A comment is considered not useful if ANY of the following applies:
-                                   - It just states a simple statement or positive feedback or what the user changed in the code without stating a clear issue.
-                                   - It doesn't mention any actionable item.
-
-                                   Response format:
-                                   Return ONLY the remaining comments without changing the content or format or anything else in them.
-                                   DO NOT USE markdown in the response.
+                                   A comment is considered unhelpful if it just states a simple statement without any actionable item or
+                                   only a positive feedback or what the user has changed in the code without stating a clear issue.
 
                                    """)
 
