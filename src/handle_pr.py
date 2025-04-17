@@ -1,9 +1,25 @@
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from http import HTTPStatus
 from typing import Any
 
 from fastapi.responses import JSONResponse
-
+from openai import APIConnectionError, BadRequestError
 from config import ConfigManager
 from graphs import CodeReviewerWorkflow, ReviewChatWorkflow
 from utils.constants import ALFRED_CONFIG_BRANCH
@@ -41,6 +57,12 @@ async def handle_github_event(payload: dict[str, Any], github_event: str):
             handle_pull_request_comment(payload)
         return JSONResponse(content={"status": "ok"})
     except Exception as e:
+        if type(e) == APIConnectionError:
+            log.error("Error handling pull request because of open AI timeout")
+            return JSONResponse(content={"status": "Open API Connection Error"}, status_code=HTTPStatus.OK)
+        elif type(e) == BadRequestError:
+            log.error("Error handling pull request because of context window exceed")
+            return JSONResponse(content={"status": "Context Window Exceed Error"}, status_code=HTTPStatus.OK)
         log.error(f"Error processing webhook: {e}")
         log.error(f"Error processing webhook:  repo_name: {payload['repository']['full_name']}, pr_number: {payload['issue']['number']}, installation_id: {payload['installation']['id']}")
         return JSONResponse(content={"status": "server error"}, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -58,14 +80,14 @@ async def handle_pull_request(pr_number: int, repo_name: str, installation_id: i
             result = await graph.run()
             print(result)
     except Exception as e:
-        log.error("Error handling pull request", e)
+        log.error(f"Error handling pull request: {str(e)}")
         log.error(
             f"Error handling pull request: repo_name: {repo_name}, pr_number:{pr_number}, installation_id:{installation_id}")
-        github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure)
+        github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.failure, str(e))
 
         raise
 
-    github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success)
+    github_ops.complete_pull_request_check_run(check_run, CheckRunConclusion.success, "")
 
 
 def handle_installation(payload, repositories_key):
