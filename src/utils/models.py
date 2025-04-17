@@ -20,10 +20,12 @@ from github.IssueComment import IssueComment as GHIssueComment
 
 
 class ReviewComment(BaseModel):
-    filename: str
-    line_number: int
-    comment: str
-    status: str
+    filename: str = Field(description="The filename on which the review comment is.")
+    line_number: int = Field(description="The line number of the review comment in the file.")
+    comment: str = Field(description="The review comment.")
+    status: str = Field(description="The status of the review comment.")
+    relevant: bool = Field(description="Is the review comment relevant or not?")
+    reason_for_non_relevancy: str = Field(description="The reason for why the review comment is non-relevant?")
 
 
 class IssueComment(BaseModel):
