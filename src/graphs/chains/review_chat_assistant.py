@@ -11,7 +11,7 @@ from utils.wrap_prompt import wrap_prompt
 
 
 class ReviewChatResponse(BaseModel):
-    is_addressed_to_alfred: bool = Field(description="Indicates if the question or instruction is addressed to AI.")
+    is_addressed_to_alfred: bool = Field(description="Indicates if the question or instruction is addressed to the pull request reviewer.")
     is_related_to_code: bool = Field(description="Indicates if the question or instruction is related to the code.")
     message: str = Field(description="Your answer must be placed here.")
 
@@ -21,27 +21,25 @@ def create_review_chat_assistant_chain(model: BaseChatModel) -> Callable[[Sequen
         structured_output_model = model.with_structured_output(ReviewChatResponse)
 
         system_prompt = wrap_prompt("""\
-            You are Alfred, a Terraform expert and the reviewer of a pull request.
-            Other developers have some questions or clarifications on your review. You will be given the code modifications you reviewed
-            and the conversation thread. Your task is to answer their questions and provide a detailed explanation, 
-            focusing on the specific modification you reviewed. Your review is the first comment in the conversation thread below.
+            You are a Terraform expert and the reviewer of a pull request.
 
             """)
         
         user_prompt = wrap_prompt("""\
+            Other developers have some questions or clarifications on your review. You will be given the code modifications you reviewed
+            and the conversation thread. Your task is to answer their questions and provide a detailed explanation, 
+            focusing on the specific modification you reviewed.
+                                  
             The code modifications you reviewed are as follows:
             ```
             {code}
             ```
             The conversation is about the modification in line {line_number}.
 
-            Respond to the last message of the the conversation.
-            SET `is_addressed_to_alfred` to `true` IF the question or instruction IS addressed to you as AI.
-            SET `is_related_to_code` to `true` IF the question or instruction IS related to the code.
-            PLACE your answer in the `message` field.
+            Here's the question you should respond to : {question},
 
-            The conversation is as follows: 
-            {message_history} """)
+            Below is the conversation thread, for your reference: 
+             """)
 
         messages = [
             #SystemMessagePromptTemplate.from_template(
@@ -53,7 +51,7 @@ def create_review_chat_assistant_chain(model: BaseChatModel) -> Callable[[Sequen
             ),
             ("user", user_prompt),
         ]
-        #messages.extend(message_history)
+        messages.extend(message_history)
 
         template = ChatPromptTemplate.from_messages(messages)
 
