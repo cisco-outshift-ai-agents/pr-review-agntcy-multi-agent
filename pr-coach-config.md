@@ -1,4 +1,4 @@
-# Alfred Configuration File
+# PR Coach Configuration File
 
 ## Overview
 This configuration file outlines the preferences and settings for the GenAI-powered PR review service for Terraform. The configurations specified here will guide the automated code reviews, resource optimization recommendations, and other features provided by AppOne.

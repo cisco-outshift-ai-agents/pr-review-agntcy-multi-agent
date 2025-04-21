@@ -1,0 +1,61 @@
+The change in 'ResourceOwner' from 'ETI SRE' to 'websites' should be verified for consistency across all related resources and documentation.
+The IAM policy document 'irsa' has a commented line for role assumption. Ensure that this comment is clear to future maintainers, as it may lead to confusion during role creation.
+Variables 'aws_default_region' and 'eks_name' are added without default values. Consider adding default values or validation to ensure they are set correctly.
+Thank you! I'm here to help whenever you need assistance. Happy coding to you too!
+The 'compress' attribute is defined multiple times in the 'default_cache_behavior' block. This redundancy can lead to confusion and should be cleaned up to ensure clarity and maintainability.
+Alfred review
+Alfred review
+The `aws_sqs_pre_process_collect_event_policy` resource has been added. Ensure that the SQS queue `marvin-pre-process-collect-events-staging-use2-1` exists and the policy is correctly scoped to the intended resources.
+Thank you! To resolve the cross-reference issues identified, you can follow these steps:
+
+1. **Define Missing Resources:**
+   - **`aws_security_group.dragonfly_kg_1`**: Ensure that this security group is defined in one of your Terraform files. You can create a new file or add it to an existing one where security groups are typically managed.
+   - **`aws_secretsmanager_secret.msk_connect_kg_password`**: Define this secret in your Terraform configuration. Make sure it is correctly set up with the necessary attributes and values.
+   - **`aws_iam_role.msk_connect_execution_role`**: Define this IAM role in your Terraform files. Ensure it has the correct policies and trust relationships.
+
+2. **Check for Typos or Misconfigurations:**
+   - Verify that the names and references are correct and consistent across your Terraform files. Sometimes, issues arise from simple typographical errors.
+
+3. **Organize Your Terraform Files:**
+   - Ensure that your Terraform files are organized logically, with resources grouped by functionality or service. This can help prevent cross-reference issues and make your configuration easier to manage.
+
+4. **Use Terraform Modules:**
+   - Consider using modules to encapsulate related resources and variables. This can help manage dependencies and improve the reusability of your Terraform code.
+
+5. **Run Terraform Plan:**
+   - After making changes, run `terraform plan` to check for any remaining issues or errors. This command will help you verify that your configuration is correct before applying it.
+
+If you need specific examples or further guidance on any of these steps, feel free to ask!
+Reviewed your changes, here is what I found:
+Thank you! You too have a great day, and feel free to reach out anytime you need assistance. Take care!
+The addition of new policy references 'external-secrets-comn-staging-use2-1' and 'external-secrets-comn-staging-usw2-1' should be verified for correctness. Ensure these policies exist and are correctly configured in the vault.
+**PR Title Suggestion:**
+
+The current title "fix: creating backstage01" does not fully capture the scope of the changes made in this pull request. A more descriptive title would be:
+
+"feat: Add IAM policies and AWS provider configurations for multiple environments"
+
+**PR Description Suggestion:**
+
+This pull request introduces several key changes and additions to the infrastructure configuration:
+
+1. **AWS Provider and Vault Configuration:**
+   - Added new Terraform files to configure AWS providers and Vault for various environments, including `aws_apisec-dev`, `aws_apisec-prod`, `aws_cnapp-datasecurity-prod`, `aws_cnapp-ui-production`, `aws_cybear-prod`, `aws_lightspin-prod-eu`, `aws_securecn-prod`, and `aws_sscs-prod`.
+   - Configured Vault provider with alias "eticloud" and set up access to AWS infrastructure credentials.
+
+2. **IAM Policies:**
+   - Defined IAM policies for assuming roles with SAML and AWS for multiple accounts, ensuring secure access and management.
+
+3. **Terraform Module Integration:**
+   - Integrated the `sre-tf-module-eso-access` module for managing external secrets in the `aws_outshift-common-dev` environment.
+
+4. **File Adjustments:**
+   - Adjusted region settings in `aws_eticloud-scratch-c_us-east-2_eks_backstage-poc_main.tf` for consistency.
+   - Removed and re-added provider configurations in `aws_eticloud-scratch-c_us-east-2_eks_backstage01_provider.tf` to streamline the setup process.
+
+These changes aim to enhance the security and efficiency of managing AWS resources across different environments, leveraging Terraform for infrastructure as code practices.
+The Terraform version and provider requirements are added multiple times across different files. Ensure this duplication is necessary or consider consolidating.
+Thank you! I'm here to help whenever you need. Happy coding to you too!
+Thank you! I'm here to help whenever you need. Have a wonderful day!
+Ensure the local variables are correctly defined and consistent with other configurations. Verify 'vpc_name' and 'rds_name' for accuracy.
+Alfred review
