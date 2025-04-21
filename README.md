@@ -1,22 +1,24 @@
-# PR Coach
+# Terraform Pull Request Reviewer
 [![Release](https://img.shields.io/github/v/release/cisco-ai-agents/tf-pr-review-agntcy-multi-agent?display_name=tag)](CHANGELOG.md)
 [![Contributor-Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-fbab2c.svg)](CODE_OF_CONDUCT.md)
 
-PR Coach is a GitHub application designed to help developers improve their pull requests by providing feedback and suggestions.
+The Terraform Pull Request Reviewer is a GitHub app that provides feedback on pull requests that include Terraform files.
 
 ## Overview
 
-![Overview of PR Coach](./docs/resources/overview.svg)
+![Overview of Terraform Pull Request Reviewer](./docs/resources/overview.svg)
+
+## About the Project
+
+### How to modify the Project for your own PR Review use case
+
+### How to contribute agents
 
 ## Installation
 
-### SaaS Installation
-
-TBD 
-
 ### Local Run
 
-#### Create your own PR Coach GitHub App
+#### Create your own Terraform Pull Request Reviewer GitHub App
 
 1. Start a new webhook channel on [smee.io](https://smee.io/) and save the Webhook Proxy URL for later use.
 2. Log in to GitHub.
@@ -36,7 +38,7 @@ TBD
      - Pull request review comment
      - Pull request review thread
 
-#### Install your own PR Coach GitHub App to a repository
+#### Install your own Terraform PR Reviewer GitHub App to a repository
 
 1. Go to `Developer settings` under your GitHub profile settings
 2. Click to your GitHub App name
@@ -44,7 +46,7 @@ TBD
 4. Choose an account and click to `Install` button
 5. Select your desired repository and click `Install`
 
-#### Setup PR Coach local instance
+#### Setup Terraform PR Reviewer local instance
 
 1. Copy the .env.example file to .env and fill up with the followings:
    - GITHUB_APP_ID
@@ -97,22 +99,22 @@ Run `make setup` in this project folder
    brew install tflint
    ```
 
-#### Run PR Coach locally
+#### Run Terraform PR Reviewer locally
 
 1. Start the smee webhook:
    ```bash
    npx smee -u https://smee.io/{YOUR_WEBHOOK_PATH} -t http://localhost:5500/api/webhook
     ```
-2.	Activate virtual environment and start PR Coach:
+2.	Activate virtual environment and start Terraform PR Reviewer:
    ```bash
    source .venv/bin/activate &&
    python3 main_local.py
    ```
 3. Create an event on your PR (like new commit)
 
-#### Setup PR Coach local instance using Lambda
+#### Setup Terraform PR Reviewer local instance using Lambda
 
-PR Coach is deployed as a Lambda function so optionally you can also run this locally instead of the above mentioned webserver in `main_local.py`. For this, you need the AWS SAM CLI installed.
+Terraform PR Reviewer is deployed as a Lambda function so optionally you can also run this locally instead of the above mentioned webserver in `main_local.py`. For this, you need the AWS SAM CLI installed.
 
 1. Make sure that `.env` file exists and is filled with the necessary environment variables.
 
