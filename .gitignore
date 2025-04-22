@@ -186,3 +186,5 @@ repo_copy/
 
 # temp files
 temp/
+
+.DS_Store
