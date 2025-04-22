@@ -84,8 +84,8 @@ class CommentFilterer:
             if filtered_review_comments:
                 # Filter not useful comments with LLM (this part is not perfect, LLMs are not good at this)
                 example_schema = [
-                    ReviewComment(filename="file1", line_number=1, comment="comment1", status="added").model_dump(),
-                    ReviewComment(filename="file1", line_number=2, comment="comment2", status="added").model_dump(),
+                    ReviewComment(filename="file1", line_number=1, comment="comment1", status="added", relevant="true", reason="nothing").model_dump(),
+                    ReviewComment(filename="file1", line_number=2, comment="comment2", status="added", relevant="false", reason="nothing").model_dump(),
                 ]
 
                 result: ReviewComments = self._context.chain.invoke(

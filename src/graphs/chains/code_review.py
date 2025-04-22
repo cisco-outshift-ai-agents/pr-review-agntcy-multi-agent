@@ -62,6 +62,8 @@ def create_code_reviewer_chain(model: BaseChatModel) -> RunnableSerializable[dic
             - line_number: The 'start_line' property of the change object.
             - status: The 'status' property of the change object.
             - comment: Your comment for the change. This is where you describe the issue that you found.
+            - relevant: Is the comment that you provided relevant. Please answer only in true or false.
+            - reason: The reason the comment is relevant or not.
         - DO NOT USE markdown in the response.
 
         Focus your review on the following areas:

@@ -25,6 +25,7 @@ torch = "2.2.1"
 sentence-transformers = "^3.3.1"
 numpy = "^1.26"
 agp-api = "^0.0.5"
+langchain = "^0.3.24"
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.24.0"
