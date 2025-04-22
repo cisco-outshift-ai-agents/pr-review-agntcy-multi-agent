@@ -41,7 +41,7 @@ This guide provides step-by-step instructions to set up and run the project.
 ## Additional Notes
 
 - Configuration files such as `.env.example` and `lambda-env.json.example` may need to be customized for your environment. Copy and rename them as `.env` and `lambda-env.json`, respectively, and update the values as needed.
-- Refer to [alfred-config.md](../alfred-config.md) for detailed configuration options.
+- Refer to [pr-coach-config.md](../pr-coach-config.md) for detailed configuration options.
 
 ## Troubleshooting
 
