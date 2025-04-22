@@ -13,55 +13,69 @@
 # limitations under the License.
 #
 # SPDX-License-Identifier: Apache-2.0
-
+from typing import Callable
 from langchain_core.language_models import BaseChatModel
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain_core.runnables import RunnableSerializable
 from langchain_core.messages import BaseMessage
+from langchain_core.messages import HumanMessage
+from pydantic import BaseModel, Field
 
 
-def create_cross_reference_generator_chain(model: BaseChatModel) -> RunnableSerializable[dict, BaseMessage]:
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system",
-             "You are a Terraform Agent. Given a terraform codebase and a task, analyze and take necessary steps to complete it, following best practices."),
-            MessagesPlaceholder(variable_name="messages"),
-        ]
-    )
-
-    generate = prompt | model
-    return generate
+class crossReferenceGeneratorOutput(BaseModel):
+    cross_reference_generator_output: str = Field(description="Sample generator response")
 
 
-def create_cross_reference_reflector_chain(model: BaseChatModel) -> RunnableSerializable[dict, BaseMessage]:
-    reflector_prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "You are a Terraform verification agent. Validate cross-reference analysis by:\n\n"
-                "1. Verifying reported issues via:\n"
-                "   - git diff checks\n"
-                "   - confirming existence in HEAD\n"
-                "   - validating file paths and references\n"
-                "   - assessing severity\n\n"
-                "2. For invalid/questionable issues:\n"
-                "   - explain why\n"
-                "   - give supporting evidence\n"
-                "   - suggest improvements to the generator\n\n"
-                "3. Identify false negatives in:\n"
-                "   - variable references\n"
-                "   - resource dependencies\n"
-                "   - module interface changes\n\n"
-                "Respond with:\n"
-                "### Validation Results\n"
-                "- Confirmed Issues: [...]\n"
-                "- Incorrect Issues: [... with reasons]\n"
-                "- Additional Concerns: [... if critical]\n\n"
-                "Be accurate and thorough.",
-            ),
-            MessagesPlaceholder(variable_name="messages"),
-        ]
-    )
+class crossReferenceReflectorOutput(BaseModel):
+    cross_reference_reflector_output: str = Field(description="Sample reflector response")
 
-    reflector = reflector_prompt | model
-    return reflector
+
+def create_cross_reference_generator_chain(model: BaseChatModel) -> Callable[[list[BaseMessage]], RunnableSerializable]:
+    def cross_reference_generator_chain(user_prompt: list[HumanMessage]) -> RunnableSerializable[
+        dict, dict | crossReferenceGeneratorOutput]:
+        structured_output_model = model.with_structured_output(crossReferenceGeneratorOutput)
+        system_message = SystemMessagePromptTemplate.from_template(
+            "You are a Terraform Agent. "
+            "Given a terraform codebase and a task, "
+            "analyze and take necessary steps to complete it, "
+            "following best practices."
+        )
+        messages = [system_message] + user_prompt
+        template = ChatPromptTemplate.from_messages(messages)
+        return template | structured_output_model
+
+    return cross_reference_generator_chain
+
+
+def create_cross_reference_reflector_chain(model: BaseChatModel) -> Callable[[list[BaseMessage]], RunnableSerializable]:
+    def cross_reference_reflector_chain(translated: list[HumanMessage]) -> RunnableSerializable[
+        dict, dict | crossReferenceReflectorOutput]:
+        structured_output_model = model.with_structured_output(crossReferenceReflectorOutput)
+        system_message = SystemMessagePromptTemplate.from_template(
+            "You are a Terraform verification agent. Validate cross-reference analysis by:\n\n"
+            "1. Verifying reported issues via:\n"
+            "   - git diff checks\n"
+            "   - confirming existence in HEAD\n"
+            "   - validating file paths and references\n"
+            "   - assessing severity\n\n"
+            "2. For invalid/questionable issues:\n"
+            "   - explain why\n"
+            "   - give supporting evidence\n"
+            "   - suggest improvements to the generator\n\n"
+            "3. Identify false negatives in:\n"
+            "   - variable references\n"
+            "   - resource dependencies\n"
+            "   - module interface changes\n\n"
+            "Respond with:\n"
+            "### Validation Results\n"
+            "- Confirmed Issues: [...]\n"
+            "- Incorrect Issues: [... with reasons]\n"
+            "- Additional Concerns: [... if critical]\n\n"
+            "Be accurate and thorough.",
+        )
+        user_prompt = [system_message] + translated
+        messages = [system_message] + user_prompt
+        template = ChatPromptTemplate.from_messages(messages)
+        return template | structured_output_model
+
+    return cross_reference_reflector_chain
