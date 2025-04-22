@@ -23,10 +23,8 @@ from github.Commit import Commit
 from github.GitTree import GitTree
 from github.GitBlob import GitBlob
 from github.GitTreeElement import GitTreeElement
-from langchain_core.prompts import  PromptTemplate
 from langchain_core.messages import HumanMessage, AIMessage
 from utils.models import IssueComment
-from utils.wrap_prompt import wrap_prompt
 
 
 class File:
@@ -69,7 +67,6 @@ class CrossReferenceInitializer:
         head_codebase = self._codebase(head_files)
         git_diff = self.context.github.get_git_diff()
         user_prompt = _create_user_prompt(git_diff, codebase, head_codebase)
-        #CrossReferenceGeneratorInput.user_prompt = user_prompt
         return {"messages": [HumanMessage(content=user_prompt)]}
 
     def _get_files_from_sha(self, sha: str) -> list[File]:
@@ -137,7 +134,6 @@ class CrossReferenceReflector:
         # First message is the original user request. We hold it the same for all nodes
         translated = [state["messages"][0]] + [cls_map[msg.type](content=msg.content) for msg in state["messages"][1:]]
         res = self.context.chain(translated).invoke({})
-        print("The response from the res is ", res.cross_reference_reflector_output)
         return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
 
