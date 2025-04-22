@@ -25,7 +25,7 @@ class ReviewComment(BaseModel):
     comment: str = Field(description="The review comment.")
     status: str = Field(description="The status of the review comment.")
     relevant: bool = Field(description="Is the review comment relevant or not?")
-    reason_for_non_relevancy: str = Field(description="The reason for why the review comment is non-relevant?")
+    reason: str = Field(description="The reason for why the review comment is relevant or non-relevant?")
 
 
 class IssueComment(BaseModel):
