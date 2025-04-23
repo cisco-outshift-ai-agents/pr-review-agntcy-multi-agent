@@ -2,13 +2,20 @@ import concurrent.futures
 import json
 
 import concurrent
-from typing import List
-from graphs.states import GitHubPRState
+from typing import List, Callable
+from graphs.states import GitHubPRState, FileChange
 from utils.logging_config import logger as log
 from .contexts import DefaultContext
+from pydantic import BaseModel
 from utils.wrap_prompt import wrap_prompt
-from utils.models import ReviewComments, ReviewComment
+from utils.models import ReviewComments, ReviewComment, ContextFile
 from langchain_core.runnables import RunnableSerializable
+
+
+class codeReviewInput(BaseModel):
+    files: list[ContextFile]
+    changes: list[FileChange]
+    static_analyzer_output: str
 
 
 class CodeReviewer:
@@ -39,28 +46,17 @@ class CodeReviewer:
         return {"new_review_comments": comments}
 
     def __code_review(self, state: GitHubPRState) -> List[ReviewComment]:
+        """
+        :param state:
+        :return:
+        """
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
 
         # TODO: fix this later. Chain can be a Callable[..., RunnableSerializable] or RunnableSerializable
-        if not isinstance(self.context.chain, RunnableSerializable):
-            raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
-
-        response: ReviewComments = self.context.chain.invoke(
-            {
-                "question": wrap_prompt(
-                    "FILES:",
-                    f"{'\n'.join(map(str, state['context_files']))}",
-                    "",
-                    "CHANGES:" f"{state['changes']}",
-                    "",
-                    "STATIC_ANALYZER_OUTPUT:",
-                    f"{state["static_analyzer_output"]}",
-                    # "USER_CONFIGURATION:",
-                    # f"{self.user_config.get("Code Review", "")}",
-                    # f"{self.user_config.get("Security & Compliance Policies", "")}",
-                )
-            }
-        )
-
+        if not isinstance(self.context.chain, RunnableSerializable) and not isinstance(self.context.chain,Callable):
+            raise ValueError(f"{self.name}: Chain is not a RunnableSerializable or Callable")
+        codereview = codeReviewInput(files=state['context_files'], changes=state['changes'],
+                                     static_analyzer_output=state['static_analyzer_output'])
+        response: ReviewComments = self.context.chain(codereview.model_dump()).invoke({})
         return [comment for comment in response.issues if comment.line_number != 0]
