@@ -1,10 +1,12 @@
-# Alfred
+# PR Coach
+[![Release](https://img.shields.io/github/v/release/cisco-ai-agents/tf-pr-review-agntcy-multi-agent?display_name=tag)](CHANGELOG.md)
+[![Contributor-Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-fbab2c.svg)](CODE_OF_CONDUCT.md)
 
-Alfred is a GitHub application designed to help developers improve their pull requests by providing feedback and suggestions.
+PR Coach is a GitHub application designed to help developers improve their pull requests by providing feedback and suggestions.
 
 ## Overview
 
-![Overview of Alfred](./docs/resources/overview.svg)
+![Overview of PR Coach](./docs/resources/overview.svg)
 
 ## Installation
 
@@ -14,7 +16,7 @@ TBD
 
 ### Local Run
 
-#### Create your own Alfred GitHub App
+#### Create your own PR Coach GitHub App
 
 1. Start a new webhook channel on [smee.io](https://smee.io/) and save the Webhook Proxy URL for later use.
 2. Log in to GitHub.
@@ -34,7 +36,7 @@ TBD
      - Pull request review comment
      - Pull request review thread
 
-#### Install your own Alfred GitHub App to a repository
+#### Install your own PR Coach GitHub App to a repository
 
 1. Go to `Developer settings` under your GitHub profile settings
 2. Click to your GitHub App name
@@ -42,7 +44,7 @@ TBD
 4. Choose an account and click to `Install` button
 5. Select your desired repository and click `Install`
 
-#### Setup alfred local instance
+#### Setup PR Coach local instance
 
 1. Copy the .env.example file to .env and fill up with the followings:
    - GITHUB_APP_ID
@@ -95,22 +97,22 @@ Run `make setup` in this project folder
    brew install tflint
    ```
 
-#### Run alfred locally
+#### Run PR Coach locally
 
 1. Start the smee webhook:
    ```bash
    npx smee -u https://smee.io/{YOUR_WEBHOOK_PATH} -t http://localhost:5500/api/webhook
     ```
-2.	Activate virtual environment and start alfred:
+2.	Activate virtual environment and start PR Coach:
    ```bash
    source .venv/bin/activate &&
    python3 main_local.py
    ```
 3. Create an event on your PR (like new commit)
 
-#### Setup alfred local instance using Lambda
+#### Setup PR Coach local instance using Lambda
 
-Alfred is deployed as a Lambda function so optionally you can also run this locally instead of the above mentioned webserver in `main_local.py`. For this, you need the AWS SAM CLI installed.
+PR Coach is deployed as a Lambda function so optionally you can also run this locally instead of the above mentioned webserver in `main_local.py`. For this, you need the AWS SAM CLI installed.
 
 1. Make sure that `.env` file exists and is filled with the necessary environment variables.
 
@@ -125,3 +127,40 @@ Alfred is deployed as a Lambda function so optionally you can also run this loca
    ```bash
    make start-lambda
    ```
+
+
+---
+## Roadmap
+
+See the [open issues](https://github.com/cisco-ai-agents/tf-pr-review-agntcy-multi-agent/issues) for a list
+of proposed features (and known issues).
+
+---
+## Contributing
+
+Contributions are what make the open source community such an amazing place to
+learn, inspire, and create. Any contributions you make are **greatly
+appreciated**. For detailed contributing guidelines, please see
+[CONTRIBUTING.md](CONTRIBUTING.md)
+
+---
+## License
+
+Distributed under the Apache-2.0 License. See [LICENSE](LICENSE) for more
+information.
+
+---
+## Contact
+
+[cisco-outshift-ai-agents@cisco.com](mailto:cisco-outshift-ai-agents@cisco.com)
+
+Project Link:
+[https://github.com/cisco-ai-agents/tf-pr-review-agntcy-multi-agent](https://github.com/cisco-ai-agents/tf-pr-review-agntcy-multi-agent)
+
+---
+## Acknowledgements
+
+- [Langgraph](https://github.com/langchain-ai/langgraph) for the agentic platform.
+- [https://github.com/othneildrew/Best-README-Template](https://github.com/othneildrew/Best-README-Template), from which this readme was adapted
+
+For more information about our various agents, please visit the [agntcy project page](https://github.com/agntcy).
