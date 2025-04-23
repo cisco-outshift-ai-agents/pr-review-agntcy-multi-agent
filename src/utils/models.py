@@ -24,8 +24,8 @@ class ReviewComment(BaseModel):
     line_number: int = Field(description="The line number of the review comment in the file.")
     comment: str = Field(description="The review comment.")
     status: str = Field(description="The status of the review comment.")
-    relevant: bool = Field(description="Is the review comment relevant or not?")
-    reason: str = Field(description="The reason for why the review comment is relevant or non-relevant?")
+    relevant: Optional[bool] = Field(None, description="Is the review comment relevant or not?")
+    reason: Optional[str] = Field(None, description="The reason for why the review comment is relevant or non-relevant?")
 
 
 class IssueComment(BaseModel):

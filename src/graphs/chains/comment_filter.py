@@ -22,8 +22,6 @@ from utils.wrap_prompt import wrap_prompt
 from utils.models import ReviewComments
 from typing import cast
 
-from langchain.schema import SystemMessage, HumanMessage
-
 
 def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | ReviewComments]:
 
@@ -41,18 +39,14 @@ def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[di
 
                                    """)
 
-    system_message = SystemMessage(content=system_message_content)
-
     user_message_content = wrap_prompt("""
                                    Input Format:
                                    Here's an example how the input array will look like: {input_json_format}
                                    The set of comments that you need to filter: {question}
                                    """)
 
-    user_message = HumanMessage(content=user_message_content)
-
     prompt = ChatPromptTemplate.from_messages(
-        messages=[system_message, user_message]
+        messages=[system_message_content, user_message_content]
     )
 
     return prompt | llm_with_structured_output
