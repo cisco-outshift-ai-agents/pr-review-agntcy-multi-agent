@@ -31,7 +31,7 @@ from .contexts import DefaultContext
 
 
 class FetchPR:
-    terraform_file_types_review_allowed = (".tf", ".tfvars")
+    terraform_file_types_review_allowed = (".tf", ".tfvars", ".tofu", ".tofuvars")
     terraform_file_types_push_forbidden = (".tfplan", ".tfstate")
     file_type_warning_template = "The following files are not suggested being pushed to the repository, since those likely contain sensitive data:"
 

@@ -27,6 +27,31 @@ from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
 
 
+def checkTofuFiles(output_folder) -> list[str]:
+    # Check for tofu files in the output folder
+    files_with_extension = [f for f in os.listdir(output_folder) if f.endswith(".tofu") or f.endswith(".tofuvars")]
+    return files_with_extension
+
+
+def convertFileExtension(output_folder, tofu_files) -> dict:
+    # Convert the extension from .tofu/.tofuvars to .tf/.tfvars
+    file_rename_map = {}
+    new_filename = ""
+    for files in tofu_files:
+        if files.endswith(".tofu"):
+            old_path = os.path.join(output_folder, files)
+            new_filename = "modified_" + os.path.splitext(files)[0] + ".tf"
+            new_path = os.path.join(output_folder, new_filename)
+            os.rename(old_path, new_path)
+        elif files.endswith(".tofuvars"):
+            old_path = os.path.join(output_folder, files)
+            new_filename = "modified_" + os.path.splitext(files)[0] + ".tfvars"
+            new_path = os.path.join(output_folder, new_filename)
+            os.rename(old_path, new_path)
+        file_rename_map[files] = new_filename
+    return file_rename_map
+
+
 class StaticAnalyzer:
     def __init__(self, context: DefaultContext, name: str = "static_analyzer"):
         self._context = context
@@ -56,6 +81,11 @@ class StaticAnalyzer:
             raise
 
         try:
+            file_rename_map = {}
+            # Check for the tofu files in the repo
+            tofu_files = checkTofuFiles(output_folder)
+            if tofu_files:
+                file_rename_map = convertFileExtension(output_folder, tofu_files)
             tf_validate_out = run(
                 ["terraform", "validate", "-no-color"],
                 cwd=output_folder,
@@ -75,7 +105,6 @@ class StaticAnalyzer:
                     capture_output=True,
                     text=True,
                 )
-
                 tflint_out = run(
                     ["tflint", "--format=compact", "--recursive"],
                     cwd=output_folder,
@@ -85,10 +114,18 @@ class StaticAnalyzer:
                 )
                 lint_stdout = tflint_out.stdout
                 lint_stderr = tflint_out.stderr
+                # if some files are renamed modify the lint output with the old file name
+                if file_rename_map:
+                    modified_output = ""
+                    for old_filename, new_filename in file_rename_map.items():
+                        if not modified_output:
+                            modified_output = lint_stdout.replace(new_filename, old_filename)
+                        else:
+                            modified_output = modified_output.replace(new_filename, old_filename)
+                    lint_stdout = modified_output
         except CalledProcessError as e:
             log.error(f"Error while running static checks: {e.stderr}")
             return {}
-
         try:
             shutil.rmtree(output_folder)
             log.debug("Repo deleted successfully")
@@ -110,11 +147,9 @@ class StaticAnalyzer:
                     )
                 }
             )
-
         except Exception as e:
             log.error(f"Error in {self._name} while running the static analyzer chain: {e}")
             raise
-
         log.debug(f"""
         static_analyzer finished.
         output: {response.content}
