@@ -77,7 +77,7 @@ class TestSecretManager:
         patchers = []
 
         def mock(
-            inits: List[Literal["gcp_credentials", "github_app_private_key", "github_webhook_secret", "azure_openai_api_key", "langchain_api_key"]],
+            inits: List[Literal["github_app_private_key", "github_webhook_secret", "azure_openai_api_key", "langchain_api_key"]],
         ):
             for init in inits:
                 patcher = patch.object(SecretManager, f"_SecretManager__init_{init}", return_value=None)
@@ -152,7 +152,7 @@ class TestSecretManager:
     ):
         with patch.dict("os.environ", env_vars):
             # Arrange
-            mock_inits(["gcp_credentials", "github_webhook_secret", "azure_openai_api_key", "langchain_api_key"])
+            mock_inits(["github_webhook_secret", "azure_openai_api_key", "langchain_api_key"])
             mock_client(throw_sm_exception=is_aws_sm_error)
 
             if secret_in_file:
@@ -202,7 +202,7 @@ class TestSecretManager:
         self, mock_inits, mock_client, env_vars: Dict[str, str], is_aws_sm_error: bool, expected_secret: str, expected_error_type: Optional[type]
     ):
         # Arrange
-        mock_inits(["gcp_credentials", "github_app_private_key", "azure_openai_api_key", "langchain_api_key"])
+        mock_inits(["github_app_private_key", "azure_openai_api_key", "langchain_api_key"])
         mock_client(throw_sm_exception=is_aws_sm_error)
 
         if expected_error_type:
@@ -267,7 +267,7 @@ class TestSecretManager:
         expected_error_type: Optional[type],
     ):
         # Arrange
-        mock_inits(["gcp_credentials", "github_app_private_key", "github_webhook_secret", "azure_openai_api_key"])
+        mock_inits(["github_app_private_key", "github_webhook_secret", "azure_openai_api_key"])
         mock_client(throw_sm_exception=is_aws_sm_error)
 
         if expected_error_type:
@@ -332,7 +332,7 @@ class TestSecretManager:
         expected_error_type: Optional[type],
     ):
         # Arrange
-        mock_inits(["gcp_credentials", "github_app_private_key", "github_webhook_secret", "langchain_api_key"])
+        mock_inits(["github_app_private_key", "github_webhook_secret", "langchain_api_key"])
         mock_client(throw_sm_exception=is_aws_sm_error)
 
         if expected_error_type:
@@ -347,76 +347,3 @@ class TestSecretManager:
             sm = SecretManager(mandatory_secrets)
             # Assert
             assert sm.azure_openai_api_key == expected_secret
-
-    @pytest.mark.parametrize(
-        ["env_vars", "mandatory_secrets", "secret_in_file", "is_aws_sm_error", "expected_secret", "expected_error_type"],
-        [
-            # (
-            #         # aws sm error, should raise exception,
-            #         {"GCP_SERVICE_ACCOUNT_FILE": "secret.pem", "AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
-            #         ["gcp"],
-            #         "secret_in_file",
-            #         False,
-            #         "secret_in_file",
-            #         None
-            # ),
-            (
-                # aws sm error, should raise exception,
-                {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
-                ["gcp"],
-                "secret_in_file",
-                False,
-                "sm_gcp_credentials",
-                None,
-            ),
-            (
-                # aws sm error, key not mandatory,
-                {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
-                [],
-                "secret_in_file",
-                True,
-                None,
-                None,
-            ),
-            (
-                # aws sm error, key mandatory,
-                {"AWS_GCP_SA_SECRET_NAME": "aws_secret_name"},
-                ["gcp_credentials"],
-                "secret_in_file",
-                True,
-                None,
-                ValueError,
-            ),
-        ],
-        indirect=["env_vars"],
-    )
-    def test_gcp_credentials(
-        self,
-        mock_inits,
-        mock_client,
-        set_secret_file,
-        env_vars: Dict[str, str],
-        mandatory_secrets: List[Literal["gcp_credentials"]],
-        secret_in_file,
-        is_aws_sm_error: bool,
-        expected_secret: str,
-        expected_error_type: Optional[type],
-    ):
-        # Arrange
-        mock_inits(["github_app_private_key", "github_webhook_secret", "azure_openai_api_key", "langchain_api_key"])
-        mock_client(throw_sm_exception=is_aws_sm_error, secret_name="gcp")
-        if secret_in_file:
-            set_secret_file(secret_in_file)
-
-        if expected_error_type:
-            # Act
-            with pytest.raises(Exception) as e_info:
-                SecretManager(mandatory_secrets)
-            # Assert
-            assert isinstance(e_info.value, expected_error_type)
-
-        else:
-            # Act
-            sm = SecretManager(mandatory_secrets)
-            # Assert
-            assert sm.gcp_credentials == expected_secret
