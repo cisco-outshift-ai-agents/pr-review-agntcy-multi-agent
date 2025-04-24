@@ -18,7 +18,6 @@ from subprocess import CalledProcessError, PIPE, run
 from typing import Any
 import os
 import shutil
-
 from .contexts import DefaultContext
 from graphs.states import GitHubPRState
 from langchain_core.runnables import RunnableSerializable
@@ -29,8 +28,10 @@ from utils.wrap_prompt import wrap_prompt
 
 def checkTofuFiles(output_folder) -> list[str]:
     # Check for tofu files in the output folder
-    files_with_extension = [f for f in os.listdir(output_folder) if f.endswith(".tofu") or f.endswith(".tofuvars")]
-    return files_with_extension
+    if os.path.isdir("your_directory_path"):
+        files_with_extension = [f for f in os.listdir(output_folder) if f.endswith(".tofu") or f.endswith(".tofuvars")]
+        return files_with_extension
+    return []
 
 
 def convertFileExtension(output_folder, tofu_files) -> dict:
