@@ -28,7 +28,7 @@ from utils.wrap_prompt import wrap_prompt
 
 def checkTofuFiles(output_folder) -> list[str]:
     # Check for tofu files in the output folder
-    if os.path.isdir("your_directory_path"):
+    if os.path.isdir(output_folder):
         files_with_extension = [f for f in os.listdir(output_folder) if f.endswith(".tofu") or f.endswith(".tofuvars")]
         return files_with_extension
     return []
@@ -51,6 +51,18 @@ def convertFileExtension(output_folder, tofu_files) -> dict:
             os.rename(old_path, new_path)
         file_rename_map[files] = new_filename
     return file_rename_map
+
+
+def modifyresponse(file_rename_map, response) -> str:
+    modified_output = ""
+    if response == "":
+        return ""
+    for old_filename, new_filename in file_rename_map.items():
+        if not modified_output:
+            modified_output = response.replace(new_filename, old_filename)
+        else:
+            modified_output = modified_output.replace(new_filename, old_filename)
+    return modified_output
 
 
 class StaticAnalyzer:
@@ -116,14 +128,6 @@ class StaticAnalyzer:
                 lint_stdout = tflint_out.stdout
                 lint_stderr = tflint_out.stderr
                 # if some files are renamed modify the lint output with the old file name
-                if file_rename_map:
-                    modified_output = ""
-                    for old_filename, new_filename in file_rename_map.items():
-                        if not modified_output:
-                            modified_output = lint_stdout.replace(new_filename, old_filename)
-                        else:
-                            modified_output = modified_output.replace(new_filename, old_filename)
-                    lint_stdout = modified_output
         except CalledProcessError as e:
             log.error(f"Error while running static checks: {e.stderr}")
             return {}
@@ -135,16 +139,28 @@ class StaticAnalyzer:
             return {}
 
         try:
+            if file_rename_map:
+                # Replace all the modified file names in  tf_validate output, error, lint output
+                tf_validate_output = modifyresponse(file_rename_map, tf_validate_out.stdout)
+                tf_validate_error = modifyresponse(file_rename_map, tf_validate_out.stderr)
+                tf_lint_output = modifyresponse(file_rename_map, lint_stdout)
+                tf_lint_error = modifyresponse(file_rename_map, lint_stderr)
+            else:
+                tf_validate_output = tf_validate_out.stdout
+                tf_validate_error = tf_validate_out.stderr
+                tf_lint_output = lint_stdout
+                tf_lint_error = lint_stderr
+
             response = self._context.chain.invoke(
                 {
                     "linter_outputs": wrap_prompt(
                         "terraform validate output:",
-                        f"{tf_validate_out.stderr}",
-                        f"{tf_validate_out.stdout}",
+                        f"{tf_validate_error}",
+                        f"{tf_validate_output}",
                         "",
                         "tflint output:",
-                        f"{lint_stderr}",
-                        f"{lint_stdout}",
+                        f"{tf_lint_error}",
+                        f"{tf_lint_output}",
                     )
                 }
             )
@@ -155,5 +171,4 @@ class StaticAnalyzer:
         static_analyzer finished.
         output: {response.content}
         """)
-
         return {"static_analyzer_output": response.content}
