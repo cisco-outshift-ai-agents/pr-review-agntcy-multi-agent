@@ -16,14 +16,39 @@
 
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables import RunnableSerializable
-from typing import Any
-
+from typing import Any, Callable, Optional
 from .contexts import DefaultContext
 from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
 from utils.models import IssueComment
-from utils.wrap_prompt import wrap_prompt
+from pydantic import BaseModel, Field
 
+
+class titleDescriptionInput(BaseModel):
+    diff: list[dict] = Field(description="List of dictionary with diff information")
+    title: str = Field(description="The title of the PR ")
+    description: Optional[str] = Field(description="The description")
+    configuration: Optional[str] = Field(description="Configuration")
+
+
+class titleDescriptionOutput(BaseModel):
+    PR_title_suggestion: str
+    PR_description_suggestion: str
+
+
+@staticmethod
+def get_model_dump_with_metadata(model_instance):
+    data = model_instance.model_dump()
+    metadata = model_instance.model_fields
+
+    result = {}
+    for field_name, value in data.items():
+        description = metadata[field_name].description
+        result[field_name] = {
+            "value": value,
+            "description": description
+        }
+    return result
 
 class TitleDescriptionReviewer:
     def __init__(self, context: DefaultContext, name: str = "title_description_reviewer"):
@@ -37,33 +62,23 @@ class TitleDescriptionReviewer:
             raise ValueError(f"{self.name}: GitHubOperations is not set in the context")
 
         # TODO: fix this later. Chain can be a Callable[..., RunnableSerializable] or RunnableSerializable
-        if not isinstance(self.context.chain, RunnableSerializable):
+        if not isinstance(self.context.chain, RunnableSerializable) and not isinstance(self.context.chain, Callable):
             raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
 
         user_input = ""
         if self.context.user_config:
             user_input = self.context.user_config.get("PR Title and Description", "")
-
         # Fetch existing comments
-        diff = state["changes"]
-
-        title_desc_chain_result: BaseMessage = self.context.chain.invoke(
-            {
-                "question": wrap_prompt(
-                    f"Given following changes :\n{diff}\n",
-                    f"Check the given title: {state["title"]} and decide If the title don't describe the changes, suggest a new title, otherwise keep current title.",
-                    f"Check the given pull request description: {state["description"]} and decide If the description don't describe the changes, suggest a new description, otherwise keep current description.",
-                    f"Configuration: {user_input}",
-                ),
-            }
-        )
-
-        title_desc_chain_result_content = str(title_desc_chain_result.content)
-        new_title_desc_comment = IssueComment(body=title_desc_chain_result_content, conditions=["PR title suggestion", "PR description suggestion"])
-
+        titledescription = titleDescriptionInput(diff=state["changes"],
+                                                 title=state["title"],
+                                                 description=state["description"],
+                                                 configuration=user_input)
+        title_desc_chain_result = self.context.chain(get_model_dump_with_metadata(titledescription)).invoke({})
+        pr_title_suggestion = title_desc_chain_result.PR_title_suggestion
+        pr_description_suggestion = title_desc_chain_result.PR_description_suggestion
+        new_title_desc_comment = IssueComment(body=",".join([pr_title_suggestion,pr_description_suggestion]),conditions=["PR title suggestion", "PR description suggestion"])
         log.debug(f"""
         title and description reviewer finished. issue comment added.
         title and description comment: {new_title_desc_comment.model_dump_json(indent=2)}
         """)
-
         return {"new_issue_comments": [new_title_desc_comment]}

@@ -13,32 +13,40 @@
 # limitations under the License.
 #
 # SPDX-License-Identifier: Apache-2.0
+from typing import Callable
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import BaseMessage
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain_core.runnables import RunnableSerializable
+from graphs.nodes.title_description_reviewer import titleDescriptionOutput
 
-from utils.wrap_prompt import wrap_prompt
 
+def create_title_description_reviewer_chain(model: BaseChatModel) -> Callable[
+    [dict], RunnableSerializable[dict, titleDescriptionOutput]]:
+    def title_descrption_reviewer_chain(title_description_input: dict) -> RunnableSerializable[
+        dict, dict | titleDescriptionOutput]:
+        llm_model_with_structured_output = model.with_structured_output(titleDescriptionOutput)
+        system_message = SystemMessage("""\
+            You are code specialist with phenomenal verbal abilities.
+            You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.
+            You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
+            If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
+            Return result with 2 sections. One named 'PR Title Suggestion' and another named 'PR Description Suggestion'.
+            """)
+        user_message = HumanMessage((
+            """Given following changes :\n{diff}\n,
+                            Check the given title: {title} and decide If the title don't describe the changes, suggest a new title, otherwise keep current title.,
+                            Check the given pull request description: {description} and decide If the description don't describe the changes, suggest a new description, otherwise keep current description.,
+                            Configuration: {user_input},
+                            """).format(diff=title_description_input["diff"]["value"],
+                                        title=title_description_input["title"]["value"],
+                                        description=title_description_input["description"]["value"],
+                                        user_input=title_description_input["configuration"]["value"]))
+        messages = [system_message, user_message]
 
-def create_title_description_reviewer_chain(model: BaseChatModel) -> RunnableSerializable[dict, BaseMessage]:
-    system_message = wrap_prompt("""\
-        You are code specialist with phenomenal verbal abilities.
-        You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.
-        You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
-        If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
-        Return result with 2 sections. One named 'PR Title Suggestion' and another named 'PR Description Suggestion'.
-        """)
+        prompt = ChatPromptTemplate.from_messages(messages)
 
-    prompt = ChatPromptTemplate.from_messages(
-        messages=[
-            (
-                "system",
-                system_message,
-            ),
-            ("user", "{question}"),
-        ],
-    )
+        return prompt | llm_model_with_structured_output
 
-    return prompt | model
+    return title_descrption_reviewer_chain
