@@ -1,19 +1,3 @@
-# Copyright 2025 Cisco Systems, Inc. and its affiliates
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# SPDX-License-Identifier: Apache-2.0
-
 import json
 import os
 import re
@@ -31,7 +15,7 @@ from .contexts import DefaultContext
 
 
 class FetchPR:
-    terraform_file_types_review_allowed = (".tf", ".tfvars")
+    terraform_file_types_review_allowed = (".tf", ".tfvars", ".tofu", ".tofuvars")
     terraform_file_types_push_forbidden = (".tfplan", ".tfstate")
     file_type_warning_template = "The following files are not suggested being pushed to the repository, since those likely contain sensitive data:"
 
@@ -175,7 +159,6 @@ class FetchPR:
 
         # get github details for static analyzer
         github_details = self.context.github.get_github_details()
-
         log.debug(f"""
         fetch pr finished.
         changes: {json.dumps(changes, indent=4)},
