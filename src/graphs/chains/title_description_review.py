@@ -41,8 +41,8 @@ def create_title_description_reviewer_chain(model: BaseChatModel) -> Callable[
             Only use the configuration if it directly helps improve the title or description.
             Ignore unrelated or irrelevant configuration details.
             Output Format: Return two sections:
-            PR Title Suggestion : {TitleDescriptionOutput.__fields__.get("PR_title_suggestion").description}
-            PR Description Suggestion: {TitleDescriptionOutput.__fields__.get("PR_description_suggestion").description}
+            PR Title Suggestion : {TitleDescriptionOutput.model_fields.get("PR_title_suggestion").description}
+            PR Description Suggestion: {TitleDescriptionOutput.model_fields.get("PR_description_suggestion").description}
             Inputs:
             Git Diff: {title_description_input["diff"]["value"]}
             Title: {title_description_input["title"]["value"]}
