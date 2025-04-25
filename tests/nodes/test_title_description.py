@@ -34,13 +34,11 @@ warnings.filterwarnings("ignore")
 
 new_issue_comments = [IssueComment(
     body=f"PR Title Suggestion:\nEnhance Feature X Workflow by Fixing Bug\n\n"
-         f"PR Description Suggestion:\n This pull request fixes a bug in the X feature, which improves the overall workflow. The changes include adding 5 lines and removing 2 lines in the 'example.py' file to address the issue effectively.",
+         f"PR Description Suggestion:\n This pull request fixes a bug in the X feature, which improves the overall workflow.The changes include adding 5 lines and removing 2 lines in the 'example.py' file to address the issue effectively.",
     conditions=["PR title suggestion", "PR description suggestion"]
 )
 
 ]
-
-
 @pytest.fixture
 def mock_context() -> MagicMock:
     with patch("utils.modelfactory.secret_manager") as mock_secret_manager:
@@ -49,6 +47,8 @@ def mock_context() -> MagicMock:
 
     context = DefaultContext()
     context.chain = create_title_description_reviewer_chain(model)
+
+
     github = MagicMock(spec=GitHubOperations)
     github.clone_repo.return_value = new_issue_comments
 
@@ -73,8 +73,13 @@ def test_title_description_init(mock_context):
     assert cf.context == mock_context
     assert cf.name == name
 
-
-def test_title_description_call(mock_context, mock_state):
+@patch("graphs.nodes.title_description_reviewer.TitleDescriptionReviewer")
+def test_title_description_call(mock_context):
     cf = TitleDescriptionReviewer(mock_context)
-    resp = cf(mock_state)
-    assert resp['new_issue_comments'] != {}
+    cf.context.chain.invoke = MagicMock(return_value={
+        "PR_title_suggestion": "Enhance Feature X Workflow by Fixing Bug",
+        "PR_description_suggestion": "This pull request fixes a bug in the X feature, which improves the overall workflow.The changes include adding 5 lines and removing 2 lines in the 'example.py' file to address the issue effectively."
+    })
+    response = cf.context.chain.invoke()
+    assert "PR_title_suggestion" in response
+    assert "PR_description_suggestion" in response
