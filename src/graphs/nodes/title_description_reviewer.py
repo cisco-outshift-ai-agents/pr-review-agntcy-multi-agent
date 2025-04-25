@@ -16,7 +16,7 @@
 
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables import RunnableSerializable
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Dict, List
 from .contexts import DefaultContext
 from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
@@ -24,16 +24,43 @@ from utils.models import IssueComment
 from pydantic import BaseModel, Field
 
 
-class titleDescriptionInput(BaseModel):
-    diff: list[dict] = Field(description="List of dictionary with diff information")
-    title: str = Field(description="The title of the PR ")
-    description: Optional[str] = Field(description="The description")
-    configuration: Optional[str] = Field(description="Configuration")
+# class titleDescriptionInput(BaseModel):
+#     diff: list[dict] = Field(description="A list of dictionary entries containing file-level diffs from the pull request. "
+#                                          "Each dictionary includes metadata like filename, lines added/removed, and code changes. Use this to understand what has been changed.")
+#     title: str = Field(description="The title of the PR ")
+#     description: Optional[str] = Field(description="The description")
+#     configuration: Optional[str] = Field(description="Configuration")
+
+class TitleDescriptionInput(BaseModel):
+    diff: List[Dict] = Field(
+        description="A list of dictionaries representing the git diffs in the pull request. "
+                    "Each dictionary contains details about the file changes such as file path, added/removed lines, and line numbers."
+    )
+    title: str = Field(
+        description="The current title of the pull request. This will be evaluated to determine if it accurately reflects the code changes."
+    )
+    description: Optional[str] = Field(
+        default=None,
+        description="The current description provided in the pull request. "
+                    "This will be reviewed to check if it sufficiently summarizes the purpose and content of the changes."
+    )
+    configuration: Optional[str] = Field(
+        default=None,
+        description="Additional instructions or context provided by the user to guide how the title and description should be improved. "
+                    "If irrelevant to title/description quality, it should be ignored."
+    )
 
 
-class titleDescriptionOutput(BaseModel):
-    PR_title_suggestion: str
-    PR_description_suggestion: str
+class TitleDescriptionOutput(BaseModel):
+    PR_title_suggestion: Optional[str] = Field(
+        default="",
+        description="A clear and concise title that best represents the changes introduced in the pull request. "
+    )
+    PR_description_suggestion: Optional[str] = Field(
+        default="",
+        description="A well-written summary that explains the purpose and content of the pull request. "
+                    "Should highlight key changes, and include reasoning or context if necessary."
+    )
 
 
 @staticmethod
@@ -49,6 +76,7 @@ def get_model_dump_with_metadata(model_instance):
             "description": description
         }
     return result
+
 
 class TitleDescriptionReviewer:
     def __init__(self, context: DefaultContext, name: str = "title_description_reviewer"):
@@ -69,14 +97,15 @@ class TitleDescriptionReviewer:
         if self.context.user_config:
             user_input = self.context.user_config.get("PR Title and Description", "")
         # Fetch existing comments
-        titledescription = titleDescriptionInput(diff=state["changes"],
+        titledescription = TitleDescriptionInput(diff=state["changes"],
                                                  title=state["title"],
                                                  description=state["description"],
                                                  configuration=user_input)
         title_desc_chain_result = self.context.chain(get_model_dump_with_metadata(titledescription)).invoke({})
         pr_title_suggestion = title_desc_chain_result.PR_title_suggestion
         pr_description_suggestion = title_desc_chain_result.PR_description_suggestion
-        new_title_desc_comment = IssueComment(body=",".join([pr_title_suggestion,pr_description_suggestion]),conditions=["PR title suggestion", "PR description suggestion"])
+        new_title_desc_comment = IssueComment(body=",".join([pr_title_suggestion, pr_description_suggestion]),
+                                              conditions=["PR title suggestion", "PR description suggestion"])
         log.debug(f"""
         title and description reviewer finished. issue comment added.
         title and description comment: {new_title_desc_comment.model_dump_json(indent=2)}
