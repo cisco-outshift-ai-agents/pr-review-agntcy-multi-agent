@@ -20,6 +20,7 @@ from langchain_core.runnables import RunnableSerializable
 from typing import cast, Callable
 from utils.wrap_prompt import wrap_prompt
 from utils.models import ReviewComments, ContextFile
+from pydantic import Field, BaseModel
 
 """
 TODO:
@@ -36,10 +37,19 @@ def create_code_reviewer_chain(model: BaseChatModel) -> Callable[
 
         # If some lines are indented more than others, dedent can't normalize it effectively.
         system_message = SystemMessagePromptTemplate.from_template(
-            "You are an expert in Terraform. Analyze the Terraform code changes in the pull request.")
+            "You are an expert in Terraform and a deligent code reviewer. Your goal is to support the developer in writing safer, cleaner, and more maintainable Terraform code. \
+            Provide your feedback in a clear, concise, and constructive format. \
+            ")
 
         user_message = HumanMessagePromptTemplate.from_template("""
-         Provide feedback based on the following best-practice categories:
+                                                                
+        You will be given all files in the code base, the list of changed files and the static analyzer output.
+                                                                
+        files : {files} 
+        changed_files: {changed}
+        static_analyzer_output: {static_analyzer_output}
+
+        Provide feedback based on the following best-practice categories:
             1. **Security**: Secrets management, IAM roles/policies, network configurations, etc.
             2. **Maintainability**: Code organization, DRY principle, module usage, variable naming, version pinning.
             3. **Scalability & Performance**: Resource sizing, autoscaling configurations, load balancing.
@@ -50,9 +60,25 @@ def create_code_reviewer_chain(model: BaseChatModel) -> Callable[
             For each category, list:
             - **Strengths** and **Areas of Improvement**
             - **Suggested changes** or additional best practices to consider
-            files : {files}
-            changed_files: {changed}
-            static_analyzer_output: {static_analyzer_output}
+                                                                
+                                                                
+        Here are some guidelines on providing feedback:
+        - Review all the files to understand the current state of the codebase.
+        - Review the changes to understand what was changed in this PR to arrive at the current state of the files.
+        - Always check the changes in the CHANGES list and comment only on the changed lines. You MUST NOT comment on unchanged code.
+        - Check the status of the changes and comment accordingly. For eg., if the status says 'added' then that piece of code was a new addition and if it says 'removed' then it was deleted from the codebase.
+        - You DO NOT have to comment on every code change block, if you do not see an issue, or if you already commented on the other pair of the change, ignore and move on.
+        - Each comment MUST refer to a change and the change must be associated with the issue that the comment is mentioning.
+        - ONLY comment on changes that have actual code changes (e.g., variable definitions, resource definitions, etc.)
+        - DO NOT provide general or positive feedback (e.g., 'This looks good', 'This is a best practice', etc.)
+        - Use the STATIC_ANALYZER_OUTPUT to identify potential errors in the new code.
+       
+        
+        Before returning your response, take your time to review your results:
+        - Make sure that each comment belongs to a change.
+        - Make sure the properties of the comment are aligned with the change object's properties.
+        - Make sure the comment messages are relevant and provide actionable items to the user.
+        - Make sure you checked the static analyzer outputs.
             """).format(files=input_dict["files"], changed=input_dict["changes"],
                         static_analyzer_output=input_dict["static_analyzer_output"])
         messages = [system_message, user_message]
