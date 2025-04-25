@@ -97,7 +97,7 @@ class TitleDescriptionReviewer:
         title_desc_chain_result = self.context.chain(get_model_dump_with_metadata(titledescription)).invoke({})
         pr_title_suggestion = title_desc_chain_result.PR_title_suggestion
         pr_description_suggestion = title_desc_chain_result.PR_description_suggestion
-        new_title_desc_comment = IssueComment(body=",".join([pr_title_suggestion, pr_description_suggestion]),
+        new_title_desc_comment = IssueComment(body=f"PR Title Suggestion:\n{pr_title_suggestion}\n\nPR Description Suggestion:\n {pr_description_suggestion}",
                                               conditions=["PR title suggestion", "PR description suggestion"])
         log.debug(f"""
         title and description reviewer finished. issue comment added.
