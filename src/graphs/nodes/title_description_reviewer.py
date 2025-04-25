@@ -23,14 +23,6 @@ from utils.logging_config import logger as log
 from utils.models import IssueComment
 from pydantic import BaseModel, Field
 
-
-# class titleDescriptionInput(BaseModel):
-#     diff: list[dict] = Field(description="A list of dictionary entries containing file-level diffs from the pull request. "
-#                                          "Each dictionary includes metadata like filename, lines added/removed, and code changes. Use this to understand what has been changed.")
-#     title: str = Field(description="The title of the PR ")
-#     description: Optional[str] = Field(description="The description")
-#     configuration: Optional[str] = Field(description="Configuration")
-
 class TitleDescriptionInput(BaseModel):
     diff: List[Dict] = Field(
         description="A list of dictionaries representing the git diffs in the pull request. "
@@ -96,6 +88,7 @@ class TitleDescriptionReviewer:
         user_input = ""
         if self.context.user_config:
             user_input = self.context.user_config.get("PR Title and Description", "")
+
         # Fetch existing comments
         titledescription = TitleDescriptionInput(diff=state["changes"],
                                                  title=state["title"],
