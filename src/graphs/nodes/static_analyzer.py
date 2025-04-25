@@ -25,6 +25,7 @@ from langchain_core.runnables import RunnableSerializable
 from utils.constants import TMP_DIR_ENV
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
+from utils.models import StaticAnalyzerOutputList, StaticAnalyzerInput
 
 
 class StaticAnalyzer:
@@ -95,18 +96,23 @@ class StaticAnalyzer:
         except Exception as e:
             log.error(f"An error occured while removing the local copy of the repo: {e}")
             return {}
+        
+        staticanalyzerinput = StaticAnalyzerInput(tf_validate_out_stderr=tf_validate_out.stderr,
+                                                  tf_validate_out_stdout=tf_validate_out.stdout,
+                                                  tflint_output_stderr=lint_stderr,
+                                                  tflint_output_stdout=lint_stdout)
 
         try:
-            response = self._context.chain.invoke(
+            response: StaticAnalyzerOutputList = self._context.chain.invoke(
                 {
                     "linter_outputs": wrap_prompt(
                         "terraform validate output:",
-                        f"{tf_validate_out.stderr}",
-                        f"{tf_validate_out.stdout}",
+                        f"{staticanalyzerinput.tf_validate_out_stderr}",
+                        f"{staticanalyzerinput.tf_validate_out_stdout}",
                         "",
                         "tflint output:",
-                        f"{lint_stderr}",
-                        f"{lint_stdout}",
+                        f"{staticanalyzerinput.tflint_output_stderr}",
+                        f"{staticanalyzerinput.tf_validate_out_stdout}",
                     )
                 }
             )
@@ -117,7 +123,7 @@ class StaticAnalyzer:
 
         log.debug(f"""
         static_analyzer finished.
-        output: {response.content}
+        output: {response}
         """)
 
-        return {"static_analyzer_output": response.content}
+        return {"static_analyzer_output": response}
