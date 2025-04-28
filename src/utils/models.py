@@ -20,10 +20,11 @@ from github.IssueComment import IssueComment as GHIssueComment
 
 
 class ReviewComment(BaseModel):
-    filename: str
-    line_number: int
-    comment: str
-    status: str
+    filename: str = Field(description = "The 'filename' property of the change object associated with the comment")
+    line_number: int = Field(description = "The 'start_line' property of the change object associated with the comment")
+    status: str = Field(description = "The 'status' property of the change object associated with the comment")
+    comment: str = Field(description = "Your review comment for the change - this is where you describe the issues you found")
+    
 
 
 class IssueComment(BaseModel):
@@ -36,7 +37,7 @@ class GitHubIssueCommentUpdate(GHIssueComment):
 
 
 class ReviewComments(BaseModel):
-    issues: List[ReviewComment] = Field(description="List of code review issues found")
+    issues: List[ReviewComment] = Field(description="List of code review comments, where each comment is associated with a change object from the list of changes")
 
 
 class ContextFile(BaseModel):

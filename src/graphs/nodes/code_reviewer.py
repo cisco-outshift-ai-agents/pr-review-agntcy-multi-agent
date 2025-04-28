@@ -18,13 +18,36 @@ import concurrent.futures
 import json
 
 import concurrent
-from typing import List
-from graphs.states import GitHubPRState
+from typing import List, Callable
+from graphs.states import GitHubPRState, FileChange
 from utils.logging_config import logger as log
 from .contexts import DefaultContext
-from utils.wrap_prompt import wrap_prompt
-from utils.models import ReviewComments, ReviewComment
+from pydantic import BaseModel, Field
+from utils.models import ReviewComments, ReviewComment, ContextFile
 from langchain_core.runnables import RunnableSerializable
+
+
+class codeReviewInput(BaseModel):
+    files: list[ContextFile] = Field(
+        description="The list of original files from the pull request. Each file includes its path and full content.")
+    changes: list[FileChange] = Field(
+        description="List of code changes across Terraform files. Each item includes the filename, the changed code snippet, the starting line number, and the status indicating whether the line was 'added' or 'removed'.")
+    static_analyzer_output: str = Field(description="List of issues in each file. Each item includes response in this format {{file name}}: {{full issue description}}")
+
+
+@staticmethod
+def get_model_dump_with_metadata(model_instance):
+    data = model_instance.model_dump()
+    metadata = model_instance.model_fields
+
+    result = {}
+    for field_name, value in data.items():
+        description = metadata[field_name].description
+        result[field_name] = {
+            "value": value,
+            "description": description
+        }
+    return result
 
 
 class CodeReviewer:
@@ -55,28 +78,17 @@ class CodeReviewer:
         return {"new_review_comments": comments}
 
     def __code_review(self, state: GitHubPRState) -> List[ReviewComment]:
+        """
+        :param state:
+        :return:
+        """
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
 
         # TODO: fix this later. Chain can be a Callable[..., RunnableSerializable] or RunnableSerializable
-        if not isinstance(self.context.chain, RunnableSerializable):
-            raise ValueError(f"{self.name}: Chain is not a RunnableSerializable")
-
-        response: ReviewComments = self.context.chain.invoke(
-            {
-                "question": wrap_prompt(
-                    "FILES:",
-                    f"{'\n'.join(map(str, state['context_files']))}",
-                    "",
-                    "CHANGES:" f"{state['changes']}",
-                    "",
-                    "STATIC_ANALYZER_OUTPUT:",
-                    f"{state["static_analyzer_output"]}",
-                    # "USER_CONFIGURATION:",
-                    # f"{self.user_config.get("Code Review", "")}",
-                    # f"{self.user_config.get("Security & Compliance Policies", "")}",
-                )
-            }
-        )
-
+        if not isinstance(self.context.chain, RunnableSerializable) and not isinstance(self.context.chain, Callable):
+            raise ValueError(f"{self.name}: Chain is not a RunnableSerializable or Callable")
+        codereview = codeReviewInput(files=state['context_files'], changes=state['changes'],
+                                     static_analyzer_output=state['static_analyzer_output'])
+        response: ReviewComments = self.context.chain(get_model_dump_with_metadata(codereview)).invoke({})
         return [comment for comment in response.issues if comment.line_number != 0]
