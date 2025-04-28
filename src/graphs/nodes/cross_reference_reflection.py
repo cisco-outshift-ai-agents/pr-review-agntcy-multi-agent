@@ -144,7 +144,6 @@ class CrossReferenceReflector:
         # First message is the original user request. We hold it the same for all nodes
         translated = [state["messages"][0]] + [cls_map[msg.type](content=msg.content) for msg in state["messages"][1:]]
         res = self.context.chain(translated).invoke({})
-        print("The cross Reference Reflector output", res.cross_reference_reflector_output)
         return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
 
@@ -207,7 +206,5 @@ class CrossReferenceCommenter:
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name} called")
-
         message: AIMessage = state["messages"][-1]
-
         return {"new_issue_comments": [IssueComment(body=message.content)]}
