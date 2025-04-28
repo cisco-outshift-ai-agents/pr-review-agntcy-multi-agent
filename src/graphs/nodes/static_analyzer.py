@@ -174,20 +174,6 @@ class StaticAnalyzer:
             log.error(f"Error in {self._name} while running the static analyzer chain: {e}")
             raise
 
-        print("*******static analyzer************")
-        print("*******terraform validate output************")
-        print(f"{tf_validate_error}")
-        print("_____________________")
-        print(f"{tf_validate_output}")
-        print("*******tflint output************")
-        print(f"{tf_lint_error}")
-        print("_____________________")
-        print(f"{tf_lint_output}")
-        print("_____________________")
-        print("*******static analyzer output************")
-        print(f"{response}")
-        print(type(response))
-
         log.debug(f"""
         static_analyzer finished.
         output: {response}
