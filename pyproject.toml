@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "alfred"
+name = "tf-pr-review-agntcy-multi-agent"
 version = "0.1.0"
 description = ""
 authors = ["rmedvedo <rmedvedo@cisco.com>"]
@@ -21,7 +21,7 @@ pydantic = ">=2.0.0"
 langchain-google-vertexai = "^2.0.8"
 boto3 = "1.35.72"
 anthropic = "0.40.0"
-torch = "2.2.1"
+torch = "2.6.0"
 sentence-transformers = "^3.3.1"
 numpy = "^1.26"
 agp-api = "^0.0.5"

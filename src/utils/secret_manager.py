@@ -40,7 +40,7 @@ log.info(
 class SecretManager:
 
     def __init__(self, mandatory_secrets: Optional[
-        List[Literal["gcp_credentials", "azure_openai_api_key", "langchain_api_key"]]] = None):
+        List[Literal["azure_openai_api_key"]]] = None):
         if mandatory_secrets is None:
             mandatory_secrets = []
         mandatory_secrets.extend(["github_app_private_key", "github_webhook_secret"])
@@ -49,7 +49,6 @@ class SecretManager:
 
         self.__github_app_private_key: str
         self.__github_webhook_secret: str
-        self.__gcp_credentials: Optional[str] = None
         self.__langchain_api_key: Optional[str] = None
         self.__azure_openai_api_key: Optional[str] = None
 
@@ -71,10 +70,6 @@ class SecretManager:
         return self.__github_webhook_secret
 
     @property
-    def gcp_credentials(self) -> Optional[str]:
-        return self.__gcp_credentials
-
-    @property
     def langchain_api_key(self) -> Optional[str]:
         return self.__langchain_api_key
 
@@ -84,24 +79,12 @@ class SecretManager:
 
     def __init_secrets(self):
         try:
-            self.__init_gcp_credentials()
             self.__init_azure_openai_api_key()
             self.__init_github_app_private_key()
             self.__init_github_webhook_secret()
             self.__init_langchain_api_key()
         except Exception as e:
             raise ValueError(f"Error while initializing secrets: {e}") from e
-
-    def __init_gcp_credentials(self):
-        try:
-            self.__gcp_credentials = self.__get_secret(
-                secret_name="gcp_credentials",
-                file_path_env_var=GCP_SERVICE_ACCOUNT_FILE_PATH_ENV,
-                env_var=None,
-                external_secret_name=self.__get_gcp_secret_name(),
-                external_secret_field=None)
-        except Exception:
-            raise
 
     def __init_langchain_api_key(self):
         if os.getenv(ENVIRONMENT_ENV) == "local":

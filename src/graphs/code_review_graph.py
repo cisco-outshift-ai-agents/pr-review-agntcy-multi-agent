@@ -41,7 +41,7 @@ from graphs.nodes import (
 )
 from graphs.nodes.remote_graphs.ap.static_analyzer import stateless_remote_static_analyzer_request
 from graphs.nodes.remote_graphs.ap.code_reviewer import stateless_remote_code_review_request
-from graphs.nodes.remote_graphs.agp.static_analyzer import node_remote_agp
+from graphs.nodes.remote_graphs.agp.static_analyzer import node_remote_agp as static_analyzer_agp
 from graphs.nodes.remote_graphs.agp.code_reviewer import node_remote_agp as code_reviewer_agp
 from graphs.states import GitHubPRState, create_default_github_pr_state
 from utils.constants import AGENT_MODE_ENV
@@ -108,7 +108,7 @@ class CodeReviewerWorkflow:
                 lambda state: stateless_remote_code_review_request(state, "http://localhost:8123/api/v1/runs")
             )
         elif agent_mode == "agp":
-            workflow.add_node("static_analyzer", node_remote_agp)
+            workflow.add_node("static_analyzer", static_analyzer_agp)
             workflow.add_node("code_reviewer", code_reviewer_agp)
         else:
             raise ValueError(f"Invalid agent mode: {agent_mode}. Must be one of 'local', 'langchain_ap', 'agp'")
