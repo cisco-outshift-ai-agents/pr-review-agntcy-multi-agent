@@ -2,21 +2,41 @@
 [![Release](https://img.shields.io/github/v/release/cisco-ai-agents/tf-pr-review-agntcy-multi-agent?display_name=tag)](CHANGELOG.md)
 [![Contributor-Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-fbab2c.svg)](CODE_OF_CONDUCT.md)
 
-The Multi-Agent Pull Request (PR) Reviewer is a GitHub app that provides feedback on pull requests that include Terraform files.
+A GitHub app that provides feedback on pull requests that include Terraform files.
 
 ## Overview
 
-**<NOTE: Modify "Alfred" in the diagram. Add diagram of the "Pull Request Reviewer" backend workflow that includes external agents>**
+**<NOTE: Modify "Alfred" in the diagram. Add diagram of the "Pull Request Reviewer" 
+backend workflow that includes external agents>**
+
+This project demonstrates the use of AGNTCY for building multi-agent
+applications (MAA), offering a tool for exploration and experimentation. It
+serves as a practical starting point for creating a GitHub bot designed to
+assist with Infrastructure as Code (IaC) pull request (PR) reviews.
+
+It includes GitHub integration and agents capable of performing basic Terraform
+PR reviews. It is ready for immediate use or modification to suit your use case.
+Example extentions of the framework include modifying the existing agent
+workflow, adding new agents, or modifying agent prompts.
+
+WIP: How it works. Langchain. Workflow. Agents. 
+
+![image](https://github.com/user-attachments/assets/3c1b474b-b345-41d8-b952-d1d1fc497e2c)
 
 ![Overview of Multi-agent Pull Request Reviewer](./docs/resources/overview.svg)
 
 ## About the Project
+WIP: Outline of this repository. Where to find the agent parts.
 
 ### How to modify the Project for your own PR Review use case
+WIP: Here's how to take this thing and evolve it in line with the original intent, or adapt to your use case
 
 ### How to contribute agents
+WIP: how would users publish agents that others can use?
 
 ## Installation
+WIP: overview paragraph on the supported installation model and deployment as a GitHub application.
+WIP: diagram of the model and GitHub.
 
 ### Local Run
 
