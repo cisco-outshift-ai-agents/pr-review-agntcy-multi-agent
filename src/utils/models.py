@@ -49,3 +49,22 @@ class ContextFile(BaseModel):
 
     def __repr__(self) -> str:
         return self.__str__()
+
+
+class StaticAnalyzerInput(BaseModel):
+
+    tf_validate_out_stderr: str = Field(description="This is the stderr output after running terraform validate -no-color")
+    tf_validate_out_stdout: str = Field(description="This is the stdout output after running terraform validate -no-color")
+    tflint_output_stderr: str = Field(description="This is the stderr output after running tflint --format=compact --recursive")
+    tflint_output_stdout: str = Field(description="This is the stdout output after running tflint --format=compact --recursive")
+
+
+class StaticAnalyzerOutputIssues(BaseModel):
+
+    file_name: str = Field(description="This is the filename which has terraform linter issues")
+    full_issue_description: str = Field(description="This is the full description of terraform linter issue")
+
+
+class StaticAnalyzerOutputList(BaseModel):
+
+    issues: List[StaticAnalyzerOutputIssues] = Field(description="List of terraform linter issues found")

@@ -18,13 +18,52 @@ from subprocess import CalledProcessError, PIPE, run
 from typing import Any
 import os
 import shutil
-
 from .contexts import DefaultContext
 from graphs.states import GitHubPRState
 from langchain_core.runnables import RunnableSerializable
 from utils.constants import TMP_DIR_ENV
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
+from utils.models import StaticAnalyzerOutputList, StaticAnalyzerInput
+
+
+def checkTofuFiles(output_folder) -> list[str]:
+    # Check for tofu files in the output folder
+    if os.path.isdir(output_folder):
+        files_with_extension = [f for f in os.listdir(output_folder) if f.endswith(".tofu") or f.endswith(".tofuvars")]
+        return files_with_extension
+    return []
+
+
+def convertFileExtension(output_folder, tofu_files) -> dict:
+    # Convert the extension from .tofu/.tofuvars to .tf/.tfvars
+    file_rename_map = {}
+    new_filename = ""
+    for files in tofu_files:
+        if files.endswith(".tofu"):
+            old_path = os.path.join(output_folder, files)
+            new_filename = "modified_" + os.path.splitext(files)[0] + ".tf"
+            new_path = os.path.join(output_folder, new_filename)
+            os.rename(old_path, new_path)
+        elif files.endswith(".tofuvars"):
+            old_path = os.path.join(output_folder, files)
+            new_filename = "modified_" + os.path.splitext(files)[0] + ".tfvars"
+            new_path = os.path.join(output_folder, new_filename)
+            os.rename(old_path, new_path)
+        file_rename_map[files] = new_filename
+    return file_rename_map
+
+
+def modifyresponse(file_rename_map, response) -> str:
+    modified_output = ""
+    if response == "":
+        return ""
+    for old_filename, new_filename in file_rename_map.items():
+        if not modified_output:
+            modified_output = response.replace(new_filename, old_filename)
+        else:
+            modified_output = modified_output.replace(new_filename, old_filename)
+    return modified_output
 
 
 class StaticAnalyzer:
@@ -56,6 +95,11 @@ class StaticAnalyzer:
             raise
 
         try:
+            file_rename_map = {}
+            # Check for the tofu files in the repo
+            tofu_files = checkTofuFiles(output_folder)
+            if tofu_files:
+                file_rename_map = convertFileExtension(output_folder, tofu_files)
             tf_validate_out = run(
                 ["terraform", "validate", "-no-color"],
                 cwd=output_folder,
@@ -75,7 +119,6 @@ class StaticAnalyzer:
                     capture_output=True,
                     text=True,
                 )
-
                 tflint_out = run(
                     ["tflint", "--format=compact", "--recursive"],
                     cwd=output_folder,
@@ -85,10 +128,10 @@ class StaticAnalyzer:
                 )
                 lint_stdout = tflint_out.stdout
                 lint_stderr = tflint_out.stderr
+                # if some files are renamed modify the lint output with the old file name
         except CalledProcessError as e:
             log.error(f"Error while running static checks: {e.stderr}")
             return {}
-
         try:
             shutil.rmtree(output_folder)
             log.debug("Repo deleted successfully")
@@ -97,27 +140,42 @@ class StaticAnalyzer:
             return {}
 
         try:
-            response = self._context.chain.invoke(
+            if file_rename_map:
+                # Replace all the modified file names in  tf_validate output, error, lint output
+                tf_validate_output = modifyresponse(file_rename_map, tf_validate_out.stdout)
+                tf_validate_error = modifyresponse(file_rename_map, tf_validate_out.stderr)
+                tf_lint_output = modifyresponse(file_rename_map, lint_stdout)
+                tf_lint_error = modifyresponse(file_rename_map, lint_stderr)
+            else:
+                tf_validate_output = tf_validate_out.stdout
+                tf_validate_error = tf_validate_out.stderr
+                tf_lint_output = lint_stdout
+                tf_lint_error = lint_stderr
+
+            staticanalyzerinput = StaticAnalyzerInput(tf_validate_out_stderr=tf_validate_error,
+                                                  tf_validate_out_stdout=tf_validate_output,
+                                                  tflint_output_stderr=tf_lint_error,
+                                                  tflint_output_stdout=tf_lint_output)
+
+            response: StaticAnalyzerOutputList = self._context.chain.invoke(
                 {
                     "linter_outputs": wrap_prompt(
                         "terraform validate output:",
-                        f"{tf_validate_out.stderr}",
-                        f"{tf_validate_out.stdout}",
+                        f"{staticanalyzerinput.tf_validate_out_stderr}",
+                        f"{staticanalyzerinput.tf_validate_out_stdout}",
                         "",
                         "tflint output:",
-                        f"{lint_stderr}",
-                        f"{lint_stdout}",
+                        f"{staticanalyzerinput.tflint_output_stderr}",
+                        f"{staticanalyzerinput.tf_validate_out_stdout}",
                     )
                 }
             )
-
         except Exception as e:
             log.error(f"Error in {self._name} while running the static analyzer chain: {e}")
             raise
 
         log.debug(f"""
         static_analyzer finished.
-        output: {response.content}
+        output: {response}
         """)
-
-        return {"static_analyzer_output": response.content}
+        return {"static_analyzer_output": response}

@@ -1,48 +1,72 @@
-# Use the official Python image from the Docker Hub
-FROM ghcr.io/cisco-outshift-alfred/lambda/python:3.12.9 as base
+# Use a smaller base image for the build stage
+FROM python:3.12.9-slim as base
 
+# Set working directory
 WORKDIR /app
 
-RUN pip install poetry
+# Install Poetry globally
+RUN pip install --no-cache-dir poetry && \
+    rm -rf /root/.cache/pip
 
 # Install build essentials for Rust compilation
-RUN dnf update -y && \
-    dnf install -y \
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
     gcc \
-    gcc-c++ \
+    g++ \
     make \
-    && dnf clean all
+    curl \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Rust for Python package compilation
-RUN curl --proto '=https' -sSf https://sh.rustup.rs | sh -s -- -y
+RUN curl --proto '=https' -sSf https://sh.rustup.rs | sh -s -- -y && \
+    rm -rf /root/.rustup/toolchains/*/share/doc
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+
+# Copy Poetry configuration files
 COPY pyproject.toml poetry.lock ./
 
-RUN poetry config virtualenvs.create true
-RUN poetry config virtualenvs.in-project true
-RUN poetry install --no-root
+# Configure Poetry to use a local virtual environment and install dependencies
+RUN poetry config virtualenvs.create true && \
+    poetry config virtualenvs.in-project true && \
+    poetry install --no-root --no-interaction --no-ansi
 
-FROM public.ecr.aws/lambda/python:3.12 as build
+# Runtime stage
+FROM python:3.12.9-slim as build
 
-WORKDIR ${LAMBDA_TASK_ROOT}
+# Set working directory for the application
+WORKDIR /app
 
-RUN dnf update -y && \
-    dnf install -y \
+# Install required system tools and clean up to reduce image size
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     unzip \
     jq \
-    ca-certificates && \
-    dnf clean all
+    ca-certificates \
+    curl \
+    wget \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Terraform, Alfred will run static analyzers on the repo
+# Install Terraform
 RUN curl -Lo /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.6.1/terraform_1.6.1_linux_amd64.zip && \
     unzip /tmp/terraform.zip -d /usr/local/bin/ && \
     rm -f /tmp/terraform.zip
 
-# Install tflint for the same reasons as above
+# Install TFLint
 RUN curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 
-COPY --from=base /app/.venv/lib/python3.12/site-packages/ ${LAMBDA_TASK_ROOT}/
-COPY src/ ${LAMBDA_TASK_ROOT}/
+# Copy Python dependencies from the base image
+COPY --from=base /app/.venv/ /app/.venv/
 
-CMD ["main.handle_event"]
+# Copy only the necessary source code into the working directory
+COPY src /app/src
+
+# Set environment variables to use the virtual environment
+ENV VIRTUAL_ENV=/app/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Default command to run the Python script
+WORKDIR /app/src
+CMD ["python3", "main_local.py"]

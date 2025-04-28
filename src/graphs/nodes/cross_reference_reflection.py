@@ -23,9 +23,9 @@ from github.Commit import Commit
 from github.GitTree import GitTree
 from github.GitBlob import GitBlob
 from github.GitTreeElement import GitTreeElement
-
 from langchain_core.messages import HumanMessage, AIMessage
 from utils.models import IssueComment
+from pydantic import BaseModel, Field
 
 
 class File:
@@ -37,7 +37,20 @@ class File:
         return f"##FILE: {self.path}\n{self.content}\n##END_OF_FILE\n\n"
 
 
+class crossReferenceGeneratorOutput(BaseModel):
+    cross_reference_generator_output: str = Field(description="Sample generator response")
+
+
+class crossReferenceReflectorOutput(BaseModel):
+    cross_reference_reflector_output: str = Field(description="Sample reflector response")
+
+
+
 class CrossReferenceInitializer:
+    """
+    This class is used to get the code base and git diff
+    """
+
     def __init__(self, context: DefaultContext, name: str = "cross_reference_initializer"):
         self.context = context
         self.name = name
@@ -64,7 +77,6 @@ class CrossReferenceInitializer:
         head_codebase = self._codebase(head_files)
         git_diff = self.context.github.get_git_diff()
         user_prompt = _create_user_prompt(git_diff, codebase, head_codebase)
-
         return {"messages": [HumanMessage(content=user_prompt)]}
 
     def _get_files_from_sha(self, sha: str) -> list[File]:
@@ -110,12 +122,10 @@ class CrossReferenceGenerator:
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name} called")
-
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
-
-        message = self.context.chain.invoke(state["messages"])
-        return {"messages": [message]}
+        response = self.context.chain(state["messages"]).invoke({})
+        return {"messages": [response.cross_reference_generator_output]}
 
 
 class CrossReferenceReflector:
@@ -133,14 +143,12 @@ class CrossReferenceReflector:
         cls_map = {"ai": HumanMessage, "human": AIMessage}
         # First message is the original user request. We hold it the same for all nodes
         translated = [state["messages"][0]] + [cls_map[msg.type](content=msg.content) for msg in state["messages"][1:]]
-
-        res = self.context.chain.invoke(translated)
-        # We treat the output of this as human feedback for the generator
-        return {"messages": [HumanMessage(content=res.content)]}
+        res = self.context.chain(translated).invoke({})
+        return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
 
 def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str) -> str:
-    user_prompt = f"""
+    user_prompt = """
         # git diff
         ```
         {git_diff}
@@ -179,17 +187,24 @@ def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str) -
         - Variables defined in terraform.tfvars but missing from .tf files
         - Variables defined in either .tf or terraform.tfvars (or both) but not referenced in any other files or resources
         """
-
-    return user_prompt
+    # Now fill in values
+    filled_prompt = user_prompt.format(
+        git_diff=git_diff,
+        head_codebase=head_codebase,
+        base_codebase=base_codebase
+    )
+    return filled_prompt
 
 
 class CrossReferenceCommenter:
+    """
+    This class is used to post issue comments for the cross reference comments
+    """
+
     def __init__(self, name: str = "cross_reference_commenter"):
         self.name = name
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name} called")
-
         message: AIMessage = state["messages"][-1]
-
         return {"new_issue_comments": [IssueComment(body=message.content)]}

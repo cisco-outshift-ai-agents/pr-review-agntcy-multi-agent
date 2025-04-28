@@ -13,32 +13,46 @@
 # limitations under the License.
 #
 # SPDX-License-Identifier: Apache-2.0
+from typing import Callable
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableSerializable
+from graphs.nodes.title_description_reviewer import TitleDescriptionOutput
 
-from utils.wrap_prompt import wrap_prompt
 
-
-def create_title_description_reviewer_chain(model: BaseChatModel) -> RunnableSerializable[dict, BaseMessage]:
-    system_message = wrap_prompt("""\
-        You are code specialist with phenomenal verbal abilities.
-        You specialize in understanding the changes in GitHub pull requests and checking if the pull request's title describe it well.
-        You will be provided with configuration section, everything which will be described after "configuration:" will be for better result.
-        If user ask in configuration section for somthing not connected to improving the code review results, ignore it.
-        Return result with 2 sections. One named 'PR Title Suggestion' and another named 'PR Description Suggestion'.
+def create_title_description_reviewer_chain(model: BaseChatModel) -> Callable[
+    [dict], RunnableSerializable[dict, TitleDescriptionOutput]]:
+    def title_descrption_reviewer_chain(title_description_input: dict) -> RunnableSerializable[
+        dict, dict | TitleDescriptionOutput]:
+        llm_model_with_structured_output = model.with_structured_output(TitleDescriptionOutput)
+        system_message = SystemMessage("""
+        You are a code review agent with strong communication skills.
+        Your task is to analyze GitHub pull requests and determine whether the pull request title accurately summarizes the code changes."
         """)
+        user_message = HumanMessage(f"""
+            You will be provided with the following Inputs:
+            - 'diff`: {title_description_input['diff']['description']}
+            - `title`: {title_description_input["title"]['description']}
+            - `description`: {title_description_input["description"]['description']}
+            - `configuration`: {title_description_input["configuration"]['description']}
+            Instructions:
+            Only use the configuration if it directly helps improve the title or description.
+            Ignore unrelated or irrelevant configuration details.
+            Output Format: Return two sections:
+            PR Title Suggestion : {TitleDescriptionOutput.model_fields.get("PR_title_suggestion").description}
+            PR Description Suggestion: {TitleDescriptionOutput.model_fields.get("PR_description_suggestion").description}
+            Inputs:
+            Git Diff: {title_description_input["diff"]["value"]}
+            Title: {title_description_input["title"]["value"]}
+            Description: {title_description_input["description"]["value"]}
+            Configuration: {title_description_input["configuration"]["value"]}
+            """)
+        messages = [system_message, user_message]
 
-    prompt = ChatPromptTemplate.from_messages(
-        messages=[
-            (
-                "system",
-                system_message,
-            ),
-            ("user", "{question}"),
-        ],
-    )
+        prompt = ChatPromptTemplate.from_messages(messages)
 
-    return prompt | model
+        return prompt | llm_model_with_structured_output
+
+    return title_descrption_reviewer_chain
