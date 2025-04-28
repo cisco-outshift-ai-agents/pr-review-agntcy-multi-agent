@@ -58,9 +58,6 @@ def create_review_chat_assistant_chain(model: BaseChatModel) -> Callable[[Sequen
              """)
 
         messages = [
-            #SystemMessagePromptTemplate.from_template(
-            #    system_prompt,
-            #)
              (
                 "system",
                 system_prompt,
