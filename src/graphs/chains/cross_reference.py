@@ -22,7 +22,7 @@ from graphs.nodes.cross_reference_reflection import crossReferenceGeneratorOutpu
 
 
 def create_cross_reference_generator_chain(model: BaseChatModel) -> Callable[[list[BaseMessage]], RunnableSerializable]:
-    def cross_reference_generator_chain(user_prompt: list[HumanMessage]) -> RunnableSerializable[
+    def cross_reference_generator_chain(user_messages: list[HumanMessage]) -> RunnableSerializable[
         dict, dict | crossReferenceGeneratorOutput]:
         structured_output_model = model.with_structured_output(crossReferenceGeneratorOutput)
         system_message = SystemMessage(
@@ -31,7 +31,7 @@ def create_cross_reference_generator_chain(model: BaseChatModel) -> Callable[[li
             "analyze and take necessary steps to complete it, "
             "following best practices."
         )
-        messages = [system_message]+user_prompt
+        messages = [system_message]+user_messages
         template = ChatPromptTemplate.from_messages(messages)
         return template | structured_output_model
 
@@ -39,7 +39,7 @@ def create_cross_reference_generator_chain(model: BaseChatModel) -> Callable[[li
 
 
 def create_cross_reference_reflector_chain(model: BaseChatModel) -> Callable[[list[BaseMessage]], RunnableSerializable]:
-    def cross_reference_reflector_chain(translated: list[HumanMessage]) -> RunnableSerializable[
+    def cross_reference_reflector_chain(user_messages: list[HumanMessage]) -> RunnableSerializable[
         dict, dict | crossReferenceReflectorOutput]:
         structured_output_model = model.with_structured_output(crossReferenceReflectorOutput)
         system_message = SystemMessage(
@@ -64,7 +64,7 @@ def create_cross_reference_reflector_chain(model: BaseChatModel) -> Callable[[li
             "- Additional Concerns: [... if critical]\n\n"
             "Be accurate and thorough.",
         )
-        messages = [system_message]+translated
+        messages = [system_message]+user_messages
         template = ChatPromptTemplate.from_messages(messages)
         return template | structured_output_model
     return cross_reference_reflector_chain
