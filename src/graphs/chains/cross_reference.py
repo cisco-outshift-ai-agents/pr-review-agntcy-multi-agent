@@ -17,30 +17,21 @@ from typing import Callable
 from langchain_core.language_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
 from langchain_core.runnables import RunnableSerializable
-from langchain_core.messages import BaseMessage
-from langchain_core.messages import HumanMessage
-from pydantic import BaseModel, Field
-
-
-class crossReferenceGeneratorOutput(BaseModel):
-    cross_reference_generator_output: str = Field(description="Sample generator response")
-
-
-class crossReferenceReflectorOutput(BaseModel):
-    cross_reference_reflector_output: str = Field(description="Sample reflector response")
+from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
+from graphs.nodes.cross_reference_reflection import crossReferenceGeneratorOutput, crossReferenceReflectorOutput
 
 
 def create_cross_reference_generator_chain(model: BaseChatModel) -> Callable[[list[BaseMessage]], RunnableSerializable]:
     def cross_reference_generator_chain(user_prompt: list[HumanMessage]) -> RunnableSerializable[
         dict, dict | crossReferenceGeneratorOutput]:
         structured_output_model = model.with_structured_output(crossReferenceGeneratorOutput)
-        system_message = SystemMessagePromptTemplate.from_template(
+        system_message = SystemMessage(
             "You are a Terraform Agent. "
             "Given a terraform codebase and a task, "
             "analyze and take necessary steps to complete it, "
             "following best practices."
         )
-        messages = [system_message] + user_prompt
+        messages = [system_message]+user_prompt
         template = ChatPromptTemplate.from_messages(messages)
         return template | structured_output_model
 
@@ -51,7 +42,7 @@ def create_cross_reference_reflector_chain(model: BaseChatModel) -> Callable[[li
     def cross_reference_reflector_chain(translated: list[HumanMessage]) -> RunnableSerializable[
         dict, dict | crossReferenceReflectorOutput]:
         structured_output_model = model.with_structured_output(crossReferenceReflectorOutput)
-        system_message = SystemMessagePromptTemplate.from_template(
+        system_message = SystemMessage(
             "You are a Terraform verification agent. Validate cross-reference analysis by:\n\n"
             "1. Verifying reported issues via:\n"
             "   - git diff checks\n"
@@ -73,9 +64,7 @@ def create_cross_reference_reflector_chain(model: BaseChatModel) -> Callable[[li
             "- Additional Concerns: [... if critical]\n\n"
             "Be accurate and thorough.",
         )
-        user_prompt = [system_message] + translated
-        messages = [system_message] + user_prompt
+        messages = [system_message]+translated
         template = ChatPromptTemplate.from_messages(messages)
         return template | structured_output_model
-
     return cross_reference_reflector_chain

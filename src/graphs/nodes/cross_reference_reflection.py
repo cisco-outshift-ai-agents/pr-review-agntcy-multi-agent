@@ -25,6 +25,7 @@ from github.GitBlob import GitBlob
 from github.GitTreeElement import GitTreeElement
 from langchain_core.messages import HumanMessage, AIMessage
 from utils.models import IssueComment
+from pydantic import BaseModel, Field
 
 
 class File:
@@ -34,6 +35,15 @@ class File:
 
     def __str__(self):
         return f"##FILE: {self.path}\n{self.content}\n##END_OF_FILE\n\n"
+
+
+class crossReferenceGeneratorOutput(BaseModel):
+    cross_reference_generator_output: str = Field(description="Sample generator response")
+
+
+class crossReferenceReflectorOutput(BaseModel):
+    cross_reference_reflector_output: str = Field(description="Sample reflector response")
+
 
 
 class CrossReferenceInitializer:
@@ -134,6 +144,7 @@ class CrossReferenceReflector:
         # First message is the original user request. We hold it the same for all nodes
         translated = [state["messages"][0]] + [cls_map[msg.type](content=msg.content) for msg in state["messages"][1:]]
         res = self.context.chain(translated).invoke({})
+        print("The cross Reference Reflector output", res.cross_reference_reflector_output)
         return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
 
