@@ -22,13 +22,6 @@ from utils.wrap_prompt import wrap_prompt
 from utils.models import ReviewComments, ContextFile
 from pydantic import Field, BaseModel
 
-"""
-TODO:
-1. input Model(need to define) - define the fields
-2. output model(ReviewComments) - add more fields
-3. refine the instructions for reviewing the changed files and how to write the comment - add instruction to include actionable items
-"""
-
 
 def create_code_reviewer_chain(model: BaseChatModel) -> Callable[
     [list[ReviewComments]], RunnableSerializable[dict, dict | ReviewComments]]:
