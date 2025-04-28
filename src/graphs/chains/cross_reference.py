@@ -15,7 +15,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from typing import Callable
 from langchain_core.language_models import BaseChatModel
-from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableSerializable
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 from graphs.nodes.cross_reference_reflection import crossReferenceGeneratorOutput, crossReferenceReflectorOutput
