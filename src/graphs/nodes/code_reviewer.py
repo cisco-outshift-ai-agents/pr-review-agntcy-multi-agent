@@ -26,6 +26,10 @@ from pydantic import BaseModel, Field
 from utils.models import ReviewComments, ReviewComment, ContextFile
 from langchain_core.runnables import RunnableSerializable
 
+import logging
+
+logging.basicConfig(filename='/Users/sreeadde/Desktop/github_may2025/tf-pr-review-agntcy-multi-agent/src/prompt_reengineering.log', level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class codeReviewInput(BaseModel):
     files: list[ContextFile] = Field(
@@ -94,10 +98,10 @@ class CodeReviewer:
         codereview = codeReviewInput(files=state['context_files'], changes=state['changes'],
                                      static_analyzer_output=static_analyzer_response)
 
-        log.info(f" Code Reviewer Input: {codereview} ")
+        logging.critical(f" Code Reviewer Input: {codereview} ")
 
         response: ReviewComments = self.context.chain(get_model_dump_with_metadata(codereview)).invoke({})
 
-        log.info(f" Code Reviewer Output: {response} ")
+        logging.critical(f" Code Reviewer Output: {response} ")
 
         return [comment for comment in response.issues if comment.line_number != 0]

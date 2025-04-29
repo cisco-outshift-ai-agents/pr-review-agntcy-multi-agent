@@ -25,6 +25,9 @@ from utils.constants import TMP_DIR_ENV
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
 from utils.models import StaticAnalyzerOutputList, StaticAnalyzerInput
+import logging
+
+logging.basicConfig(filename='/Users/sreeadde/Desktop/github_may2025/tf-pr-review-agntcy-multi-agent/src/prompt_reengineering.log', level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def checkTofuFiles(output_folder) -> list[str]:
@@ -157,7 +160,7 @@ class StaticAnalyzer:
                                                   tflint_output_stderr=tf_lint_error,
                                                   tflint_output_stdout=tf_lint_output)
 
-            log.info(f"Static Analyer Input: {staticanalyzerinput} ")
+            logging.critical(f"Static Analyer Input: {staticanalyzerinput} ")
 
             response: StaticAnalyzerOutputList = self._context.chain.invoke(
                 {
@@ -173,7 +176,7 @@ class StaticAnalyzer:
                 }
             )
 
-            log.info(f" Static Analyer Output: {response} ")
+            logging.critical(f"Static Analyer Output: {response} ")
 
         except Exception as e:
             log.error(f"Error in {self._name} while running the static analyzer chain: {e}")

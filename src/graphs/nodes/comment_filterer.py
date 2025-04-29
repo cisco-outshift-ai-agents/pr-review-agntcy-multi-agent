@@ -24,6 +24,9 @@ from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
 from .contexts import DefaultContext
 from langchain_core.runnables import RunnableSerializable
+import logging
+
+logging.basicConfig(filename='/Users/sreeadde/Desktop/github_may2025/tf-pr-review-agntcy-multi-agent/src/prompt_reengineering.log', level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class CommentFilterer:
@@ -92,7 +95,7 @@ class CommentFilterer:
                 print(f"input_json_format: {json.dumps(example_schema, indent=2)}")
                 print(f"question: {filtered_review_comments}")
 
-                log.info(f" Comment Filterer Input: {filtered_review_comments} ")
+                logging.critical(f" Comment Filterer Input: {filtered_review_comments} ")
 
                 result: ReviewComments = self._context.chain.invoke(
                     {
@@ -105,7 +108,7 @@ class CommentFilterer:
 
                 print("OUTPUT:COMMENT_FILTER")
 
-                log.info(f" Comment Filterer Output: {result} ")
+                logging.critical(f" Comment Filterer Output: {result} ")
 
                 filtered_review_comments: List[ReviewComment] = result.issues
 

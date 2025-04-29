@@ -26,6 +26,11 @@ from utils.logging_config import logger as log
 
 NOT_RELATED_MESSAGE = "I apologize but your question or instruction is not related to the code so I cannot provide a response."
 
+import logging
+
+logging.basicConfig(filename='/Users/sreeadde/Desktop/github_may2025/tf-pr-review-agntcy-multi-agent/src/prompt_reengineering.log', level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
 
 class ReviewChatAssistant:
     def __init__(self, context: DefaultContext, name: str = "review_chat_assistant"):
@@ -42,17 +47,17 @@ class ReviewChatAssistant:
         if message_history is None or len(message_history) < 2:
             raise ValueError("At least the original review and a comment should be presented in the message history")
         try:
-            log.info(f" Review chat assistant Input: {message_history} ")
+            logging.critical(f" Review chat assistant Input: {message_history} ")
 
             input_dict = {"code": state["reviewed_patch"], "line_number": state["comment"]["line"], "question": message_history.pop().content}
 
-            log.info(f" Review chat assistant Input: {input_dict} ")
+            logging.critical(f" Review chat assistant Input: {input_dict} ")
 
             response: ReviewChatResponse = self.context.chain(message_history).invoke(
                 {"code": state["reviewed_patch"], "line_number": state["comment"]["line"], "question": message_history.pop().content}
             )
             
-            log.info(f" Review chat assistant Output: {response} ")
+            logging.critical(f" Review chat assistant Output: {response} ")
         except Exception as e:
             raise ValueError(f"Error invoking LLM model: {e}") from e
 

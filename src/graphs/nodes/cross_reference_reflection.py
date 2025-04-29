@@ -27,6 +27,11 @@ from langchain_core.messages import HumanMessage, AIMessage
 from utils.models import IssueComment
 from pydantic import BaseModel, Field
 
+import logging
+
+logging.basicConfig(filename='/Users/sreeadde/Desktop/github_may2025/tf-pr-review-agntcy-multi-agent/src/prompt_reengineering.log', level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
 
 class File:
     def __init__(self, path: str, content: str):
@@ -125,11 +130,11 @@ class CrossReferenceGenerator:
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
 
-        log.info(f"Cross reference Generator Input: {state["messages"]}")
+        logging.critical(f"Cross reference Generator Input: {state["messages"]}")
 
         response = self.context.chain(state["messages"]).invoke({})
 
-        log.info(f"Cross reference Generator Output: {response}")
+        logging.critical(f"Cross reference Generator Output: {response}")
 
         return {"messages": [response.cross_reference_generator_output]}
 
@@ -150,12 +155,12 @@ class CrossReferenceReflector:
         # First message is the original user request. We hold it the same for all nodes
         translated = [state["messages"][0]] + [cls_map[msg.type](content=msg.content) for msg in state["messages"][1:]]
 
-        log.info(f"Cross reference Reflection Input: {translated}")
+        logging.critical(f"Cross reference Reflection Input: {translated}")
 
         res = self.context.chain(translated).invoke({})
 
-        log.info(f"Cross reference Reflection Output: {res}")
-        
+        logging.critical(f"Cross reference Reflection Output: {res}")
+
         return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
 

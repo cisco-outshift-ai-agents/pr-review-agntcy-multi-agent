@@ -22,6 +22,10 @@ from graphs.states import GitHubPRState
 from utils.logging_config import logger as log
 from utils.models import IssueComment
 from pydantic import BaseModel, Field
+import logging
+
+logging.basicConfig(filename='/Users/sreeadde/Desktop/github_may2025/tf-pr-review-agntcy-multi-agent/src/prompt_reengineering_title_description.log', level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class TitleDescriptionInput(BaseModel):
     diff: List[Dict] = Field(
@@ -95,7 +99,7 @@ class TitleDescriptionReviewer:
                                                  description=state["description"],
                                                  configuration=user_input)
         
-        log.info(f"Title description Input: {titledescription} ")
+        logging.critical(f"Title description Input: {titledescription} ")
 
         title_desc_chain_result = self.context.chain(get_model_dump_with_metadata(titledescription)).invoke({})
         pr_title_suggestion = title_desc_chain_result.PR_title_suggestion
@@ -103,7 +107,7 @@ class TitleDescriptionReviewer:
         new_title_desc_comment = IssueComment(body=f"PR Title Suggestion:\n{pr_title_suggestion}\n\nPR Description Suggestion:\n {pr_description_suggestion}",
                                               conditions=["PR title suggestion", "PR description suggestion"])
         
-        log.info(f"Title description Output: {new_title_desc_comment}")
+        logging.critical(f"Title description Output: {new_title_desc_comment}")
 
         log.debug(f"""
         title and description reviewer finished. issue comment added.
