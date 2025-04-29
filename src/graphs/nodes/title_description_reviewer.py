@@ -94,11 +94,17 @@ class TitleDescriptionReviewer:
                                                  title=state["title"],
                                                  description=state["description"],
                                                  configuration=user_input)
+        
+        log.info(f"Title description Input: {titledescription} ")
+
         title_desc_chain_result = self.context.chain(get_model_dump_with_metadata(titledescription)).invoke({})
         pr_title_suggestion = title_desc_chain_result.PR_title_suggestion
         pr_description_suggestion = title_desc_chain_result.PR_description_suggestion
         new_title_desc_comment = IssueComment(body=f"PR Title Suggestion:\n{pr_title_suggestion}\n\nPR Description Suggestion:\n {pr_description_suggestion}",
                                               conditions=["PR title suggestion", "PR description suggestion"])
+        
+        log.info(f"Title description Output: {new_title_desc_comment}")
+
         log.debug(f"""
         title and description reviewer finished. issue comment added.
         title and description comment: {new_title_desc_comment.model_dump_json(indent=2)}

@@ -157,6 +157,8 @@ class StaticAnalyzer:
                                                   tflint_output_stderr=tf_lint_error,
                                                   tflint_output_stdout=tf_lint_output)
 
+            log.info(f"Static Analyer Input: {staticanalyzerinput} ")
+
             response: StaticAnalyzerOutputList = self._context.chain.invoke(
                 {
                     "linter_outputs": wrap_prompt(
@@ -170,6 +172,9 @@ class StaticAnalyzer:
                     )
                 }
             )
+
+            log.info(f" Static Analyer Output: {response} ")
+
         except Exception as e:
             log.error(f"Error in {self._name} while running the static analyzer chain: {e}")
             raise

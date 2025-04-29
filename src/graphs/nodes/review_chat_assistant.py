@@ -42,9 +42,17 @@ class ReviewChatAssistant:
         if message_history is None or len(message_history) < 2:
             raise ValueError("At least the original review and a comment should be presented in the message history")
         try:
+            log.info(f" Review chat assistant Input: {message_history} ")
+
+            input_dict = {"code": state["reviewed_patch"], "line_number": state["comment"]["line"], "question": message_history.pop().content}
+
+            log.info(f" Review chat assistant Input: {input_dict} ")
+
             response: ReviewChatResponse = self.context.chain(message_history).invoke(
                 {"code": state["reviewed_patch"], "line_number": state["comment"]["line"], "question": message_history.pop().content}
             )
+            
+            log.info(f" Review chat assistant Output: {response} ")
         except Exception as e:
             raise ValueError(f"Error invoking LLM model: {e}") from e
 

@@ -88,7 +88,14 @@ class CodeReviewer:
         # TODO: fix this later. Chain can be a Callable[..., RunnableSerializable] or RunnableSerializable
         if not isinstance(self.context.chain, RunnableSerializable) and not isinstance(self.context.chain, Callable):
             raise ValueError(f"{self.name}: Chain is not a RunnableSerializable or Callable")
+
         codereview = codeReviewInput(files=state['context_files'], changes=state['changes'],
                                      static_analyzer_output=state['static_analyzer_output'])
+
+        log.info(f" Code Reviewer Input: {codereview} ")
+
         response: ReviewComments = self.context.chain(get_model_dump_with_metadata(codereview)).invoke({})
+
+        log.info(f" Code Reviewer Output: {response} ")
+
         return [comment for comment in response.issues if comment.line_number != 0]

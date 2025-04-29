@@ -124,7 +124,13 @@ class CrossReferenceGenerator:
         log.info(f"{self.name} called")
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
+
+        log.info(f"Cross reference Generator Input: {state["messages"]}")
+
         response = self.context.chain(state["messages"]).invoke({})
+
+        log.info(f"Cross reference Generator Output: {response}")
+
         return {"messages": [response.cross_reference_generator_output]}
 
 
@@ -143,7 +149,13 @@ class CrossReferenceReflector:
         cls_map = {"ai": HumanMessage, "human": AIMessage}
         # First message is the original user request. We hold it the same for all nodes
         translated = [state["messages"][0]] + [cls_map[msg.type](content=msg.content) for msg in state["messages"][1:]]
+
+        log.info(f"Cross reference Reflection Input: {translated}")
+
         res = self.context.chain(translated).invoke({})
+
+        log.info(f"Cross reference Reflection Output: {res}")
+        
         return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
 

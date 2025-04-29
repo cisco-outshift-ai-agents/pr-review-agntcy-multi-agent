@@ -88,6 +88,12 @@ class CommentFilterer:
                     ReviewComment(filename="file1", line_number=2, comment="comment2", status="added").model_dump(),
                 ]
 
+                print("INPUT:COMMENT_FILTER")
+                print(f"input_json_format: {json.dumps(example_schema, indent=2)}")
+                print(f"question: {filtered_review_comments}")
+
+                log.info(f" Comment Filterer Input: {filtered_review_comments} ")
+
                 result: ReviewComments = self._context.chain.invoke(
                     {
                         "input_json_format": json.dumps(example_schema, indent=2),
@@ -96,6 +102,10 @@ class CommentFilterer:
                         ),
                     }
                 )
+
+                print("OUTPUT:COMMENT_FILTER")
+
+                log.info(f" Comment Filterer Output: {result} ")
 
                 filtered_review_comments: List[ReviewComment] = result.issues
 
