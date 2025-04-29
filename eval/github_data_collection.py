@@ -6,7 +6,7 @@ from github import Github, UnknownObjectException
 import logging
 from tqdm import tqdm
 import pickle
-from alfred_git_data import PRDataset, PR, Comment, Commit, FileObject, CommentType
+from pkg.alfred_git_data import PRDataset, PR, Comment, Commit, FileObject, CommentType
 from dateutil import parser
 import yaml
 

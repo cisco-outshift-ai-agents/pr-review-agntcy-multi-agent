@@ -4,13 +4,21 @@ This guide provides step-by-step instructions to set up and run the project.
 
 ## Prerequisites
 
-1. Ensure you have Python installed (version specified in `pyproject.toml`).
-2. Install dependencies using requirements.txt:
+1. Install [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) and install Python 3.12.9
+   ```bash
+   brew update && brew install pyenv &&
+   pyenv install 3.12.9
+
+2. Create venv and activate
+   ```bash
+   ~/.pyenv/versions/3.12.9/bin/python3 -m venv .evalvenv &&
+   source .evalvenv/bin/activate
+   ```
+3. Install dependencies of eval using eval_requirements.txt:
 
    ```sh
-   pip install -r requirements.txt
+   pip install -r eval_requirements.txt
    ```
-
 
 ## Steps to Run
 
@@ -18,24 +26,24 @@ This guide provides step-by-step instructions to set up and run the project.
    - If a `.tar.gz` file (e.g., `azure_terraform_dataset.tar.gz`) is present along with the corresponding metadata (e.g., `prdataset.json`), you can skip this step.
    - Otherwise, generate or collect the required data by running:
      ```sh
-     python github_data_collection.py --config initial_data_collection_repo_config.yml
+     python github_data_collection.py --config configs/gen_config.yml
      ```
    - This will create the necessary dataset and metadata files in the appropriate directory.
 
 ### 2. PR Replay
    - Replay the generated or collected data to prepare it for evaluation:
      ```sh
-     python pr_replay.py --config replay_config.yml
+     python pr_replay.py --config configs/replay_config.yml
      ```
 ### 3. Replay data collection
       After replay is complete we need to collect the replay data from 1 via
       ```sh
-     python github_data_collection.py --config replay_data_collection_repo_config.yml
+     python github_data_collection.py --config configs/replay_collection_config.yml
      ```
 ### 4. Evaluation
    - Run the evaluation process on the replayed data:
      ```sh
-     python eval_impl.py --config eval_config.yml
+     python eval_impl.py --config configs/eval_config.yml
      ```
 
 ## Additional Notes

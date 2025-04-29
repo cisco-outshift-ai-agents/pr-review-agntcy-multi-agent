@@ -1,4 +1,4 @@
-from eval import prompt_template_file, llm_initialize, prompt_template_comment
+from pkg.eval import prompt_template_file, llm_initialize, prompt_template_comment
 import os
 import sys
 import json
@@ -11,7 +11,6 @@ error_list = []
 
 
 def get_list_prs(alfred_comments):
-
     """
     Gets the keys from dictionary.
 
@@ -22,14 +21,13 @@ def get_list_prs(alfred_comments):
         list of keys of PR numbers.
     """
 
-    key_to_extract = 'pr_number'
+    key_to_extract = "pr_number"
     extracted_values = [d[key_to_extract] for d in alfred_comments]
 
     return extracted_values
 
 
 def check_if_folder_exists(path):
-
     """
     Check if the given folder path exists.
 
@@ -44,7 +42,6 @@ def check_if_folder_exists(path):
 
 
 def get_list_files_from_folder(base_folder):
-
     """
     Get the list of files from the folder.
 
@@ -55,13 +52,18 @@ def get_list_files_from_folder(base_folder):
         List of files in the folder.
     """
 
-    files = [f for f in os.listdir(base_folder) if os.path.isfile(os.path.join(base_folder, f))]
+    files = [
+        f
+        for f in os.listdir(base_folder)
+        if os.path.isfile(os.path.join(base_folder, f))
+    ]
 
     return files
 
 
-def get_llm_rating(azure_llm, alfredcomment, pr, base_folder, final_merged_folder, file):
-
+def get_llm_rating(
+    azure_llm, alfredcomment, pr, base_folder, final_merged_folder, file
+):
     """
     Get the rating of comment with the code files given as context.
 
@@ -82,11 +84,17 @@ def get_llm_rating(azure_llm, alfredcomment, pr, base_folder, final_merged_folde
     try:
         if file is None:
             judge_prompt = prompt_template_comment(alfredcomment)
-            alfred_content = azure_llm.invoke(judge_prompt.format(comment=alfredcomment))
+            alfred_content = azure_llm.invoke(
+                judge_prompt.format(comment=alfredcomment)
+            )
             keys = list(alfred_content.keys())
             key_0 = keys[0].strip()
             key_1 = keys[1].strip()
-            op = {"comment": alfredcomment, "rating": alfred_content[key_0], "reasoning": alfred_content[key_1]}
+            op = {
+                "comment": alfredcomment,
+                "rating": alfred_content[key_0],
+                "reasoning": alfred_content[key_1],
+            }
             return op
         else:
             base_file_path = base_folder + file
@@ -94,12 +102,24 @@ def get_llm_rating(azure_llm, alfredcomment, pr, base_folder, final_merged_folde
             base_file_content = get_file_contents(base_file_path)
             final_merged_content = get_file_contents(final_merged_path)
 
-            judge_prompt = prompt_template_file(base_file_content, final_merged_content, alfredcomment)
-            alfred_content = azure_llm.invoke(judge_prompt.format(original_file=base_file_content, changed_file=final_merged_content, comment=alfredcomment))
+            judge_prompt = prompt_template_file(
+                base_file_content, final_merged_content, alfredcomment
+            )
+            alfred_content = azure_llm.invoke(
+                judge_prompt.format(
+                    original_file=base_file_content,
+                    changed_file=final_merged_content,
+                    comment=alfredcomment,
+                )
+            )
             keys = list(alfred_content.keys())
             key_0 = keys[0].strip()
             key_1 = keys[1].strip()
-            op = {"comment": alfredcomment, "rating": alfred_content[key_0], "reasoning": alfred_content[key_1]}
+            op = {
+                "comment": alfredcomment,
+                "rating": alfred_content[key_0],
+                "reasoning": alfred_content[key_1],
+            }
             return op
     except Exception as e:
         imp_list.append(alfredcomment)
@@ -107,7 +127,6 @@ def get_llm_rating(azure_llm, alfredcomment, pr, base_folder, final_merged_folde
 
 
 def get_file_contents(filepath):
-
     """
     Returns the file content after reading it
 
@@ -118,7 +137,7 @@ def get_file_contents(filepath):
         content (str): Content of the file.
     """
 
-    with open(filepath, 'r') as file:
+    with open(filepath, "r") as file:
         content = file.read()
 
         return content
@@ -138,7 +157,7 @@ def read_alfred_comments_json(code_dir, filename):
     file_path = os.path.join(code_dir, filename)
 
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             data = json.load(file)
             return data
     except FileNotFoundError:
@@ -150,7 +169,6 @@ def read_alfred_comments_json(code_dir, filename):
 
 
 def get_dictionary_by_key_value(dict_list, key, value):
-
     """
     Returns the dictonary based on a certain key value pair.
 
@@ -170,7 +188,7 @@ def get_dictionary_by_key_value(dict_list, key, value):
     return None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     config = yaml.safe_load(open("eval_config.yml", "r"))
 
@@ -179,7 +197,9 @@ if __name__ == '__main__':
     AZURE_OPENAI_ENDPOINT = config["AZURE_OPENAI_ENDPOINT"]
 
     if not GPT_DEPLOYMENT_NAME or not AZURE_OPENAI_API_KEY or not AZURE_OPENAI_ENDPOINT:
-        print("Error: All GPT_DEPLOYMENT_NAME, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY environment variables must be set.")
+        print(
+            "Error: All GPT_DEPLOYMENT_NAME, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY environment variables must be set."
+        )
         sys.exit(1)
 
     azure_llm = llm_initialize(AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT)
@@ -211,7 +231,9 @@ if __name__ == '__main__':
             if check_if_folder_exists(pr_folder_path):
                 base_folder = pr_folder_path + "/" + "base_file/"
                 final_merged_folder = pr_folder_path + "/" + "final_merged_file/"
-            rating_com = get_llm_rating(azure_llm, single_comm, pr, base_folder, final_merged_folder, file)
+            rating_com = get_llm_rating(
+                azure_llm, single_comm, pr, base_folder, final_merged_folder, file
+            )
             pr_num = f"pr_number_{pr}"
             if file is None:
                 file = cts["id"]
@@ -228,13 +250,13 @@ if __name__ == '__main__':
     except_file_path = config["except_file_path"]
     error_file_path = config["error_file_path"]
 
-    with open(rating_file_path, 'w') as json_file:
+    with open(rating_file_path, "w") as json_file:
         json.dump(rating_dictionary, json_file, indent=4)
 
-    with open(except_file_path, 'w') as file:
+    with open(except_file_path, "w") as file:
         for item in imp_list:
             file.write(f"{item}\n")
 
-    with open(error_file_path, 'w') as file:
+    with open(error_file_path, "w") as file:
         for item in error_list:
             file.write(f"{item}\n")
