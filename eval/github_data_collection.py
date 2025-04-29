@@ -9,6 +9,7 @@ import pickle
 from pkg.alfred_git_data import PRDataset, PR, Comment, Commit, FileObject, CommentType
 from dateutil import parser
 import yaml
+import fire
 
 # Configure logging for the script
 logger = logging.getLogger()
@@ -480,8 +481,12 @@ def extract_terraform_pr_comments(
     return dst_prs
 
 
-if __name__ == "__main__":
-    config = yaml.safe_load(open("gen_config.yml", "r"))
+def main(config_file="configs/gen_config.yml", **kwargs):
+    """
+    Main function to extract comments from GitHub pull requests and save them to a JSON file.
+    """
+    config = yaml.safe_load(open(config_file, "r"))
+    config.update(kwargs)
     repo_name = config["repo_name"]
     if "GITHUB_TOKEN" in config:
         os.environ["GITHUB_TOKEN"] = config["GITHUB_TOKEN"]
@@ -510,3 +515,7 @@ if __name__ == "__main__":
 
     with open(os.path.join(local_dir, file_name.replace("v1", "")), "w") as outfile:
         outfile.write(prs_dst.model_dump_json(indent=4))
+
+
+if __name__ == "__main__":
+    fire.Fire(main)

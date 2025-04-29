@@ -26,7 +26,7 @@ This guide provides step-by-step instructions to set up and run the project.
    - If a `.tar.gz` file (e.g., `azure_terraform_dataset.tar.gz`) is present along with the corresponding metadata (e.g., `prdataset.json`), you can skip this step.
    - Otherwise, generate or collect the required data by running:
      ```sh
-     python github_data_collection.py --config configs/gen_config.yml
+     python github_data_collection.py --config_file configs/gen_config.yml
      ```
    - This will create the necessary dataset and metadata files in the appropriate directory.
 
