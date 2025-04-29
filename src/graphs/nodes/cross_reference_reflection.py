@@ -29,7 +29,7 @@ from pydantic import BaseModel, Field
 
 import logging
 
-logging.basicConfig(filename='/Users/sreeadde/Desktop/github_may2025/tf-pr-review-agntcy-multi-agent/src/prompt_reengineering.log', level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='./prompt_reengineering.log', level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 
