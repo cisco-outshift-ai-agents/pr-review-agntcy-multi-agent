@@ -124,7 +124,6 @@ class CrossReferenceGenerator:
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
         response = self.context.chain.invoke(state['messages'])
-        print("The response of cross reference Generator", response.cross_reference_generator_output)
         return {"messages": response.cross_reference_generator_output}
 
 
@@ -144,7 +143,6 @@ class CrossReferenceReflector:
         # First message is the original user request. We hold it the same for all nodes
         translated = [state["messages"][0]] + [cls_map[msg.type](content=msg.content) for msg in state["messages"][1:]]
         res = self.context.chain(translated).invoke({})
-        print("The response of the crossReferenceReflector", res.cross_reference_reflector_output)
         return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
 
