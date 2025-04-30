@@ -45,7 +45,6 @@ class crossReferenceReflectorOutput(BaseModel):
     cross_reference_reflector_output: str = Field(description="Sample reflector response")
 
 
-
 class CrossReferenceInitializer:
     """
     This class is used to get the code base and git diff
@@ -124,8 +123,9 @@ class CrossReferenceGenerator:
         log.info(f"{self.name} called")
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
-        response = self.context.chain(state["messages"]).invoke({})
-        return {"messages": [response.cross_reference_generator_output]}
+        response = self.context.chain.invoke(state['messages'])
+        print("The response of cross reference Generator", response.cross_reference_generator_output)
+        return {"messages": response.cross_reference_generator_output}
 
 
 class CrossReferenceReflector:
@@ -144,6 +144,7 @@ class CrossReferenceReflector:
         # First message is the original user request. We hold it the same for all nodes
         translated = [state["messages"][0]] + [cls_map[msg.type](content=msg.content) for msg in state["messages"][1:]]
         res = self.context.chain(translated).invoke({})
+        print("The response of the crossReferenceReflector", res.cross_reference_reflector_output)
         return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
 
@@ -206,5 +207,9 @@ class CrossReferenceCommenter:
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name} called")
-        message: AIMessage = state["messages"][-1]
-        return {"new_issue_comments": [IssueComment(body=message.content)]}
+        messages = []
+        for res in state["messages"][1:]:
+            if isinstance(res, HumanMessage):
+                messages.append(res)
+        print("The list of messages", messages)
+        return {"new_issue_comments": [IssueComment(body=messages[-1].content)]}
