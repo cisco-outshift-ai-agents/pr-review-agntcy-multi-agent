@@ -1,24 +1,6 @@
 # Getting Started with the Multi Agent Terraform PR Reviewer
 
-**The Multi Agent Terraform PR Reviewer** is a demonstration AI application developed with LangGraph. It is a GitHub application designed to help developers improve their Terraform code pull requests by providing feedback and suggestions.
-
-## Features
-
-- Connects to your GitHub repository via a GitHub App
-
-- Activated by commenting "Alfred review" on a pull request
-
-- Performs linting and static analysis using the Terraform Code Analyzer Agent as a remote AGP or AP agent
-
-- Conducts a thorough code review using the Terraform Code Reviewer Agent as a remote AGP or AP agent
-
-- Reviews and provides suggestions on the PR title and description
-
-- Aggregates and de-duplicates feedback to avoid redundant comments across multiple triggers
-
-- Posts both PR-level and inline comments with feedback on Terraform code
-
----
+![Detailed view of complete PR Reviewer system](./docs/resources/Installation-diagram.svg)
 
 ## Prerequisites
 
@@ -34,11 +16,18 @@ Ensure you have the following installed:
 - [Docker Compose](https://docs.docker.com/compose/)
 
 - [Running Azure OpenAI Instance and API Key](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart)
+
+### Other Components
+- [AGNTCY Agent Gateway](https://github.com/agntcy/agp)
+
+- [Terraform Code Analyzer agent](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent)
+
+- [Terraform Code Reviewer agent](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
   
 
 ## Setup Instructions
 
-### 1. Clone the The Multi Agent Terraform PR Reviewer Repository
+#### 1. Clone the The Multi Agent Terraform PR Reviewer Repository
 
 ```bash
 git clone https://github.com/cisco-outshift-ai-agents/tf-pr-review-agntcy-multi-agent
@@ -47,11 +36,11 @@ cd tf-pr-review-agntcy-multi-agent
 
 ```
 
-### 2. Create a smee.io wehook
+#### 2. Create a smee.io wehook
 
 Head to https://smee.io/ and start a new channel
 
-### 3. Create a Github App
+#### 3. Create a Github App
 
 1. **Log into [Github](https://github.com/)**
 
@@ -108,7 +97,7 @@ Head to https://smee.io/ and start a new channel
 
 - Select your desired Terraform repository and click `Install`
 
-### 4. Specify Environment Variables
+#### 4. Specify Environment Variables
 Copy the example .env file and provide relevant values
 `cp .env.example .env`
 
@@ -126,13 +115,13 @@ AZURE_OPENAI_API_VERSION="<your_azure_openai_api_version>"
 SMEE_URL="<your_smee_url>"
 ```
 
-### 5. Run the Multi Agent Terraform PR Reviewer Service, AGP Gateway, and Remote Agents
+#### 5. Run the Multi Agent Terraform PR Reviewer Service, AGP Gateway, and Remote Agents
 
 Spin up the services using Docker Compose:
 
 `docker compose --env-file .env -f docker/docker-compose.yaml up --build`
 
-### 6. Trigger PR Review
+#### 6. Trigger PR Review
 
 1. Create a pull request in your connected Terraform repository
 
