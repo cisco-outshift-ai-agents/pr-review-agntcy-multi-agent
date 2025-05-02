@@ -6,7 +6,7 @@ import yaml
 from github import Github, InputGitTreeElement, UnknownObjectException
 import time
 from datetime import datetime
-
+import fire
 
 class AlfredReviewGeneration:
     def __init__(self, config):
@@ -241,11 +241,17 @@ class AlfredReviewGeneration:
                 return results
 
 
-if __name__ == '__main__':
+def main(config_file, **kwargs):
     """
     python3 pr_replay.py --config replay_config.yaml
     """
-    config_file = sys.argv[2]
+    if not os.path.exists(config_file):
+        print(f"Config file {config_file} does not exist.")
+        sys.exit(1)
     obj = AlfredReviewGeneration(config_file)
     alfred_pr_replay = obj.generateAlfredReview()
     json.dump(alfred_pr_replay, open(f"alfred_cisco_eti_pr_replay_{datetime.now().strftime("%d-%b-%Y")}.json", "w"))
+
+
+if __name__ == '__main__':
+    fire.Fire(main)

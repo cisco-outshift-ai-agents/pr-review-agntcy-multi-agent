@@ -33,17 +33,17 @@ This guide provides step-by-step instructions to set up and run the project.
 ### 2. PR Replay
    - Replay the generated or collected data to prepare it for evaluation:
      ```sh
-     python pr_replay.py --config configs/replay_config.yml
+     python pr_replay.py --config_file configs/replay_config.yml
      ```
 ### 3. Replay data collection
       After replay is complete we need to collect the replay data from 1 via
       ```sh
-     python github_data_collection.py --config configs/replay_collection_config.yml
+     python github_data_collection.py --config_file configs/replay_collection_config.yml
      ```
 ### 4. Evaluation
    - Run the evaluation process on the replayed data:
      ```sh
-     python eval_impl.py --config configs/eval_config.yml
+     python eval_impl.py --config_file configs/eval_config.yml
      ```
 
 ## Additional Notes

@@ -4,7 +4,7 @@ import sys
 import json
 import logging
 import yaml
-
+import fire
 
 imp_list = []
 error_list = []
@@ -188,9 +188,9 @@ def get_dictionary_by_key_value(dict_list, key, value):
     return None
 
 
-if __name__ == "__main__":
+def main(config_file="eval_config.yml", **kwargs):
 
-    config = yaml.safe_load(open("eval_config.yml", "r"))
+    config = yaml.safe_load(open(config_file, "r"))
 
     GPT_DEPLOYMENT_NAME = config["GPT_DEPLOYMENT_NAME"]
     AZURE_OPENAI_API_KEY = config["AZURE_OPENAI_API_KEY"]
@@ -260,3 +260,7 @@ if __name__ == "__main__":
     with open(error_file_path, "w") as file:
         for item in error_list:
             file.write(f"{item}\n")
+
+
+if __name__ == "__main__":
+    fire.Fire(main)
