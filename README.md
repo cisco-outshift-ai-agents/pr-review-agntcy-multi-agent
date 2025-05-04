@@ -92,12 +92,6 @@ This project is designed to be a starting point for developers who want to exper
    - Run specific agents only when certain files are modified.
    - Chain new agents into the existing workflow.
 
-4. **Points of Interest in the Code**  
-   - **Agent Workflow Definition**: [Insert file and line number]  
-   - **Agent Prompts**: [Insert file and line number]  
-   - **Agent Communication Setup**: [Insert file and line number]  
-   - **Adding New Agents**: [Insert file and line number]
-
 ## Installation
 
 To get started, see [TUTORIAL.md](./TUTORIAL.md)
@@ -132,5 +126,4 @@ Project Link:
 ## Acknowledgements
 
 - [Langgraph](https://github.com/langchain-ai/langgraph) for the agentic platform.
-
 - The [AGNTCY](https://github.com/agntcy) project
