@@ -95,6 +95,9 @@ This project is designed to be a starting point for developers who want to exper
 
 To get started, see [TUTORIAL.md](./TUTORIAL.md)
 
+## Evaluation
+
+For detailed instructions on how to evaluate this repository, please refer to the [Evaluation Guide](eval/README.md).
 
 ## Roadmap
 
