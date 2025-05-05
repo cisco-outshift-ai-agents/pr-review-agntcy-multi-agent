@@ -97,7 +97,7 @@ To get started, see [TUTORIAL.md](./TUTORIAL.md)
 
 ## Evaluation
 
-For detailed instructions on how to evaluate this repository, please refer to the [Evaluation Guide](eval/README.md).
+For detailed instructions on how to evaluate AI Agent, please refer to the [Evaluation Guide](eval/README.md).
 
 ## Roadmap
 
