@@ -1,5 +1,5 @@
 # Use a smaller base image for the build stage
-FROM python:3.12.9-slim as base
+FROM python:3.12.9-slim AS base
 
 # Set working directory
 WORKDIR /app
@@ -33,7 +33,7 @@ RUN poetry config virtualenvs.create true && \
     poetry install --no-root --no-interaction --no-ansi
 
 # Runtime stage
-FROM python:3.12.9-slim as build
+FROM python:3.12.9-slim AS build
 
 # Set working directory for the application
 WORKDIR /app

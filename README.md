@@ -10,10 +10,6 @@ PR Coach is a GitHub application designed to help developers improve their pull 
 
 ## Installation
 
-### SaaS Installation
-
-TBD 
-
 ### Local Run
 
 #### Create your own PR Coach GitHub App
@@ -30,11 +26,15 @@ TBD
      - Checks read and write access
      - Contents read access
      - Pull requests read and write access
+     - Issues read and write access
+     - Contents read access
    - Under `Subscribe to events`:
      - Pull request
      - Pull request review
      - Pull request review comment
      - Pull request review thread
+     - Issues
+     - Issue comments
 
 #### Install your own PR Coach GitHub App to a repository
 
@@ -45,6 +45,10 @@ TBD
 5. Select your desired repository and click `Install`
 
 #### Setup PR Coach local instance
+
+<b>Prereq: create GitHub app before running PR coach instance locally.</b>
+
+
 
 1. Copy the .env.example file to .env and fill up with the followings:
    - GITHUB_APP_ID
@@ -59,43 +63,11 @@ TBD
    - `AZURE_OPENAI_API_VERSION`
    - set `ENVIRONMENT` to `"local"`
 
-2. If planning on running remote agents, set `AGENT_MODE` to `agp` or `langchain_ap` based on your requirements.
+2. If planning on running remote agents, set `AGENT_MODE` to `agp` or `acp` based on your requirements.
 
 ##### Automatic way to install python environment with dependencies
 
 Run `make setup` in this project folder
-
-##### Manual way to install with dependencies
-
-1. Install [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) and install Python 3.12.9
-   ```bash
-   brew update && brew install pyenv &&
-   pyenv install 3.12.9
-   ```
-2. Create venv and activate
-   ```bash
-   ~/.pyenv/versions/3.12.9/bin/python3 -m venv .venv &&
-   source .venv/bin/activate
-   ```
-3. Install [poetry](https://python-poetry.org/docs/#installing-manually) and install project dependencies
-   ```bash
-   pip install -U pip setuptools;
-   pip install poetry &&
-   poetry install
-   ```
-4. Install smee-client:
-   ```bash
-   npm install --global smee-client
-   ```
-5. [Install Terraform](https://developer.hashicorp.com/terraform/install)
-   ```bash
-   brew tap hashicorp/tap
-   brew install hashicorp/tap/terraform
-   ```
-6. [Install TFlint](https://github.com/terraform-linters/tflint?tab=readme-ov-file#installation)
-   ```bash
-   brew install tflint
-   ```
 
 #### Run PR Coach locally
 
@@ -108,25 +80,8 @@ Run `make setup` in this project folder
    source .venv/bin/activate &&
    python3 main_local.py
    ```
-3. Create an event on your PR (like new commit)
 
-#### Setup PR Coach local instance using Lambda
-
-PR Coach is deployed as a Lambda function so optionally you can also run this locally instead of the above mentioned webserver in `main_local.py`. For this, you need the AWS SAM CLI installed.
-
-1. Make sure that `.env` file exists and is filled with the necessary environment variables.
-
-2. Login to the `outshift-common-dev` AWS account using duo-sso.
-
-3. Start the Smee client for the Lambda:
-   ```bash
-   make smee_id=your-smee-id start-smee-for-lambda
-   ```
-
-4. Build and start the Lambda using sam:
-   ```bash
-   make start-lambda
-   ```
+3. Create a PR or an event on your PR (like new commit) and comment <b>Alfred review</b> on the pull request
 
 
 ---
@@ -159,8 +114,5 @@ Project Link:
 
 ---
 ## Acknowledgements
-
-- [Langgraph](https://github.com/langchain-ai/langgraph) for the agentic platform.
-- [https://github.com/othneildrew/Best-README-Template](https://github.com/othneildrew/Best-README-Template), from which this readme was adapted
 
 For more information about our various agents, please visit the [agntcy project page](https://github.com/agntcy).
