@@ -45,7 +45,6 @@ class crossReferenceReflectorOutput(BaseModel):
     cross_reference_reflector_output: str = Field(description="Sample reflector response")
 
 
-
 class CrossReferenceInitializer:
     """
     This class is used to get the code base and git diff
@@ -124,8 +123,8 @@ class CrossReferenceGenerator:
         log.info(f"{self.name} called")
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
-        response = self.context.chain(state["messages"]).invoke({})
-        return {"messages": [response.cross_reference_generator_output]}
+        response = self.context.chain(state['messages']).invoke({})
+        return {"messages": response.cross_reference_generator_output}
 
 
 class CrossReferenceReflector:
@@ -206,5 +205,8 @@ class CrossReferenceCommenter:
 
     def __call__(self, state: GitHubPRState) -> dict:
         log.info(f"{self.name} called")
-        message: AIMessage = state["messages"][-1]
-        return {"new_issue_comments": [IssueComment(body=message.content)]}
+        messages = []
+        for res in state["messages"][1:]:
+            if isinstance(res, HumanMessage):
+                messages.append(res)
+        return {"new_issue_comments": [IssueComment(body=messages[-1].content)]}

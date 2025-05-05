@@ -130,8 +130,10 @@ class CommentFilterer:
         # Remove duplicate issue comments from the new_issue_comments
         unique_new_issue_comments = {c.body: c for c in new_issue_comments}
         filtered_issue_comments = []
-
         for new_i_c in unique_new_issue_comments.values():
+            if "##FILE" in new_i_c.body or "##END_OF_FILE" in new_i_c.body:
+                # Skip this file content
+                continue
             if not new_i_c.conditions:
                 # no conditions, add the comment, skip looking for duplicates
                 filtered_issue_comments.append(new_i_c)
@@ -141,7 +143,6 @@ class CommentFilterer:
                 (existing_i_c for existing_i_c in existing_issue_comments if contains_all_condition(existing_i_c.body, new_i_c.conditions)),
                 None,
             )
-
             if existing_issue_comment:
                 # save the new body content in the comment dict - gh issue comment is not yet updated
                 existing_issue_comment.new_body = new_i_c.body

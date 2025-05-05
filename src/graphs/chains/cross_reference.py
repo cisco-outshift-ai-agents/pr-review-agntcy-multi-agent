@@ -31,7 +31,8 @@ def create_cross_reference_generator_chain(model: BaseChatModel) -> Callable[[li
             "analyze and take necessary steps to complete it, "
             "following best practices."
         )
-        messages = [system_message]+user_messages
+        user_message = HumanMessage(f"{user_messages}")
+        messages = [system_message, user_message]
         template = ChatPromptTemplate.from_messages(messages)
         return template | structured_output_model
 
@@ -64,7 +65,9 @@ def create_cross_reference_reflector_chain(model: BaseChatModel) -> Callable[[li
             "- Additional Concerns: [... if critical]\n\n"
             "Be accurate and thorough.",
         )
-        messages = [system_message]+user_messages
+        user_message = HumanMessage(f"{user_messages}")
+        messages = [system_message, user_message]
         template = ChatPromptTemplate.from_messages(messages)
         return template | structured_output_model
+
     return cross_reference_reflector_chain
