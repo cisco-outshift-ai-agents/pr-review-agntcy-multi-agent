@@ -1,96 +1,106 @@
-# PR Coach
-[![Release](https://img.shields.io/github/v/release/cisco-ai-agents/tf-pr-review-agntcy-multi-agent?display_name=tag)](CHANGELOG.md)
+# Multi-Agent Pull Request Reviewer
+[![Release](https://img.shields.io/github/v/release/cisco-ai-agents/pr-review-agntcy-multi-agent?display_name=tag)](CHANGELOG.md)
 [![Contributor-Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-fbab2c.svg)](CODE_OF_CONDUCT.md)
 
-PR Coach is a GitHub application designed to help developers improve their pull requests by providing feedback and suggestions.
+*A GitHub app that provides feedback on pull requests.*
+
+This project is an example multi-agent application designed to help developers improve their Terraform code pull requests by providing feedback and suggestions. It automates parts of the PR review process, making it easier to identify potential issues, improve code quality, and adhere to best practices.
+
+![Overview of Multi-agent Pull Request Reviewer](./docs/resources/PR-Reviewer_System.svg)
 
 ## Overview
+The Multi-Agent PR Reviewer demonstrates the use of the **[AGNTCY](https://github.com/agntcy) [Agent Gateway Protocol (AGP)](https://github.com/agntcy/agp)** and **[AGP server](https://github.com/agntcy/agp/tree/main/data-plane)** for seamless interaction with remote agents. The core app, along with its remote agents, is built using LangGraph, showcasing a modular and extensible approach to multi-agent workflows.
 
-![Overview of PR Coach](./docs/resources/overview.svg)
+It was originally conceived to focus on the specific needs of IaC. It is ready for use as-is or can be customized for experimentation. You can add new embedded or remote agents, modify the existing agent workflow, or tailor agent prompts to suit your specific PR review use cases.
+
+This project is part of the [AGNTCY](https://docs.agntcy.org/pages/introduction.html) initiative — an open source collective building the infrastructure for the Internet of Agents (IoA): a secure, interoperable layer for agent-to-agent collaboration across organizations and platforms.
+
+### Features
+
+- Connects to your GitHub repository via a GitHub App
+
+- Reviews and provides suggestions on the PR title and description
+
+- Performs linting and static analysis using the Terraform Code Analyzer Agent as a remote agent via AGNTCY Agent Gateway
+
+- Conducts a thorough code review using the Terraform Code Reviewer Agent as a remote agent via AGNTCY Agent Gateway
+
+- Aggregates and de-duplicates feedback to avoid redundant comments across multiple triggers
+
+- Posts both PR-level and inline comments with feedback on Terraform code
+
+- Activated on demand by commenting "Alfred review" on a pull request
+
+## Details
+
+![Detailed view of complete PR Reviewer system](./docs/resources/PR-Reviewer_Flows.svg)
+
+The Multi-Agent PR Reviewer provides GitHub integration and a set of agents capable of performing basic Terraform pull request (PR) reviews. The current agent workflow focuses on the following tasks:
+
+- **Agent 0: Supervisor**
+  Coordinates the execution of the other agents, especially the code review agent team.
+
+- **Agent 1: PR Title and Description Review**  
+  Ensures that the PR's title and description are clear, complete, and provide enough context for reviewers.  
+
+- **Agent 2: Terraform Code Analyzer (remote)**   
+  Runs Terraform linters on your code.   
+  [https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent)
+
+- **Agent 3: Terraform Code Review (remote)**  
+  Examines Terraform code for common issues, such as syntax errors, security flaws, and poor structural design.     
+  [https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agen](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
+
+- **Agent 4: Cross-reference Reviewer**   
+  Checks cross-references to ensure validity and resolve conflicts.
+
+- **Agent 5: Code Comment Consolidator**  
+  Once the code review team is done, removes any overlapping comments.
+
+- **Agent 6: PR Commenter**   
+  Constructs comments from other agent inputs to write to the Pull Request.
+
+## How It Works
+
+1. **GitHub Integration**  
+   The Multi-Agent PR Reviewer is installed as a GitHub app. When a pull request is created or updated, the app automatically triggers the agent workflow to review the changes.
+
+2. **Agent Workflow**  
+   The workflow is managed by the supervisor, and begins with the PR Title and Description Review Agent, followed by the Code Review team. The supervisor collects feedback the code review team and sends it on to the code comment consolidator before sending to the PR commenter. The PR commenter comments directly on the GitHub PR, providing actionable insights for the developer or PR reviewer.
+
+3. **Agent Communication to remote agents**  
+   The project uses the AGNTCY Agent Gateway Protocol (AGP) to facilitate communication between the core application and remote agents. Remote agents can be run on separate servers, allowing for distributed and scalable execution.
+
+## Customization and Experimentation
+
+This project is designed to be a starting point for developers who want to experiment with multi-agent workflows, remote agents, or building their own PR reviewer agents. Here’s how you can customize it:
+
+1. **Add New Agents**  
+   Create new embedded or remote agents to perform additional tasks, such as:
+   - Reviewing documentation for completeness.
+   - Assessing Terraform modularity and best practices.
+   - Summarizing Terraform plans or results from security scans.
+
+2. **Modify Existing Agents**  
+   Customize the logic or prompts of the existing agents to better suit your specific needs. For example:
+   - Update the PR Title and Description Review Agent to enforce your specific requirements.
+   - Modify the checks done by the Code Review Agent.
+
+3. **Modify the Agent Workflow**  
+   Adjust the sequence of agents or introduce conditional logic to the workflow. For example:
+   - Run specific agents only when certain files are modified.
+   - Chain new agents into the existing workflow.
 
 ## Installation
 
-### Local Run
-
-#### Create your own PR Coach GitHub App
-
-1. Start a new webhook channel on [smee.io](https://smee.io/) and save the Webhook Proxy URL for later use.
-2. Log in to GitHub.
-3. Register a `new GitHub App` under your profile based on the [GitHub Docs about creating apps](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app#registering-a-github-app)
-   - Paste `Webhook Proxy URL` to the Webhook URL field
-   - Create your own `webhook secret`
-   - Generate a `private key` and download it
-   - Save the `GitHub App ID` for later use
-4. Go to `Permissions & events` and set the followings up
-   - Under `Repository permissions`:
-     - Checks read and write access
-     - Contents read access
-     - Pull requests read and write access
-     - Issues read and write access
-     - Contents read access
-   - Under `Subscribe to events`:
-     - Pull request
-     - Pull request review
-     - Pull request review comment
-     - Pull request review thread
-     - Issues
-     - Issue comments
-
-#### Install your own PR Coach GitHub App to a repository
-
-1. Go to `Developer settings` under your GitHub profile settings
-2. Click to your GitHub App name
-3. Select `Install App` sidemenu option
-4. Choose an account and click to `Install` button
-5. Select your desired repository and click `Install`
-
-#### Setup PR Coach local instance
-
-<b>Prereq: create GitHub app before running PR coach instance locally.</b>
+To get started, see [TUTORIAL.md](./TUTORIAL.md)
 
 
-
-1. Copy the .env.example file to .env and fill up with the followings:
-   - GITHUB_APP_ID
-   - one of:
-       - `GITHUB_APP_PRIVATE_KEY`
-       - `GITHUB_APP_PRIVATE_KEY_FILE` - this should point to a local file with the private key
-   - `GITHUB_WEBHOOK_SECRET`
-   - `GCP_SERVICE_ACCOUNT` - this should point to a local file with the GCP service account where the model is hosted
-   - `AZURE_OPENAI_ENDPOINT`
-   - `AZURE_OPENAI_DEPLOYMENT`
-   - `AZURE_OPENAI_API_KEY`
-   - `AZURE_OPENAI_API_VERSION`
-   - set `ENVIRONMENT` to `"local"`
-
-2. If planning on running remote agents, set `AGENT_MODE` to `agp` or `acp` based on your requirements.
-
-##### Automatic way to install python environment with dependencies
-
-Run `make setup` in this project folder
-
-#### Run PR Coach locally
-
-1. Start the smee webhook:
-   ```bash
-   npx smee -u https://smee.io/{YOUR_WEBHOOK_PATH} -t http://localhost:5500/api/webhook
-    ```
-2.	Activate virtual environment and start PR Coach:
-   ```bash
-   source .venv/bin/activate &&
-   python3 main_local.py
-   ```
-
-3. Create a PR or an event on your PR (like new commit) and comment <b>Alfred review</b> on the pull request
-
-
----
 ## Roadmap
 
 See the [open issues](https://github.com/cisco-ai-agents/tf-pr-review-agntcy-multi-agent/issues) for a list
 of proposed features (and known issues).
 
----
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to
@@ -98,21 +108,20 @@ learn, inspire, and create. Any contributions you make are **greatly
 appreciated**. For detailed contributing guidelines, please see
 [CONTRIBUTING.md](CONTRIBUTING.md)
 
----
 ## License
 
 Distributed under the Apache-2.0 License. See [LICENSE](LICENSE) for more
 information.
 
----
 ## Contact
 
 [cisco-outshift-ai-agents@cisco.com](mailto:cisco-outshift-ai-agents@cisco.com)
 
 Project Link:
-[https://github.com/cisco-ai-agents/tf-pr-review-agntcy-multi-agent](https://github.com/cisco-ai-agents/tf-pr-review-agntcy-multi-agent)
+[https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent)
 
----
+
 ## Acknowledgements
 
-For more information about our various agents, please visit the [agntcy project page](https://github.com/agntcy).
+- [Langgraph](https://github.com/langchain-ai/langgraph) for the agentic platform.
+- The [AGNTCY](https://github.com/agntcy) project
