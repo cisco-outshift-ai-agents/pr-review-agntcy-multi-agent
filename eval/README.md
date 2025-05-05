@@ -35,7 +35,7 @@ This README is for the evaluation of the PR Review Agntcy multi-agent MAA. The e
    - This will create the necessary dataset and metadata files in the appropriate directory.
 
 ### 2. PR Replay
-   - Replay the generated or collected data to prepare it for evaluation. (Note: the repo used for replay must has the pr-review app installed as instructed in [TUTORIAL:Setup Installation](../TUTORIAL.md)):
+   - Replay the generated or collected data to prepare it for evaluation. (Note: the repository used for replay must have the pr-review app installed as described in [TUTORIAL: Setup Installation](../TUTORIAL.md)):
      ```sh
      python pr_replay.py --config_file configs/replay_config.yml
      ```
