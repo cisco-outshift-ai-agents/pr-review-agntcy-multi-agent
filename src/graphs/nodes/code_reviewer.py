@@ -32,7 +32,7 @@ class codeReviewInput(BaseModel):
         description="The list of original files from the pull request. Each file includes its path and full content.")
     changes: list[FileChange] = Field(
         description="List of code changes across Terraform files. Each item includes the filename, the changed code snippet, the starting line number, and the status indicating whether the line was 'added' or 'removed'.")
-    static_analyzer_output: str = Field(description="List of issues in each file. Each item includes response in this format {{file name}}: {{full issue description}}")
+    static_analyzer_output: list[str] = Field(description="List of issues in each file. Each item includes response in this format {{file name}}: {{full issue description}}")
 
 
 @staticmethod
@@ -88,7 +88,9 @@ class CodeReviewer:
         # TODO: fix this later. Chain can be a Callable[..., RunnableSerializable] or RunnableSerializable
         if not isinstance(self.context.chain, RunnableSerializable) and not isinstance(self.context.chain, Callable):
             raise ValueError(f"{self.name}: Chain is not a RunnableSerializable or Callable")
+
+        static_analyzer_response = [f"{res.file_name}: {res.full_issue_description}" for res in state['static_analyzer_output'].issues]
         codereview = codeReviewInput(files=state['context_files'], changes=state['changes'],
-                                     static_analyzer_output=state['static_analyzer_output'])
+                                     static_analyzer_output=static_analyzer_response)
         response: ReviewComments = self.context.chain(get_model_dump_with_metadata(codereview)).invoke({})
         return [comment for comment in response.issues if comment.line_number != 0]
