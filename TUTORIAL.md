@@ -1,4 +1,4 @@
-# Getting Started with the Multi Agent Terraform PR Reviewer
+# Getting Started with the Multi Agent PR Reviewer
 
 ![Detailed view of complete PR Reviewer system](./docs/resources/Installation-diagram.svg)
 
@@ -8,31 +8,26 @@ Ensure you have the following installed:
 
 ### Tools & Dependencies
 - [Github](https://github.com/)
-
 - [Git](https://git-scm.com/)
-
 - [Docker](https://docs.docker.com/get-started/get-docker/)
-
 - [Docker Compose](https://docs.docker.com/compose/)
-
 - [Running Azure OpenAI Instance and API Key](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart)
 
 ### Other Components
+These components all need to be installed, following the instructions described in the individual repositories:
 - [AGNTCY Agent Gateway](https://github.com/agntcy/agp)
-
 - [Terraform Code Analyzer agent](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent)
-
 - [Terraform Code Reviewer agent](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
   
 
 ## Setup Instructions
 
-#### 1. Clone the The Multi Agent Terraform PR Reviewer Repository
+#### 1. Clone the The Multi Agent PR Reviewer Repository
 
 ```bash
-git clone https://github.com/cisco-outshift-ai-agents/tf-pr-review-agntcy-multi-agent
+git clone https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent
 
-cd tf-pr-review-agntcy-multi-agent
+cd pr-review-agntcy-multi-agent
 
 ```
 
