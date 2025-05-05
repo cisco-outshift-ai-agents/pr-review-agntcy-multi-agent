@@ -30,17 +30,17 @@ def create_code_reviewer_chain(model: BaseChatModel) -> Callable[
 
         # If some lines are indented more than others, dedent can't normalize it effectively.
         system_message = SystemMessagePromptTemplate.from_template(
-            "You are an expert in Terraform and a deligent code reviewer. Your goal is to support the developer in writing safer, cleaner, and more maintainable Terraform code. \
-            Provide your feedback in a clear, concise, and constructive format. \
+            "You are an expert in Terraform and a diligent code reviewer. Your goal is to support the developer in writing safer, cleaner, and more maintainable Terraform code. \
+            Provide your feedback in a professional, clear, constructive, concise with explicit details. \
             ")
 
         user_message = HumanMessagePromptTemplate.from_template("""
-                                                                
+
         You will be given all files in the code base, the list of changed files and the static analyzer output.
-                                                                
-        files : {files} 
-        changed_files: {changed}
-        static_analyzer_output: {static_analyzer_output}
+
+         files : {files}
+         changed_files: {changed}
+         static_analyzer_output: {static_analyzer_output}
 
         Provide feedback based on the following best-practice categories:
             1. **Security**: Secrets management, IAM roles/policies, network configurations, etc.
@@ -53,10 +53,11 @@ def create_code_reviewer_chain(model: BaseChatModel) -> Callable[
             For each category, list:
             - **Strengths** and **Areas of Improvement**
             - **Suggested changes** or additional best practices to consider
-                                                                
-                                                                
+
+
         Here are some guidelines on providing feedback:
         - Review all the files to understand the current state of the codebase.
+        - Use the STATIC_ANALYZER_OUTPUT to identify potential errors in the new code.
         - Review the changes to understand what was changed in this PR to arrive at the current state of the files.
         - Always check the changes in the CHANGES list and comment only on the changed lines. You MUST NOT comment on unchanged code.
         - Check the status of the changes and comment accordingly. For eg., if the status says 'added' then that piece of code was a new addition and if it says 'removed' then it was deleted from the codebase.
@@ -64,9 +65,9 @@ def create_code_reviewer_chain(model: BaseChatModel) -> Callable[
         - Each comment MUST refer to a change and the change must be associated with the issue that the comment is mentioning.
         - ONLY comment on changes that have actual code changes (e.g., variable definitions, resource definitions, etc.)
         - DO NOT provide general or positive feedback (e.g., 'This looks good', 'This is a best practice', etc.)
-        - Use the STATIC_ANALYZER_OUTPUT to identify potential errors in the new code.
-       
-        
+        - Your comments should be brief, clear and professional
+
+
         Before returning your response, take your time to review your results:
         - Make sure that each comment belongs to a change.
         - Make sure the properties of the comment are aligned with the change object's properties.
