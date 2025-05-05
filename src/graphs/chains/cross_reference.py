@@ -39,22 +39,6 @@ def create_cross_reference_generator_chain(model: BaseChatModel) -> Callable[[li
     return cross_reference_generator_chain
 
 
-# def create_cross_reference_generator_chain(model: BaseChatModel) -> RunnableSerializable[
-#     dict, crossReferenceGeneratorOutput]:
-#     model_with_structured = model.with_structured_output(crossReferenceGeneratorOutput)
-#
-#     prompt = ChatPromptTemplate.from_messages(
-#         [
-#             ("system",
-#              "You are a senior Terraform Agent. You are given a Terraform codebase and a task to complete."),
-#             MessagesPlaceholder(variable_name="messages"),
-#         ]
-#     )
-#
-#     generate = prompt | model_with_structured
-#     return generate
-
-
 def create_cross_reference_reflector_chain(model: BaseChatModel) -> Callable[[list[BaseMessage]], RunnableSerializable]:
     def cross_reference_reflector_chain(user_messages: list[HumanMessage]) -> RunnableSerializable[
         dict, dict | crossReferenceReflectorOutput]:
