@@ -123,7 +123,7 @@ class CrossReferenceGenerator:
         log.info(f"{self.name} called")
         if self.context.chain is None:
             raise ValueError(f"{self.name}: Chain is not set in the context")
-        response = self.context.chain.invoke(state['messages'])
+        response = self.context.chain(state['messages']).invoke({})
         return {"messages": response.cross_reference_generator_output}
 
 
