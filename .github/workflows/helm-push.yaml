@@ -49,13 +49,13 @@ jobs:
         version: "3.12.1"
 
     - name: Helm lint
-      run: helm lint deployments/helm/prcoach --with-subcharts
+      run: helm lint deployment/helm/prcoach --with-subcharts
 
     - name: Package Helm Chart
       id: package
       run: |
-        CHART_VERSION=$(grep '^version:' deployments/helm/prcoach/Chart.yaml | awk '{print $2}')
-        helm package deployments/helm/prcoach --dependency-update --version $CHART_VERSION
+        CHART_VERSION=$(grep '^version:' deployment/helm/prcoach/Chart.yaml | awk '{print $2}')
+        helm package deployment/helm/prcoach --dependency-update --version $CHART_VERSION
         echo "chart_version=$CHART_VERSION" >> $GITHUB_OUTPUT
 
     - name: Push Helm Chart

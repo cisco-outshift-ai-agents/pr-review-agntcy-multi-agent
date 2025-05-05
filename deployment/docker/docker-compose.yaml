@@ -16,8 +16,9 @@ services:
       - agent-network
 
   tf-code-analyzer:
-    image: ghcr.io/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent:0.0.1
+    image: ghcr.io/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent:latest
     container_name: tf_code_analyzer
+    platform: linux/amd64
     ports:
       - "8133:8133"
     networks:
@@ -34,8 +35,9 @@ services:
     entrypoint: python app/main.py
 
   tf-code-reviewer:
-    image: ghcr.io/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent:0.0.1
+    image: ghcr.io/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent:latest
     container_name: tf_code_reviewer
+    platform: linux/amd64
     ports:
       - "8123:8123"
     networks:
@@ -52,11 +54,9 @@ services:
     entrypoint: python app/main.py
 
   tf-pr-review-agntcy-multi-agent:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    image: tf-pr-review-agntcy-multi-agent:latest
+    image: ghcr.io/cisco-outshift-ai-agents/prcoach:latest
     container_name: tf_pr_review_agntcy_multi_agent
+    platform: linux/amd64
     volumes:
       - ${GITHUB_APP_PRIVATE_KEY_FILE}:${GITHUB_APP_PRIVATE_KEY_FILE}
     ports:
