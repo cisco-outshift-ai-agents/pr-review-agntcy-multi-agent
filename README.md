@@ -15,7 +15,6 @@ It was originally conceived to focus on the specific needs of IaC. It is ready f
 
 This project is part of the [AGNTCY](https://docs.agntcy.org/pages/introduction.html) initiative — an open source collective building the infrastructure for the Internet of Agents (IoA): a secure, interoperable layer for agent-to-agent collaboration across organizations and platforms.
 
-
 ### Features
 
 - Connects to your GitHub repository via a GitHub App
@@ -95,7 +94,6 @@ This project is designed to be a starting point for developers who want to exper
 ## Installation
 
 To get started, see [TUTORIAL.md](./TUTORIAL.md)
-
 
 
 ## Roadmap
