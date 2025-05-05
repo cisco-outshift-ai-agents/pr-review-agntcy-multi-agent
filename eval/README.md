@@ -2,6 +2,10 @@
 
 This guide provides step-by-step instructions to set up and run the project.
 
+## Introduction
+
+This README is for the evaluation of the PR Review Agntcy multi-agent MAA. The evaluation process relies on a reference dataset or repository. It extracts data from the repository, replays the pull requests (PRs) of the reference dataset/repository, and requests Alfred to review them. Once the review is complete, the system extracts the data and uses a Large Language Model (LLM) as a judge to create a rating of how good the review is. Finally, a quick report is generated based on the rating.
+
 ## Prerequisites
 
 1. Install [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) and install Python 3.12.9
