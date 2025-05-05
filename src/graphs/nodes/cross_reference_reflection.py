@@ -209,5 +209,4 @@ class CrossReferenceCommenter:
         for res in state["messages"][1:]:
             if isinstance(res, HumanMessage):
                 messages.append(res)
-        print("The list of messages", messages)
         return {"new_issue_comments": [IssueComment(body=messages[-1].content)]}
