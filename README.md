@@ -83,6 +83,9 @@ Run `make setup` in this project folder
 
 3. Create a PR or an event on your PR (like new commit) and comment <b>Alfred review</b> on the pull request
 
+## Evaluation
+
+For detailed instructions on how to evaluate this repository, please refer to the [Evaluation Guide](eval/README.md).
 
 ---
 ## Roadmap
