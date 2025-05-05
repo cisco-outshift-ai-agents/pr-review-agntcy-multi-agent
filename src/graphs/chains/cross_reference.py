@@ -67,7 +67,6 @@ def create_cross_reference_reflector_chain(model: BaseChatModel) -> Callable[[li
         )
         user_message = HumanMessage(f"{user_messages}")
         messages = [system_message, user_message]
-        print("The input to the cross_Reference reflector", messages)
         template = ChatPromptTemplate.from_messages(messages)
         return template | structured_output_model
 
