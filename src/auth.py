@@ -23,7 +23,6 @@ from typing import Any, Awaitable, Callable
 from fastapi import HTTPException, Request
 
 from utils.constants import GITHUB_SIGNATURE_HEADER
-from utils.lambda_helpers import lambdaResponse
 from utils.logging_config import logger as log
 from utils.secret_manager import secret_manager
 
@@ -51,35 +50,6 @@ def fastapi_validate_github_signature(handler: Callable[[Request], Awaitable[Any
 
     return wrapper
 
-def lambda_validate_github_signature(handler: Callable[[dict[str, Any], Any], dict[str, Any]]):
-    """Wraps an AWS lambda handler to verify GitHub signature header
-
-    Raise 500 if env var is missing, 403 if signature is invalid
-
-    Args:
-        handler: async fastapi handler
-    """
-
-    @wraps(handler)
-    def wrapper(event: dict[str, Any], context: Any):
-        headers: dict[str, Any] = event.get("headers", {})
-        # Sometimes headers come with camel case, sometimes they are lowercase, depending on the Lambda trigger runtime
-        # sam preserves the case while AWS API GW or Function URLs in AWS don't, they send lowercase header keys
-        # This makes our function compatible with any env
-        headers = {key.lower(): value for key, value in headers.items()}
-        event["headers"] = headers
-
-        signature_header = headers.get(GITHUB_SIGNATURE_HEADER)
-        if not signature_header:
-            log.debug("Missing signature header")
-            return lambdaResponse("Missing signature header", HTTPStatus.FORBIDDEN)
-
-        payload: str = event.get("body", "")
-        if not valid_github_signature(payload.encode(), signature_header, secret_manager.github_webhook_secret):
-            return lambdaResponse("", HTTPStatus.FORBIDDEN)
-        return handler(event, context)
-
-    return wrapper
 
 def valid_github_signature(payload: bytes, signature: str, secret: str) -> bool:
     """Verify the signature of the payload with the given secret

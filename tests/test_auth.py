@@ -21,7 +21,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from auth import fastapi_validate_github_signature, create_signature, valid_github_signature, lambda_validate_github_signature
+from auth import fastapi_validate_github_signature, create_signature, valid_github_signature
 from utils.constants import GITHUB_SIGNATURE_HEADER
 
 
@@ -88,44 +88,3 @@ async def test_fastapi_validate_github_signature(
         mock_handler.assert_awaited_once_with(mock_request)
         mock_valid_github_signature.assert_called_once()
 
-
-@patch("auth.secret_manager")
-@patch("auth.valid_github_signature")
-@pytest.mark.parametrize(
-    "signature_header, gh_secret, valid_signature, expected_status",
-    [
-        # Valid
-        ("testsignature", "testsecret", True, None),
-        # No header
-        (None, "testsecret", None, HTTPStatus.FORBIDDEN),
-        # Invalid signature
-        ("testsignature", "testsecret", False, HTTPStatus.FORBIDDEN),
-    ],
-)
-@pytest.mark.asyncio
-async def test_lambda_validate_github_signature(
-    mock_valid_github_signature: MagicMock,
-    secret_manager_mock: MagicMock,
-    signature_header: str | None,
-    gh_secret: str | None,
-    valid_signature: bool,
-    expected_status: int,
-) -> None:
-    event = MagicMock(dict[str, Any])
-    event.get.side_effect = lambda key, default=None: {"headers": {GITHUB_SIGNATURE_HEADER: signature_header}, "body": "payload"}.get(
-        key, MagicMock()
-    )
-
-    mock_valid_github_signature.return_value = valid_signature
-    secret_manager_mock.github_webhook_secret = gh_secret
-
-    mock_handler = Mock()
-
-    validator = lambda_validate_github_signature(mock_handler)
-
-    resp = validator(event, None)
-    if expected_status:
-        statusCode = resp.get("statusCode")
-        assert statusCode == expected_status
-    else:
-        assert resp == mock_handler.return_value
