@@ -100,6 +100,20 @@ class StaticAnalyzer:
             tofu_files = checkTofuFiles(output_folder)
             if tofu_files:
                 file_rename_map = convertFileExtension(output_folder, tofu_files)
+
+            result = run(
+                ["terraform", "init", "-backend=false"],
+                cwd=output_folder,
+                stdout=PIPE,
+                stderr=PIPE,
+                text=True,
+            )
+            if result.returncode == 0:
+                print("The Terraform Init was successfully")
+                print(result.stdout)
+            else:
+                print("The terraform init failed")
+                print(result.stderr)
             tf_validate_out = run(
                 ["terraform", "validate", "-no-color"],
                 cwd=output_folder,
@@ -112,13 +126,20 @@ class StaticAnalyzer:
             if tf_validate_out.returncode == 0:
                 # Need tf init to download the necessary third party
                 # dependencies, otherwise most linters would fail
-                run(
+                res = run(
                     ["terraform", "init", "-backend=false"],
                     check=True,
-                    cwd=output_folder,
-                    capture_output=True,
+                    stdout=PIPE,
+                    stderr=PIPE,
                     text=True,
                 )
+                if res.returncode == 0:
+                    print("The Terraform Init was successfully")
+                    print(res.stdout)
+                else:
+                    print("The terraform init failed")
+                    print(res.stderr)
+
                 tflint_out = run(
                     ["tflint", "--format=compact", "--recursive"],
                     cwd=output_folder,
