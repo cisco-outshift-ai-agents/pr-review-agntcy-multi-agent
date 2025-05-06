@@ -159,7 +159,7 @@ class AlfredReviewGeneration:
                                               f"Creating Base Branch for PR {pr_number}")
                             # create Modified Branch with base as Pr_base
                             self.deleteContents(main_branch_contents, "Pr_base_{}".format(pr_number))
-                            self.createBranch("Pr_base_{}_".format(pr_number), f"PR_changed_{pr_number}")
+                            self.createBranch("Pr_base_{}".format(pr_number), f"PR_changed_{pr_number}")
                             first_commit = True
                             no_commit_directory = []
                             for commit in commits:
@@ -234,7 +234,7 @@ class AlfredReviewGeneration:
         except Exception as e:
             if pr_number:
                 print(f"The PR Replay run stopped for pr_number {pr_number} due to Error", e)
-                self.closeBranch("Pr_Base_{}_".format(pr_number))
+                self.closeBranch("Pr_Base_{}".format(pr_number))
                 self.closeBranch(f"PR_changed_{pr_number}")
                 return results
             else:
