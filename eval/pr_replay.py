@@ -8,16 +8,16 @@ import time
 from datetime import datetime
 import fire
 
+
 class AlfredReviewGeneration:
     def __init__(self, config):
         self.config = yaml.safe_load(open(config))
         self.github = Github(self.config["github_token"])
         self.metadata = json.load(open(self.config["metadata_file"]))
-        self.pr_directory_path = self.config["pr_directrory_path"]
+        self.pr_directory_path = self.config["pr_directory_path"]
         self.pr_to_run = self.config["pr_to_run"]
         if not self.pr_to_run:
             self.pr_to_run = [value["pr_number"] for value in self.metadata["PRs"]]
-
 
     def createBranch(self, source_branch_name, new_branch_name):
         repo = self.github.get_repo(self.config["repo_name"])
@@ -140,7 +140,7 @@ class AlfredReviewGeneration:
         results = collections.defaultdict(list)
         try:
             for values in self.metadata['PRs']:
-                if values['pr_number'] in self.pr_to_run:
+                if str(values['pr_number']) in self.pr_to_run:
                     alfred_comments_count = 0
                     context_window_error = False
                     print("processing PR number {}".format(values["pr_number"]))
@@ -159,7 +159,7 @@ class AlfredReviewGeneration:
                                               f"Creating Base Branch for PR {pr_number}")
                             # create Modified Branch with base as Pr_base
                             self.deleteContents(main_branch_contents, "Pr_base_{}".format(pr_number))
-                            self.createBranch("Pr_base_{}".format(pr_number), f"PR_changed_{pr_number}")
+                            self.createBranch("Pr_base_{}_".format(pr_number), f"PR_changed_{pr_number}")
                             first_commit = True
                             no_commit_directory = []
                             for commit in commits:
@@ -212,7 +212,8 @@ class AlfredReviewGeneration:
                         continue
                     if context_window_error:
                         # If there is a context window error close both base and changed branch
-                        results['AlfredPRs'][-1]["PR_replay_Status"] = "Failed At Alfred review Due to Context Window Error"
+                        results['AlfredPRs'][-1][
+                            "PR_replay_Status"] = "Failed At Alfred review Due to Context Window Error"
                         results['AlfredPRs'][-1]["Commit_files"] = []
                         self.closeBranch("Pr_Base_{}".format(pr_number))
                         self.closeBranch(f"PR_changed_{pr_number}")
@@ -233,7 +234,7 @@ class AlfredReviewGeneration:
         except Exception as e:
             if pr_number:
                 print(f"The PR Replay run stopped for pr_number {pr_number} due to Error", e)
-                self.closeBranch("Pr_Base_{}".format(pr_number))
+                self.closeBranch("Pr_Base_{}_".format(pr_number))
                 self.closeBranch(f"PR_changed_{pr_number}")
                 return results
             else:
