@@ -13,7 +13,7 @@ class AlfredReviewGeneration:
         self.config = yaml.safe_load(open(config))
         self.github = Github(self.config["github_token"])
         self.metadata = json.load(open(self.config["metadata_file"]))
-        self.pr_directory_path = self.config["pr_directrory_path"]
+        self.pr_directory_path = self.config["pr_directory_path"]
         self.pr_to_run = self.config["pr_to_run"]
         if not self.pr_to_run:
             self.pr_to_run = [value["pr_number"] for value in self.metadata["PRs"]]
@@ -140,7 +140,7 @@ class AlfredReviewGeneration:
         results = collections.defaultdict(list)
         try:
             for values in self.metadata['PRs']:
-                if values['pr_number'] in self.pr_to_run:
+                if str(values['pr_number']) in self.pr_to_run:
                     alfred_comments_count = 0
                     context_window_error = False
                     print("processing PR number {}".format(values["pr_number"]))
