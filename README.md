@@ -69,7 +69,32 @@ The Multi-Agent PR Reviewer provides GitHub integration and a set of agents capa
    The workflow is managed by the supervisor, and begins with the PR Title and Description Review Agent, followed by the Code Review team. The supervisor collects feedback the code review team and sends it on to the code comment consolidator before sending to the PR commenter. The PR commenter comments directly on the GitHub PR, providing actionable insights for the developer or PR reviewer.
 
 3. **Agent Communication to remote agents**  
-   The project uses the AGNTCY Agent Gateway Protocol (AGP) to facilitate communication between the core application and remote agents. Remote agents can be run on separate servers, allowing for distributed and scalable execution.
+   This project demonstrates the use of **both ACP (Agent Connect Protocol)** and **AGP (Agent Gateway Protocol)** for remote agent communication. These protocols come from the [AGNTCY](https://docs.agntcy.org/pages/introduction.html) ecosystem and enable the core app to interact with distributed agents in a secure and scalable way.
+
+   **ACP – Agent Connect Protocol**
+
+   [Documentation →](https://docs.agntcy.org/pages/syntactic_sdk/connect.html)
+   
+   ACP provides a standardized **HTTP-based API interface** for invoking remote agents. In this project, ACP is used to make **stateless run requests** to both:
+
+   * [`tf-code-analyzer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent)
+   * [`tf-code-reviewer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
+
+    These agents expose ACP-compatible endpoints, allowing the PR reviewer to trigger analysis and code review over API.
+
+    **AGP (Agent Gateway Protocol)**
+
+    [Documentation →](https://docs.agntcy.org/pages/messaging_sdk/agp-index.html)
+
+   AGP enables **real-time messaging** between agents via a local AGP gateway. Both remote agents are also accessible using AGP for session-based or streaming workflows. Used to connect to:
+
+   * [`tf-code-analyzer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent)
+   * [`tf-code-reviewer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
+
+   Messages are sent via a gateway container, and responses are received asynchronously for rich, structured output (e.g., review comments, analysis results).
+
+   > You can [choose](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/4ab225bd4faae3064955054769b312a08a7cd5c9/src/graphs/code_review_graph.py#L93) either based on your use case or switch dynamically depending on agent availability or workload.
+
 
 ## Customization and Experimentation
 
