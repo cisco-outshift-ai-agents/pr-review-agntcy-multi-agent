@@ -88,12 +88,15 @@ The Multi-Agent PR Reviewer provides GitHub integration and a set of agents capa
 
    AGP enables **real-time messaging** between agents via a local AGP gateway. Both remote agents are also accessible using AGP for session-based or streaming workflows. Used to connect to:
 
-   * [`tf-code-analyzer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent)
-   * [`tf-code-reviewer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
+   * [`tf-code-analyzer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent/blob/a7b555d07ba87419928f3d60b45d9e4467fdfde7/app/main.py#L184)
+   * [`tf-code-reviewer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent/blob/645d13b9e716b2f34828ce8c9dc8fdf8ac729a70/app/main.py#L278)
 
-   Messages are sent via a gateway container, and responses are received asynchronously for rich, structured output (e.g., review comments, analysis results).
+   Messages are sent via a gateway container, and responses are received asynchronously for rich, structured output (e.g., review comments, analysis results). Here are the [getting started](https://docs.agntcy.org/pages/messaging_sdk/agp-howto.html) instructions to run AGP data plane.
 
-   > You can [choose](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/4ab225bd4faae3064955054769b312a08a7cd5c9/src/graphs/code_review_graph.py#L93) either based on your use case or switch dynamically depending on agent availability or workload.
+   >You can [control](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/4ab225bd4faae3064955054769b312a08a7cd5c9/src/graphs/code_review_graph.py#L93)  which protocol is used at runtime by setting the `AGENT_MODE_ENV` environment variable. 
+    >* `"acp"` – to use **HTTP-based ACP**
+    >* `"agp"` – to use **real-time AGP messaging**
+
 
 
 ## Customization and Experimentation
