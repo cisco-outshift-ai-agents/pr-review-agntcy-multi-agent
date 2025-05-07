@@ -24,8 +24,9 @@ anthropic = "0.40.0"
 torch = "2.6.0"
 sentence-transformers = "^3.3.1"
 numpy = "^1.26"
-agp-api = "^0.0.5"
 fire = "0.7.0"
+agp-api = "0.0.5"
+agntcy-acp = "1.1.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.24.0"

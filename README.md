@@ -91,13 +91,61 @@ The Multi-Agent PR Reviewer provides GitHub integration and a set of agents capa
    * [`tf-code-analyzer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent/blob/a7b555d07ba87419928f3d60b45d9e4467fdfde7/app/main.py#L184)
    * [`tf-code-reviewer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent/blob/645d13b9e716b2f34828ce8c9dc8fdf8ac729a70/app/main.py#L278)
 
-   Messages are sent via a gateway container, and responses are received asynchronously for rich, structured output (e.g., review comments, analysis results). Here are the [getting started](https://docs.agntcy.org/pages/messaging_sdk/agp-howto.html) instructions to run AGP data plane.
-
-   >You can [control](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/4ab225bd4faae3064955054769b312a08a7cd5c9/src/graphs/code_review_graph.py#L93)  which protocol is used at runtime by setting the `AGENT_MODE_ENV` environment variable. 
-    >* `"acp"` – to use **HTTP-based ACP**
-    >* `"agp"` – to use **real-time AGP messaging**
+   Messages are sent via a gateway container, and responses are received asynchronously for rich, structured output (e.g., review comments, analysis results). Here is the [link](https://docs.agntcy.org/pages/messaging_sdk/agp-howto.html) to getting started guide of AGP for information.
 
 
+##  Environment Setup
+
+1. **Agent Mode Configuration**  
+
+    To control which protocol the PR reviewer uses for remote agent interaction, set the following environment variable:
+
+    ```bash
+    export AGENT_MODE=acp
+    ```
+
+    Accepted values:
+
+    * `local` – use embedded agents (default)
+    * `acp` – use **HTTP-based ACP**
+    * `agp` – use **real-time AGP messaging**
+
+
+2. **Required Environment Variables (ACP)**  
+
+    To use **ACP** mode, you must ensure the following variables are exported in your environment (or defined in a `.env` file):
+
+    ```bash
+    export ACP_TF_CODE_ANALYZER_HOST=http://127.0.0.1:8133/api/v1
+    export ACP_TF_CODE_REVIEWER_HOST=http://127.0.0.1:8123/api/v1
+    ```
+
+    > Make sure the **Code Analyzer Agent** and **Code Reviewer Agent** are running locally on the specified ports, or adjust these URLs accordingly.
+
+3. **Running AGP Gateway Locally**  
+
+    If you're using **AGP** mode, you can run the AGP gateway locally using Docker Compose.
+
+    Directory structure:
+
+    ```
+    agp_dataplane/
+    ├── config/
+    │   └── base/
+    │       └── server-config.yaml
+    └── docker-compose.yaml
+    ```
+
+    To start the gateway:
+
+    ```bash
+    cd agp_dataplane
+    docker-compose up
+    ```
+
+    This runs the AGP Gateway container with configuration from `config/base/server-config.yaml` and exposes the default AGP port `46357`.
+
+    > You can update `server-config.yaml` to customize your gateway setup, including authentication, agent registry, or port mappings.
 
 ## Customization and Experimentation
 

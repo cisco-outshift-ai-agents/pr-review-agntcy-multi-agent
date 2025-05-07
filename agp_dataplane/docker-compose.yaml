@@ -1,0 +1,11 @@
+services:
+  agp:
+    image: ghcr.io/agntcy/agp/gw:0.3.6
+    container_name: agp-gateway
+    environment:
+      - PASSWORD=dummy_password
+    volumes:
+      - ./config:/config
+    command: ["/gateway", "--config", "/config/base/server-config.yaml"]
+    ports:
+      - "46357:46357"
