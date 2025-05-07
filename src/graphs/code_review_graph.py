@@ -112,7 +112,7 @@ class CodeReviewerWorkflow:
             workflow.add_node("static_analyzer", static_analyzer_agp)
             workflow.add_node("code_reviewer", code_reviewer_agp)
         else:
-            raise ValueError(f"Invalid agent mode: {agent_mode}. Must be one of 'acp', 'agp'")
+            raise ValueError(f"Invalid agent mode: {agent_mode}. Must be one of local', 'acp', 'agp'")
         workflow.add_node("title_description_reviewer", TitleDescriptionReviewer(self.title_desc_context))
         workflow.add_node("comment_filterer", CommentFilterer(self.comment_filterer_context))
         workflow.add_node("cross_reference_initializer", CrossReferenceInitializer(self.github_context))
