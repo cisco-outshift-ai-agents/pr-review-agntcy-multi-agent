@@ -24,29 +24,39 @@ from typing import cast
 
 
 def create_comment_filter_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | ReviewComments]:
-
     llm_with_structured_output = cast(RunnableSerializable[dict, dict | ReviewComments], model.with_structured_output(ReviewComments))
+    system_message = wrap_prompt("""\
+        You are a review agent tasked with filtering a list of PR review comments.
+        Your peer has created several comments on a GitHub pull request but it could be that some of them are not useful. 
+        Your job is to filter these comments based on the insturctions below, follow them carefully.
+        
+        Input Format:
+        comments: The set of comments that you need to filter.
+        Here's an example how the input array will look like:
+        {input_json_format}
+        
+        Rules for Filtering:
+        A comment considered not useful if ANY of the following applies:
+        - It's a simple statement without a clear issue.
+        - It's just some positive feedpack without stating a clear issue.
+        - It doesn't mention an actionable issue.
+        - The message just states what the user changed in the code without mentioning a clear issue.
 
-    system_message_content = wrap_prompt("""
-
-                                   You are a review agent tasked with filtering a list of PR review comments.
-                                   Your peer has created several comments on a GitHub pull request but it could be that some of them are unhelpful.
-                                   Your job is to filter these comments based on the instructions below, follow them carefully.
-
-                                   Rules for Filtering:
-                                   A comment is considered unhelpful if it just states a simple statement without any actionable item or
-                                   only a positive feedback or what the user has changed in the code without stating a clear issue.
-
-                                   """)
-
-    user_message_content = wrap_prompt("""
-                                   Input Format:
-                                   Here's an example how the input array will look like: {input_json_format}
-                                   The set of comments that you need to filter: {question}
-                                   """)
+        Response format:
+        Return ONLY the remaining comments.
+        DO NOT change anything in the returned comments.
+        Output MUST be in JSON format, keep the format of the original comments:
+        DO NOT USE markdown in the response.
+        """)
 
     prompt = ChatPromptTemplate.from_messages(
-        messages=[system_message_content, user_message_content]
+        messages=[
+            (
+                "system",
+                system_message,
+            ),
+            ("user", "{question}"),
+        ],
     )
 
     return prompt | llm_with_structured_output
