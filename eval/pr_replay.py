@@ -212,8 +212,7 @@ class AlfredReviewGeneration:
                         continue
                     if context_window_error:
                         # If there is a context window error close both base and changed branch
-                        results['AlfredPRs'][-1][
-                            "PR_replay_Status"] = "Failed At Alfred review Due to Context Window Error"
+                        results['AlfredPRs'][-1]["PR_replay_Status"] = "Failed At Alfred review Due to Context Window Error"
                         results['AlfredPRs'][-1]["Commit_files"] = []
                         self.closeBranch("Pr_Base_{}".format(pr_number))
                         self.closeBranch(f"PR_changed_{pr_number}")
