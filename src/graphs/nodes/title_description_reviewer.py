@@ -45,11 +45,11 @@ class TitleDescriptionInput(BaseModel):
 
 class TitleDescriptionOutput(BaseModel):
     PR_title_suggestion: Optional[str] = Field(
-        default="",
+        default=None,
         description="A clear and concise title that best represents the changes introduced in the pull request. "
     )
     PR_description_suggestion: Optional[str] = Field(
-        default="",
+        default=None,
         description="A well-written summary that explains the purpose and content of the pull request. "
                     "Should highlight key changes, and include reasoning or context if necessary."
     )
