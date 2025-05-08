@@ -8,6 +8,7 @@ import time
 from datetime import datetime
 import fire
 
+
 class AlfredReviewGeneration:
     def __init__(self, config):
         self.config = yaml.safe_load(open(config))
@@ -17,7 +18,6 @@ class AlfredReviewGeneration:
         self.pr_to_run = self.config["pr_to_run"]
         if not self.pr_to_run:
             self.pr_to_run = [value["pr_number"] for value in self.metadata["PRs"]]
-
 
     def createBranch(self, source_branch_name, new_branch_name):
         repo = self.github.get_repo(self.config["repo_name"])
@@ -175,7 +175,7 @@ class AlfredReviewGeneration:
                                         results['AlfredPRs'].append(
                                             {"pr_number": pr_number,
                                              "originalpr_url": values["url"],
-                                             "prcoach_url": pr.html_url})
+                                             "prreviewer_url": pr.html_url})
                                         first_commit = False
 
                                     Review_comment_body = "Alfred review"
@@ -201,7 +201,7 @@ class AlfredReviewGeneration:
                             results['AlfredPRs'].append(
                                 {"pr_number": pr_number,
                                  "originalpr_url": values["url"],
-                                 "prcoach_url": "No Alred PR Replay",
+                                 "prreviewer_url": "No Alred PR Replay",
                                  "PR_replay_Status": "No Base Code Directory",
                                  "Commit_files": []
                                  }
