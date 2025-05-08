@@ -53,7 +53,7 @@ This README is for the evaluation of the PR Review Agntcy multi-agent MAA. The e
 ## Additional Notes
 
 - Configuration files such as `.env.example` and `lambda-env.json.example` may need to be customized for your environment. Copy and rename them as `.env` and `lambda-env.json`, respectively, and update the values as needed.
-- Refer to [pr-coach-config.md](../pr-coach-config.md) for detailed configuration options.
+- Refer to [pr-reviewer-config.md](../pr-reviewer-config.md) for detailed configuration options.
 
 ## Troubleshooting
 
