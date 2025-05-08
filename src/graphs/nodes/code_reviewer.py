@@ -18,21 +18,36 @@ import concurrent.futures
 import json
 
 import concurrent
-from typing import List, Callable
+from typing import List, Callable, Optional
 from graphs.states import GitHubPRState, FileChange
 from utils.logging_config import logger as log
 from .contexts import DefaultContext
 from pydantic import BaseModel, Field
-from utils.models import ReviewComments, ReviewComment, ContextFile
+from utils.models import ReviewComments, ReviewComment, ContextFile,StaticAnalyzerOutputList
 from langchain_core.runnables import RunnableSerializable
 
 
 class codeReviewInput(BaseModel):
-    files: list[ContextFile] = Field(
-        description="The list of original files from the pull request. Each file includes its path and full content.")
+    files: Optional[list[ContextFile]] = Field(default_factory=list,
+                                               description="""receive all the Terraform files from the user in the "FILES" list..""")
     changes: list[FileChange] = Field(
-        description="List of code changes across Terraform files. Each item includes the filename, the changed code snippet, the starting line number, and the status indicating whether the line was 'added' or 'removed'.")
-    static_analyzer_output: list[str] = Field(description="List of issues in each file. Each item includes response in this format {{file name}}: {{full issue description}}")
+        description="""List of code changes across Terraform files. The changes have the following format:
+            - filename: the name of the file where the change was done
+            - start_line: the line number where the change was added
+            - changed_code: the code that was removed/added after the start line, there's a + or - sign at the beginning of every change line, it indicates if it was added or removed, ignore this sign.
+            - status: indicates if the changed_code was added/removed
+            - Changes with "removed" status mean that the code in that change was deleted from the codebase, it's not part of the code anymore.
+            - Changes with "added" status mean that the code in that change was added the codebase.
+            - Always focus on whether a change was added or removed from the codebase. If it was removed then that code is not part of the codebase anymore.
+            - Sometimes the changes are in pairs, one change with a 'removed' status and one with 'added', but they belong together, even when their line numbers are far apart.
+            Identify these pairs and DO NOT add the same comment to the removed and added part twice!
+            """)
+    static_analyzer_output: list[str] = Field(
+        description="""
+        - A list of multiple static code analyzers (tflint, tfsec, etc.) on the new code.
+        - The static_analyzer_output could be useful for understanding the potential issues introduced by the user, like missing references, undefined or unused variables etc.
+        - The static_analyzer_output could have issues which are not related to the current code changes, you MUST ignore these issues as they weren't introduced by this PR.
+        """)
 
 
 @staticmethod
@@ -89,7 +104,11 @@ class CodeReviewer:
         if not isinstance(self.context.chain, RunnableSerializable) and not isinstance(self.context.chain, Callable):
             raise ValueError(f"{self.name}: Chain is not a RunnableSerializable or Callable")
 
-        static_analyzer_response = [f"{res.file_name}: {res.full_issue_description}" for res in state['static_analyzer_output'].issues]
+
+        static_analyzer_response = []
+        if isinstance(state['static_analyzer_output'], StaticAnalyzerOutputList):
+            static_analyzer_response = [f"{res.file_name}: {res.full_issue_description}" for res in
+                                        state['static_analyzer_output'].issues]
         codereview = codeReviewInput(files=state['context_files'], changes=state['changes'],
                                      static_analyzer_output=static_analyzer_response)
         response: ReviewComments = self.context.chain(get_model_dump_with_metadata(codereview)).invoke({})
