@@ -250,7 +250,7 @@ def main(config_file, **kwargs):
         sys.exit(1)
     obj = AlfredReviewGeneration(config_file)
     alfred_pr_replay = obj.generateAlfredReview()
-    json.dump(alfred_pr_replay, open(f"alfred_cisco_eti_pr_replay_{datetime.now().strftime("%d-%b-%Y")}.json", "w"))
+    json.dump(alfred_pr_replay, open(f"pr_replay_{datetime.now().strftime("%d-%b-%Y")}.json", "w"))
 
 
 if __name__ == '__main__':
