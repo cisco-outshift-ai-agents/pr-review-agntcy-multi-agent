@@ -65,7 +65,7 @@ jobs:
         context: .
         file: ./deployment/docker/Dockerfile
         push: false
-        tags: ghcr.io/${{ github.repository_owner }}/prcoach:pr-${{ github.event.pull_request.number }}
+        tags: ghcr.io/${{ github.repository_owner }}/prreviewer:pr-${{ github.event.pull_request.number }}
 
     # Build and push for main commits
     - name: Build and push Docker image (main)
@@ -75,4 +75,4 @@ jobs:
         context: .
         file: ./deployment/docker/Dockerfile
         push: true
-        tags: ghcr.io/${{ github.repository_owner }}/prcoach:latest
+        tags: ghcr.io/${{ github.repository_owner }}/prreviewer:latest
