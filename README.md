@@ -64,11 +64,14 @@ The Multi-Agent PR Reviewer provides GitHub integration and a set of agents capa
    The Multi-Agent PR Reviewer is installed as a GitHub app. When a pull request is created or updated, the app automatically triggers the agent workflow to fetch the PR details and then review the changes.
 
 2. **Agent Workflow**  
-The workflow begins with fetching PR details (fetch_pr).
-Static analysis (static_analyzer) and code review (code_reviewer) are performed in parallel with title/description review (title_description_reviewer).
-Cross-referencing (cross_reference_initializer, generator, reflector) iteratively processes the PR content and static analysis results.
-All comments are filtered (comment_filterer) before being finalized and posted to the PR (commenter).
-![PR Reviewer Agent workflow](./docs/resources/Workflow.svg)
+   The workflow begins with fetching PR details (fetch_pr).
+
+   Static analysis (static_analyzer) and code review (code_reviewer) are performed in parallel with title/description review (title_description_reviewer).
+
+   Cross-referencing (cross_reference_initializer, generator, reflector) iteratively processes the PR content and static analysis results.
+
+   All comments are filtered (comment_filterer) before being finalized and posted to the PR (commenter).
+   ![PR Reviewer Agent workflow](./docs/resources/Workflow.svg)
 
 4. **Agent Communication to remote agents**  
    This project demonstrates the use of **ACP (Agent Connect Protocol)** or **AGP (Agent Gateway Protocol)** for remote agent communication. These protocols come from the [AGNTCY](https://docs.agntcy.org/pages/introduction.html) ecosystem and enable the core app to interact with distributed agents in a secure and scalable way.
