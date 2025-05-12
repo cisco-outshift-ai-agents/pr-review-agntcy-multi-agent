@@ -1,4 +1,4 @@
-# Getting Started with the Multi Agent Terraform PR Reviewer
+# Getting Started with the Multi Agent PR Reviewer
 
 ![Detailed view of complete PR Reviewer system](./docs/resources/Installation-diagram.svg)
 
@@ -13,8 +13,6 @@ Ensure you have the following installed:
 
 - [Docker](https://docs.docker.com/get-started/get-docker/)
 
-- [Docker Compose](https://docs.docker.com/compose/)
-
 - [Running Azure OpenAI Instance and API Key](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart)
 
 ### Other Components
@@ -27,12 +25,12 @@ Ensure you have the following installed:
 
 ## Setup Instructions
 
-#### 1. Clone the The Multi Agent Terraform PR Reviewer Repository
+#### 1. Clone the The Multi Agent PR Reviewer Repository
 
 ```bash
-git clone https://github.com/cisco-outshift-ai-agents/tf-pr-review-agntcy-multi-agent
+git clone https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent
 
-cd tf-pr-review-agntcy-multi-agent
+cd pr-review-agntcy-multi-agent
 
 ```
 
@@ -42,60 +40,40 @@ Head to https://smee.io/ and start a new channel
 
 #### 3. Create a Github App
 
-1. **Log into [Github](https://github.com/)**
+  A. **Log into [Github](https://github.com/)**
 
-2. **Register a new [Github App](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app#registering-a-github-app)**
+  B. **Register a new [Github App](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app#registering-a-github-app)**
 
-- Under the **Webhook** section
+  - Under the **Webhook** section
+    - Ensure the webhook is set to Active
+    - Specify your smee.io webhook URL
+    - Set your webhook secret to our value of choice (make sure to note it down)
+    - Set the following Repository permissions:
+      - Checks [read & write]
+      - Contents [read]
+      - Issues [read & write]
+      - Pull Requests [read & write]
 
-- Ensure the webhook is set to Active
+  - Under **Subscribe to Events**, enable:
+    - Issue comment
+    - Pull request
+    - Pull request review comment
 
-- Specify your smee.io webhook URL
+  C. **Download your Github App's Private Key**
+  - Go to `Developer settings` under your Github profile settings
+  - Click on your Github App Name
+  - Select the `General` side menu option
+  - Scroll down to `Private keys` and click `Generate a private key`to download
+  - Move this file to your local clone of the Multi Agent Terraform PR Reviewer Service
 
-- Set your webhook secret to our value of choice (make sure to note it down)
+  D. **Note your Github App ID**
+  - Select the `General` side menu option
+  - In the `About` section, you'll see the App ID
 
-- Set the following Repository permissions:
-
-- Checks [read & write]
-
-- Contents [read & write]
-
-- Issues [read & write]
-
-- Pull Requests [read & write]
-
-- Under Subscribe to Events, enable:
-
-- Issue comment
-
-- Pull request
-
-- Pull request review comment
-
-**3. Download your Github App's Private Key**
-
-- Go to `Developer settings` under your Github profile settings
-
-- Click on your Github App Name
-
-- Select the `General` side menu option
-
-- Scroll down to `Private keys` and click `Generate a private key`to download
-
-- Move this file to your local clone of the Multi Agent Terraform PR Reviewer Service
-
-**4. Note your Github App ID**
-- Select the `General` side menu option
-
-- In the `About` section, you'll see the App ID
-
-**5. Install the Github App to your repository**
-
-- Select the `Install App` side menu option on your Github App settings page
-
-- Choose an account and click the `Install` option
-
-- Select your desired Terraform repository and click `Install`
+  E. **Install the Github App to your repository**
+  - Select the `Install App` side menu option on your Github App settings page
+  - Choose an account and click the `Install` option
+  - Select your desired Terraform repository and click `Install`
 
 #### 4. Specify Environment Variables
 Copy the example .env file and provide relevant values
@@ -115,7 +93,7 @@ AZURE_OPENAI_API_VERSION="<your_azure_openai_api_version>"
 SMEE_URL="<your_smee_url>"
 ```
 
-#### 5. Run the Multi Agent Terraform PR Reviewer Service, AGP Gateway, and Remote Agents
+#### 5. Run the Multi Agent PR Reviewer Service, AGP Gateway, and Remote Agents
 
 Spin up the services using Docker Compose:
 
@@ -127,6 +105,6 @@ Spin up the services using Docker Compose:
 
 2. Comment `Alfred review` on the PR
 
-3. Watch your docker compose window to observe the webhook, the multi agent terraform pr review service, and the remote agents in action.
+3. Watch your docker compose window to observe the webhook, the multi agent pr review service, and the remote agents in action.
 
 The agent will review the code and post suggestions as comments directly on your PR.
