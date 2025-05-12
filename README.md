@@ -2,14 +2,14 @@
 [![Release](https://img.shields.io/github/v/release/cisco-ai-agents/pr-review-agntcy-multi-agent?display_name=tag)](CHANGELOG.md)
 [![Contributor-Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-fbab2c.svg)](CODE_OF_CONDUCT.md)
 
-*A GitHub app that provides feedback on pull requests.*
+*A GitHub app that provides feedback on Terraform pull requests.*
 
 This project is an example multi-agent application designed to help developers improve their Terraform code pull requests by providing feedback and suggestions. It automates parts of the PR review process, making it easier to identify potential issues, improve code quality, and adhere to best practices.
 
 ![Overview of Multi-agent Pull Request Reviewer](./docs/resources/PR-Reviewer_System.svg)
 
 ## Overview
-The Multi-Agent PR Reviewer demonstrates the use of the **[AGNTCY](https://github.com/agntcy) [Agent Gateway Protocol (AGP)](https://github.com/agntcy/agp)** and **[AGP server](https://github.com/agntcy/agp/tree/main/data-plane)** for seamless interaction with remote agents. The core app, along with its remote agents, is built using LangGraph, showcasing a modular and extensible approach to multi-agent workflows.
+The Multi-Agent PR Reviewer demonstrates the use of the **[AGNTCY](https://github.com/agntcy) [Agent Connect Protocol (ACP)](https://gtihub.com/agntcy/acp-spec), [Agent Gateway Protocol (AGP)](https://github.com/agntcy/agp)** and **[AGP server](https://github.com/agntcy/agp/tree/main/data-plane)** for seamless interaction with remote agents. The core app, along with its remote agents, is built using LangGraph, showcasing a modular and extensible approach to multi-agent workflows.
 
 It was originally conceived to focus on the specific needs of IaC. It is ready for use as-is or can be customized for experimentation. You can add new embedded or remote agents, modify the existing agent workflow, or tailor agent prompts to suit your specific PR review use cases.
 
@@ -17,135 +17,66 @@ This project is part of the [AGNTCY](https://docs.agntcy.org/pages/introduction.
 
 ### Features
 
-- Connects to your GitHub repository via a GitHub App
-
-- Reviews and provides suggestions on the PR title and description
-
-- Performs linting and static analysis using the Terraform Code Analyzer Agent as a remote agent via AGNTCY Agent Gateway
-
-- Conducts a thorough code review using the Terraform Code Reviewer Agent as a remote agent via AGNTCY Agent Gateway
-
-- Aggregates and de-duplicates feedback to avoid redundant comments across multiple triggers
-
-- Posts both PR-level and inline comments with feedback on Terraform code
-
-- Activated on demand by commenting "Alfred review" on a pull request
+- Connects to your GitHub repository via a GitHub App.
+- Demonstrates use of remote agents over AGNTCY Agent Connect Protocol (ACP) or via an AGNTCY Agent Gateway over AGNTCY Agent Gateway Protocol (AGP).
+- Reviews and provides suggestions on the PR title and description.
+- Performs linting and static analysis using the Terraform Code Analyzer Agent as a local agent or as a remote agent via ACP or AGP.
+- Conducts a thorough code review using the Terraform Code Reviewer Agent as a local agent or as a remote agent via ACP or AGP.
+- Aggregates and de-duplicates feedback to avoid redundant comments across multiple triggers.
+- Posts both PR-level and inline comments with feedback on Terraform code.
+- Activated on demand by commenting "Alfred review" on a pull request.
 
 ## Details
-
-![Detailed view of complete PR Reviewer system](./docs/resources/PR-Reviewer_Flows.svg)
-
 The Multi-Agent PR Reviewer provides GitHub integration and a set of agents capable of performing basic Terraform pull request (PR) reviews. The current agent workflow focuses on the following tasks:
 
 - **Agent 0: Supervisor**
-  Coordinates the execution of the other agents, especially the code review agent team.
+  Coordinates the execution of the other agents.
 
 - **Agent 1: PR Title and Description Review**  
   Ensures that the PR's title and description are clear, complete, and provide enough context for reviewers.  
 
-- **Agent 2: Terraform Code Analyzer (remote)**   
+- **Agent 2: Terraform Code Analyzer (option: remote)**   
   Runs Terraform linters on your code.   
   [https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent)
 
-- **Agent 3: Terraform Code Review (remote)**  
+- **Agent 3: Terraform Code Review (option: remote)**  
   Examines Terraform code for common issues, such as syntax errors, security flaws, and poor structural design.     
   [https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agen](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
 
-- **Agent 4: Cross-reference Reviewer**   
+- **Agent 4a: Cross-reference Reviewer**   
   Checks cross-references to ensure validity and resolve conflicts.
 
-- **Agent 5: Code Comment Consolidator**  
-  Once the code review team is done, removes any overlapping comments.
+- **Agent 4b: Cross-reference Reflector**  
+  Evaluates the output of Cross-reference Reviewer agent.
 
-- **Agent 6: PR Commenter**   
-  Constructs comments from other agent inputs to write to the Pull Request.
+- **Agent 4c: Cross-reference Commenter**
+  Constructs the cross-reference comments.
+
+- **Agent 5: Comment Filterer**  
+  Assesses comments and removes any overlap before comments are posted.
+
+- **Agent 6: Review Assistant**   
+  Responds to a user reply made to PR Reviewer code comments.
 
 ## How It Works
 
 1. **GitHub Integration**  
-   The Multi-Agent PR Reviewer is installed as a GitHub app. When a pull request is created or updated, the app automatically triggers the agent workflow to review the changes.
+   The Multi-Agent PR Reviewer is installed as a GitHub app. When a pull request is created or updated, the app automatically triggers the agent workflow to fetch the PR details and then review the changes.
 
 2. **Agent Workflow**  
-   The workflow is managed by the supervisor, and begins with the PR Title and Description Review Agent, followed by the Code Review team. The supervisor collects feedback the code review team and sends it on to the code comment consolidator before sending to the PR commenter. The PR commenter comments directly on the GitHub PR, providing actionable insights for the developer or PR reviewer.
+The workflow begins with fetching PR details (fetch_pr).
+Static analysis (static_analyzer) and code review (code_reviewer) are performed in parallel with title/description review (title_description_reviewer).
+Cross-referencing (cross_reference_initializer, generator, reflector) iteratively processes the PR content and static analysis results.
+All comments are filtered (comment_filterer) before being finalized and posted to the PR (commenter).
+![PR Reviewer Agent workflow](./docs/resources/Workflow.svg)
 
-3. **Agent Communication to remote agents**  
-   This project demonstrates the use of **both ACP (Agent Connect Protocol)** and **AGP (Agent Gateway Protocol)** for remote agent communication. These protocols come from the [AGNTCY](https://docs.agntcy.org/pages/introduction.html) ecosystem and enable the core app to interact with distributed agents in a secure and scalable way.
+4. **Agent Communication to remote agents**  
+   This project demonstrates the use of **ACP (Agent Connect Protocol)** or **AGP (Agent Gateway Protocol)** for remote agent communication. These protocols come from the [AGNTCY](https://docs.agntcy.org/pages/introduction.html) ecosystem and enable the core app to interact with distributed agents in a secure and scalable way.
 
-   **ACP – Agent Connect Protocol**
+   The user decides which mode they want to run by setting an environment variable. Docker files in this repository take care of installation of all required files. Only one mode at a time is supported.
 
-   [Documentation →](https://docs.agntcy.org/pages/syntactic_sdk/connect.html)
-   
-   ACP provides a standardized **HTTP-based API interface** for invoking remote agents. In this project, ACP is used to make **stateless run requests** to both:
+   This project's use of ACP vs AGP is described in [TUTORIAL.md](./TUTORIAL.md) in more detail.
 
-   * [`tf-code-analyzer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent)
-   * [`tf-code-reviewer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
-
-    These agents expose ACP-compatible endpoints, allowing the PR reviewer to trigger analysis and code review over API.
-
-    **AGP (Agent Gateway Protocol)**
-
-    [Documentation →](https://docs.agntcy.org/pages/messaging_sdk/agp-index.html)
-
-   AGP enables **real-time messaging** between agents via a local AGP gateway. Both remote agents are also accessible using AGP for session-based or streaming workflows. Used to connect to:
-
-   * [`tf-code-analyzer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent/blob/a7b555d07ba87419928f3d60b45d9e4467fdfde7/app/main.py#L184)
-   * [`tf-code-reviewer-agntcy-agent`](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent/blob/645d13b9e716b2f34828ce8c9dc8fdf8ac729a70/app/main.py#L278)
-
-   Messages are sent via a gateway container, and responses are received asynchronously for rich, structured output (e.g., review comments, analysis results). Here is the [link](https://docs.agntcy.org/pages/messaging_sdk/agp-howto.html) to getting started guide of AGP for information.
-
-
-##  Environment Setup
-
-1. **Agent Mode Configuration**  
-
-    To control which protocol the PR reviewer uses for remote agent interaction, set the following environment variable:
-
-    ```bash
-    export AGENT_MODE=acp
-    ```
-
-    Accepted values:
-
-    * `local` – use embedded agents (default)
-    * `acp` – use **HTTP-based ACP**
-    * `agp` – use **real-time AGP messaging**
-
-
-2. **Required Environment Variables (ACP)**  
-
-    To use **ACP** mode, you must ensure the following variables are exported in your environment (or defined in a `.env` file):
-
-    ```bash
-    export ACP_TF_CODE_ANALYZER_HOST=http://127.0.0.1:8133/api/v1
-    export ACP_TF_CODE_REVIEWER_HOST=http://127.0.0.1:8123/api/v1
-    ```
-
-    > Make sure the **Code Analyzer Agent** and **Code Reviewer Agent** are running locally on the specified ports, or adjust these URLs accordingly.
-
-3. **Running AGP Gateway Locally**  
-
-    If you're using **AGP** mode, you can run the AGP gateway locally using Docker Compose.
-
-    Directory structure:
-
-    ```
-    agp_dataplane/
-    ├── config/
-    │   └── base/
-    │       └── server-config.yaml
-    └── docker-compose.yaml
-    ```
-
-    To start the gateway:
-
-    ```bash
-    cd agp_dataplane
-    docker-compose up
-    ```
-
-    This runs the AGP Gateway container with configuration from `config/base/server-config.yaml` and exposes the default AGP port `46357`.
-
-    > You can update `server-config.yaml` to customize your gateway setup, including authentication, agent registry, or port mappings.
 
 ## Customization and Experimentation
 
@@ -203,4 +134,4 @@ Project Link:
 ## Acknowledgements
 
 - [Langgraph](https://github.com/langchain-ai/langgraph) for the agentic platform.
-- The [AGNTCY](https://github.com/agntcy) project
+- The [AGNTCY](https://github.com/agntcy) project.
