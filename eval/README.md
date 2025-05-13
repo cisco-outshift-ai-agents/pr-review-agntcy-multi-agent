@@ -65,14 +65,14 @@ This README is for the evaluation of the PR Review Agntcy multi-agent MAA. The e
 Here’s an example of running all steps end-to-end:
 ```sh
 # Step 1: Data Generation (if needed)
-python github_data_collection.py --config initial_data_collection_repo_config.yml
+python github_data_collection.py --config_file configs/gen_config.yml
 
 # Step 2: Replay
-python pr_replay.py --config replay_config.yml
+python pr_replay.py --config_file configs/replay_config.yml
 
 # Step 3: Replay Collect
-python github_data_collection.py --config replay_data_collection_repo_config.yml
+python github_data_collection.py --config_file configs/replay_collection_config.yml
 
 # Step 4: Evaluation
-python eval.py --config eval_config.yml
+python eval.py --config_file configs/eval_config.yml
 ```
