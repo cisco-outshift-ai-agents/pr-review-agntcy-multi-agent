@@ -20,7 +20,8 @@ This README is for the evaluation of the PR Review Agntcy multi-agent MAA. The e
    ```
 3. Install dependencies of eval using eval_requirements.txt:
    
-   ```cd eval
+   ```sh
+   cd eval
    ```
    ```sh
    pip install -r eval_requirements.txt
