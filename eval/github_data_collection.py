@@ -398,7 +398,7 @@ def extract_terraform_pr_comments(
     ct = 0
     dst_prs = PRDataset()
     skip_local_file_writing = False
-    for pull in tqdm(target_pulls[:3]):
+    for pull in tqdm(target_pulls):
         curr_pr = PR(pr_number=pull.number)
         path_b0 = os.path.join(folder_path, str(pull.number))
         path_b0_present = os.path.exists(path_b0)
