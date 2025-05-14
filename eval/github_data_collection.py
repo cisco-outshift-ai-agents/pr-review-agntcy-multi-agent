@@ -373,6 +373,7 @@ def extract_terraform_pr_comments(
         if merged_only:
             logger.info(f"We are iterating over closed PRs to filter merged ones")
             target_pulls = [pr for pr in tqdm(closed_pulls) if pr.merged_at is not None]
+            # target_pulls will always be a list.
             logger.info(f"Found {len(target_pulls)} merged PRs")
             # Filter only merged pull requests
             if not closed_pulls:
@@ -385,7 +386,6 @@ def extract_terraform_pr_comments(
             with open(merged_cache_path, "wb") as handle:
                 pickle.dump(target_pulls, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    #logger.info(f"The only target PRs are {len(target_pulls)}")
     if merged_only and False:
         target_pulls = sorted(target_pulls, key=lambda pr: pr.merged_at)
         logger.info(len(target_pulls))
@@ -398,7 +398,7 @@ def extract_terraform_pr_comments(
     ct = 0
     dst_prs = PRDataset()
     skip_local_file_writing = False
-    for pull in tqdm(target_pulls):
+    for pull in tqdm(target_pulls[:3]):
         curr_pr = PR(pr_number=pull.number)
         path_b0 = os.path.join(folder_path, str(pull.number))
         path_b0_present = os.path.exists(path_b0)
