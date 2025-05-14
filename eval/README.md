@@ -46,6 +46,7 @@ This README is for the evaluation of the PR Review Agntcy multi-agent MAA. The e
       ```sh
      python github_data_collection.py --config_file configs/replay_collection_config.yml
      ```
+     Please ensure to delete any cache files from previous runs.
 ### 4. Evaluation
    - Run the evaluation process on the replayed data:
      ```sh

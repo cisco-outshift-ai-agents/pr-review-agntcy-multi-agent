@@ -57,7 +57,7 @@ def populate_issue_comments(pr, issue_comments):
         try:
             # Create a Comment object for each issue comment
             comment = Comment(id=str(ic.id), type=CommentType.issue)
-            comment.user = ic.user.login
+            comment.user = ic.user.login if ic.user else "None"
             comment.comment = ic.body
             comment.comment_timestamp = parser.parse(str(ic.created_at))
             pr.comments.append(comment)
@@ -72,7 +72,7 @@ def populate_review_comments(pr, review_comments):
         try:
             # Create a Comment object for each review comment
             comment = Comment(id=str(rev.id), type=CommentType.review)
-            comment.user = rev.user.login
+            comment.user = rev.user.login if rev.user else "None"
             comment.comment = rev.body
             comment.commit_id = str(rev.commit_id)
             comment.comment_timestamp = parser.parse(str(rev.submitted_at))
