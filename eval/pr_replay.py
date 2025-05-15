@@ -189,7 +189,7 @@ class AlfredReviewGeneration:
                                 results['AlfredPRs'].append(
                                     {"pr_number": pr_number,
                                      "originalpr_url": values["url"],
-                                     "prreviewer_url": "No PRcoach Replay",
+                                     "prreviewer_url": "No Alfred PR Replay",
                                      "PR_replay_Status": "No Merged Code Directory Present",
                                      "Commit_files": []
                                      }
@@ -204,7 +204,7 @@ class AlfredReviewGeneration:
                             results['AlfredPRs'].append(
                                 {"pr_number": pr_number,
                                  "originalpr_url": values["url"],
-                                 "prreviewer_url": "No PRcoach Replay",
+                                 "prreviewer_url": "No Alfred PR Replay",
                                  "PR_replay_Status": "No Base Code Directory Present",
                                  "Commit_files": []
                                  }
