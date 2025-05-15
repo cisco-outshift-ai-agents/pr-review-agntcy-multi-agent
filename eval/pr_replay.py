@@ -162,7 +162,7 @@ class AlfredReviewGeneration:
                             self.createBranch("Pr_base_{}".format(pr_number), f"PR_changed_{pr_number}")
 
                             # Get final merged contents
-                            if os.path.isfile(final_merged_directory):
+                            if os.path.isdir(final_merged_directory):
                                 final_commit_contents = self.readContentsFromDirectory(final_merged_directory)
                                 self.createCommit(final_commit_contents, f"PR_changed_{pr_number}", "merged_content")
                                 pr = self.createPR("Pr_base_{}".format(pr_number), f"PR_changed_{pr_number}", title,
