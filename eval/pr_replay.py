@@ -241,7 +241,7 @@ class AlfredReviewGeneration:
 
 def main(config_file, **kwargs):
     """
-    python3 pr_replay.py --config replay_config.yaml
+    python3 pr_replay.py --config_file configs/replay_config.yaml
     """
     if not os.path.exists(config_file):
         print(f"Config file {config_file} does not exist.")
