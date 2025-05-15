@@ -131,7 +131,7 @@ To use **ACP** mode, you must ensure the following variables are also exported i
 When you get to the next step and start up the service plus remote agents, make sure the **Code Analyzer Agent** and **Code Reviewer Agent** are running locally on the specified ports, or adjust these URLs accordingly.
 
 
-#### 4. Run the Multi Agent PR Reviewer Service, AGP Gateway, and Remote Agents
+### 4. Run the Multi Agent PR Reviewer Service, AGP Gateway, and Remote Agents
 
 Spin up the services using Docker Compose:
 
@@ -142,7 +142,7 @@ This starts up remote agent containers and the AGP Gateway container as needed, 
 You can update `agp-gw-config.yaml` or `docker-compose.yaml` to customize your gateway setup, including authentication, agent registry, or port mappings.
 
 
-#### 5. Trigger PR Review
+### 5. Trigger PR Review
 
 A. Create a pull request in your connected Terraform repository
 
