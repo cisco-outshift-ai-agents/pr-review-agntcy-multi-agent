@@ -1,0 +1,46 @@
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+appName: prreviewer
+namespace: prreviewer-dev
+appVersion: v1
+replicaCount: 1
+
+image:
+  repository: ghcr.io/cisco-outshift-ai-agents/prreviewer
+  tag: latest
+  pullPolicy: Always
+  pullSecret:
+
+service:
+  port: 5500
+
+config:
+  githubAppId: ""
+  azureOpenAiEndpoint: ""
+  azureOpenAiDeployment: ""
+  azureOpenAiApiVersion: ""
+  logLevel: ""
+  environment: ""
+
+# serviceaccount:
+#   annotations:
+#     eks.amazonaws.com/role-arn: REPLACE_WITH_ROLE_ARN
+
+agentMode: ""
+agpGatewayEndpoint: ""
+
+probes:
+  livenessProbeEnabled: false
+  readinessProbeEnabled: false
+  port: 5500
+  endpoint: /v1/health
+
+resources:
+  enabled: false
+  limits:
+    cpu: 2000m
+    memory: 2500Mi
+  requests:
+    cpu: 200m
+    memory: 500Mi

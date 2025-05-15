@@ -4,7 +4,7 @@ import logging
 import os
 from tqdm import tqdm
 from langchain_openai import AzureChatOpenAI
-from alfred_git_data import PRDataset
+from pkg.alfred_git_data import PRDataset
 import difflib
 
 logging.basicConfig(level=logging.INFO)

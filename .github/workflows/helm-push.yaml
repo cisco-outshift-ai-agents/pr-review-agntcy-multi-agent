@@ -49,16 +49,16 @@ jobs:
         version: "3.12.1"
 
     - name: Helm lint
-      run: helm lint deployment/helm/prcoach --with-subcharts
+      run: helm lint deployment/helm/prreviewer --with-subcharts
 
     - name: Package Helm Chart
       id: package
       run: |
-        CHART_VERSION=$(grep '^version:' deployment/helm/prcoach/Chart.yaml | awk '{print $2}')
-        helm package deployment/helm/prcoach --dependency-update --version $CHART_VERSION
+        CHART_VERSION=$(grep '^version:' deployment/helm/prreviewer/Chart.yaml | awk '{print $2}')
+        helm package deployment/helm/prreviewer --dependency-update --version $CHART_VERSION
         echo "chart_version=$CHART_VERSION" >> $GITHUB_OUTPUT
 
     - name: Push Helm Chart
       if: github.event_name == 'push'
       run: |
-        helm push prcoach-${{ steps.package.outputs.chart_version }}.tgz oci://ghcr.io/${{ github.repository_owner }}/helm
+        helm push prreviewer-${{ steps.package.outputs.chart_version }}.tgz oci://ghcr.io/${{ github.repository_owner }}/helm

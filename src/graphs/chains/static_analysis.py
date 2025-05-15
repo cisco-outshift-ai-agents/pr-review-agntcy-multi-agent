@@ -18,31 +18,35 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableSerializable
+from utils.models import StaticAnalyzerOutputList
+from typing import cast
 
 from utils.wrap_prompt import wrap_prompt
 
 
-def create_static_analyzer_chain(model: BaseChatModel) -> RunnableSerializable[dict, BaseMessage]:
-    system_message = wrap_prompt("""\
-                Your are an experienced software egineer who's task is to organize Terraform related linter outputs.
-                You will get different linter outputs from the user (tflint, tfsec, terraform validate etc.).
+def create_static_analyzer_chain(model: BaseChatModel) -> RunnableSerializable[dict, dict | StaticAnalyzerOutputList]:
 
-                Organize the issues into a list, but keep every detail!
-                Remove ONLY the line numbers but keep everything else, don't remove any detail from the issue message.
-                DO NOT remove any information from the issues, keep every detail! You are only allowed to delete the line numbers, nothing else!
-                Each item in the list should have the following format: {{file name}}: {{full issue description}}
-                Remove the warnings, only keep the errors in the final list.
-                Only return the list of issues in your response, nothing else.
-                """)
+    llm_with_structured_output = cast(RunnableSerializable[dict, dict | StaticAnalyzerOutputList], model.with_structured_output(StaticAnalyzerOutputList))
+
+    system_message_content = wrap_prompt("""\
+                                        Your are an experienced software engineer who's task is to organize Terraform related linter outputs.
+                                        Remove ONLY the line numbers but keep everything else, don't remove any detail from the issue message.
+                                        Remove the warnings, only keep the errors in the final list.
+                                         """)
+
+    user_message_content = wrap_prompt("""
+                                   Input Format:
+                                   The terraform linter output: {linter_outputs}
+                                   """)
 
     prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
-                system_message,
+                system_message_content,
             ),
-            ("user", "{linter_outputs}"),
+            "user", user_message_content,
         ]
     )
 
-    return prompt | model
+    return prompt | llm_with_structured_output

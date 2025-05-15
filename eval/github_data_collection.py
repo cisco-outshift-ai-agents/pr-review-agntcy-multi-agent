@@ -6,9 +6,10 @@ from github import Github, UnknownObjectException
 import logging
 from tqdm import tqdm
 import pickle
-from alfred_git_data import PRDataset, PR, Comment, Commit, FileObject, CommentType
+from pkg.alfred_git_data import PRDataset, PR, Comment, Commit, FileObject, CommentType
 from dateutil import parser
 import yaml
+import fire
 
 # Configure logging for the script
 logger = logging.getLogger()
@@ -56,7 +57,7 @@ def populate_issue_comments(pr, issue_comments):
         try:
             # Create a Comment object for each issue comment
             comment = Comment(id=str(ic.id), type=CommentType.issue)
-            comment.user = ic.user.login
+            comment.user = ic.user.login if ic.user else "None"
             comment.comment = ic.body
             comment.comment_timestamp = parser.parse(str(ic.created_at))
             pr.comments.append(comment)
@@ -71,7 +72,7 @@ def populate_review_comments(pr, review_comments):
         try:
             # Create a Comment object for each review comment
             comment = Comment(id=str(rev.id), type=CommentType.review)
-            comment.user = rev.user.login
+            comment.user = rev.user.login if rev.user else "None"
             comment.comment = rev.body
             comment.commit_id = str(rev.commit_id)
             comment.comment_timestamp = parser.parse(str(rev.submitted_at))
@@ -372,7 +373,8 @@ def extract_terraform_pr_comments(
         if merged_only:
             logger.info(f"We are iterating over closed PRs to filter merged ones")
             target_pulls = [pr for pr in tqdm(closed_pulls) if pr.merged_at is not None]
-            logger.info(f"Found {target_pulls.totalCount} merged PRs")
+            # target_pulls will always be a list.
+            logger.info(f"Found {len(target_pulls)} merged PRs")
             # Filter only merged pull requests
             if not closed_pulls:
                 logger.warning("No merged pull requests found.")
@@ -384,7 +386,6 @@ def extract_terraform_pr_comments(
             with open(merged_cache_path, "wb") as handle:
                 pickle.dump(target_pulls, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    logger.info(f"The only target PRs are {target_pulls.totalCount}")
     if merged_only and False:
         target_pulls = sorted(target_pulls, key=lambda pr: pr.merged_at)
         logger.info(len(target_pulls))
@@ -480,8 +481,12 @@ def extract_terraform_pr_comments(
     return dst_prs
 
 
-if __name__ == "__main__":
-    config = yaml.safe_load(open("gen_config.yml", "r"))
+def main(config_file="configs/gen_config.yml", **kwargs):
+    """
+    Main function to extract comments from GitHub pull requests and save them to a JSON file.
+    """
+    config = yaml.safe_load(open(config_file, "r"))
+    config.update(kwargs)
     repo_name = config["repo_name"]
     if "GITHUB_TOKEN" in config:
         os.environ["GITHUB_TOKEN"] = config["GITHUB_TOKEN"]
@@ -510,3 +515,7 @@ if __name__ == "__main__":
 
     with open(os.path.join(local_dir, file_name.replace("v1", "")), "w") as outfile:
         outfile.write(prs_dst.model_dump_json(indent=4))
+
+
+if __name__ == "__main__":
+    fire.Fire(main)

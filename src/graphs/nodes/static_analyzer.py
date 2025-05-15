@@ -24,6 +24,7 @@ from langchain_core.runnables import RunnableSerializable
 from utils.constants import TMP_DIR_ENV
 from utils.logging_config import logger as log
 from utils.wrap_prompt import wrap_prompt
+from utils.models import StaticAnalyzerOutputList, StaticAnalyzerInput
 
 
 def checkTofuFiles(output_folder) -> list[str]:
@@ -151,24 +152,30 @@ class StaticAnalyzer:
                 tf_lint_output = lint_stdout
                 tf_lint_error = lint_stderr
 
-            response = self._context.chain.invoke(
+            staticanalyzerinput = StaticAnalyzerInput(tf_validate_out_stderr=tf_validate_error,
+                                                  tf_validate_out_stdout=tf_validate_output,
+                                                  tflint_output_stderr=tf_lint_error,
+                                                  tflint_output_stdout=tf_lint_output)
+
+            response: StaticAnalyzerOutputList = self._context.chain.invoke(
                 {
                     "linter_outputs": wrap_prompt(
                         "terraform validate output:",
-                        f"{tf_validate_error}",
-                        f"{tf_validate_output}",
+                        f"{staticanalyzerinput.tf_validate_out_stderr}",
+                        f"{staticanalyzerinput.tf_validate_out_stdout}",
                         "",
                         "tflint output:",
-                        f"{tf_lint_error}",
-                        f"{tf_lint_output}",
+                        f"{staticanalyzerinput.tflint_output_stderr}",
+                        f"{staticanalyzerinput.tf_validate_out_stdout}",
                     )
                 }
             )
         except Exception as e:
             log.error(f"Error in {self._name} while running the static analyzer chain: {e}")
             raise
+
         log.debug(f"""
         static_analyzer finished.
-        output: {response.content}
+        output: {response}
         """)
-        return {"static_analyzer_output": response.content}
+        return {"static_analyzer_output": response}

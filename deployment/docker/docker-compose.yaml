@@ -54,7 +54,7 @@ services:
     entrypoint: python app/main.py
 
   tf-pr-review-agntcy-multi-agent:
-    image: ghcr.io/cisco-outshift-ai-agents/prcoach:latest
+    image: ghcr.io/cisco-outshift-ai-agents/prreviewer:latest
     container_name: tf_pr_review_agntcy_multi_agent
     platform: linux/amd64
     volumes:
