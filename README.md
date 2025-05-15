@@ -107,7 +107,10 @@ To get started, see [TUTORIAL.md](./TUTORIAL.md)
 
 ## Evaluation
 
-For detailed instructions on how to evaluate AI Agent, please refer to the [Evaluation Guide](eval/README.md).
+This repo also includes a tool to evaluate the PR Reviewer responses. This tool will replay the entire PR 
+history for a GitHub repository, adding in the PR Reviewer comments for each commit, and then using 
+"LLM-as-a-judge" to evaluate the PR Reviewer feedback. To use this tool, refer to the 
+[Evaluation Guide](eval/README.md).
 
 ## Roadmap
 
