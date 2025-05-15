@@ -108,7 +108,7 @@ To get started, see [TUTORIAL.md](./TUTORIAL.md)
 ## Evaluation
 
 This repo also includes a tool to evaluate the PR Reviewer responses. This tool will replay each PR history in a target GitHub repository, 
-adding in the PR Reviewer comments, and then using "LLM-as-a-judge" to evaluate the PR Reviewer feedback. To use this tool, refer to the[Evaluation Guide](eval/README.md).
+adding in the PR Reviewer comments, and then using "LLM-as-a-judge" to evaluate the PR Reviewer feedback. To use this tool, refer to the [Evaluation Guide](eval/README.md).
 
 ## Roadmap
 
