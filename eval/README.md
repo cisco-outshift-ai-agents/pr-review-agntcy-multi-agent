@@ -1,12 +1,16 @@
-# Installation and Usage Guide
-
-This guide provides step-by-step instructions to set up and run the project.
-
 ## Introduction
 
-This README is for the evaluation of the PR Review Agntcy multi-agent MAA. The evaluation process relies on a reference dataset or repository. It extracts data from the repository, replays the pull requests (PRs) of the reference dataset/repository, and requests Alfred to review them. Once the review is complete, the system extracts the data and uses a Large Language Model (LLM) as a judge to create a rating of how good the review is. Finally, a quick report is generated based on the rating.
+This eval/ subdirectory contains a tool designed to **evaluate the performance of the Multi-Agent Pull Request (PR) Reviewer**. The evaluation tool allows you to test and analyze the Multi-Agent PR Reviewer by replaying the history of any (Terraform) Git repository and then using "LLM-as-a-judge" to evaluate the results.
 
-## Prerequisites
+### How It Works
+
+1. **Repository History Replay:** The tool extracts the historical pull requests (PRs) from a reference repository and replays every commit within each PR.
+2. **Automated Review:** For each replayed PR, the Multi-Agent PR Reviewer provides an automated review.
+3. **Quality Assessment:** A Large Language Model (LLM) acts as an independent judge to evaluate the quality of the reviews provided by the Multi-Agent system.
+4. **Report Generation:** The results are summarized into a report, giving a performance rating for the PR reviewer.
+
+
+## Prerequisites for the eval tool
 
 1. Install [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) and install Python 3.12.9
    ```bash
@@ -27,7 +31,7 @@ This README is for the evaluation of the PR Review Agntcy multi-agent MAA. The e
    pip install -r eval_requirements.txt
    ```
 
-## Steps to Run
+## Steps to Run the eval tool
 
 ### 1. Data Generation/Collection
    - If a `.tar.gz` file (e.g., `azure_terraform_dataset.tar.gz`) is present along with the corresponding metadata (e.g., `prdataset.json`), you can skip this step.
