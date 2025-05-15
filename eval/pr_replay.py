@@ -146,13 +146,13 @@ class AlfredReviewGeneration:
                     print("processing PR number {}".format(values["pr_number"]))
                     directory = self.config["pr_directory_path"]
                     pr_number = str(values["pr_number"])
-                    commits = values["commits"]
                     title = "No title" if values["title"] is None else values["title"]
                     description = "" if values["body"] is None else values["body"]
                     if os.path.isdir(os.path.join(directory, pr_number)):
                         self.createBranch("main", "Pr_base_{}".format(pr_number))
                         main_branch_contents = self.getBranchContents("Pr_base_{}".format(pr_number))
                         base_file_directory = f"{directory}/{pr_number}/base_file"
+                        final_merged_directory = f"{directory}/{pr_number}/final_merged_file"
                         if os.path.isdir(base_file_directory):
                             commit_contents = self.readContentsFromDirectory(base_file_directory)
                             self.createCommit(commit_contents, "Pr_base_{}".format(pr_number),
@@ -160,49 +160,52 @@ class AlfredReviewGeneration:
                             # create Modified Branch with base as Pr_base
                             self.deleteContents(main_branch_contents, "Pr_base_{}".format(pr_number))
                             self.createBranch("Pr_base_{}".format(pr_number), f"PR_changed_{pr_number}")
-                            first_commit = True
-                            no_commit_directory = []
-                            for commit in commits:
-                                commit_directory = f"{directory}/{pr_number}/commits/{commit["commit_sha"]}/changed_code"
-                                if os.path.isdir(commit_directory):
-                                    changed_commit_contents = self.readContentsFromDirectory(commit_directory)
-                                    self.createCommit(changed_commit_contents, f"PR_changed_{pr_number}",
-                                                      commit["commit_message"])
-                                    if first_commit:
-                                        pr = self.createPR("Pr_base_{}".format(pr_number),
-                                                           f"PR_changed_{pr_number}",
-                                                           title, description)
-                                        results['AlfredPRs'].append(
-                                            {"pr_number": pr_number,
-                                             "originalpr_url": values["url"],
-                                             "prreviewer_url": pr.html_url})
-                                        first_commit = False
 
-                                    Review_comment_body = "Alfred review"
+                            # Get final merged contents
+                            if os.path.isfile(final_merged_directory):
+                                final_commit_contents = self.readContentsFromDirectory(final_merged_directory)
+                                self.createCommit(final_commit_contents, f"PR_changed_{pr_number}", "merged_content")
+                                pr = self.createPR("Pr_base_{}".format(pr_number), f"PR_changed_{pr_number}", title,
+                                                   description)
+                                results['AlfredPRs'].append(
+                                    {"pr_number": pr_number,
+                                     "originalpr_url": values["url"],
+                                     "prreviewer_url": pr.html_url})
+                                Review_comment_body = "Alfred review"
+                                pr.create_issue_comment(Review_comment_body)
+                                alfred_review_result = self.wait_for_bot_comment(pr)
+                                if not alfred_review_result[0]:
+                                    if alfred_review_result[1].title == "Context Window Exceeded Error":
+                                        print(
+                                            f'Alfred review failed because of error {alfred_review_result[1].title}')
+                                        context_window_error = True
+                                        self.closeBranch("Pr_Base_{}".format(pr_number))
+                                        break
+                                    else:
+                                        print("Alfred failed at the API endpoint")
+                                        break
+                            else:
+                                # If the merged code directory is not present
+                                results['AlfredPRs'].append(
+                                    {"pr_number": pr_number,
+                                     "originalpr_url": values["url"],
+                                     "prreviewer_url": "No PRcoach Replay",
+                                     "PR_replay_Status": "No Merged Code Directory Present",
+                                     "Commit_files": []
+                                     }
+                                )
+                                self.closeBranch("Pr_Base_{}".format(pr_number))
+                                self.closeBranch("PR_changed_{}".format(pr_number))
+                                continue
 
-                                    pr.create_issue_comment(Review_comment_body)
-                                    alfred_comments_count += 1
-                                    # if the check fails
-                                    alfred_review_result = self.wait_for_bot_comment(pr)
-                                    if not alfred_review_result[0]:
-                                        if alfred_review_result[1].title == "Context Window Exceeded Error":
-                                            print(
-                                                f'Alfred review failed because of error {alfred_review_result[1].title}')
-                                            context_window_error = True
-                                            self.closeBranch("Pr_Base_{}".format(pr_number))
-                                            break
-                                        else:
-                                            print("Alfred failed at the API endpoint")
-                                            break
-                                else:
-                                    no_commit_directory.append(commit["commit_sha"])
+
                         else:
                             # If the base code is not present
                             results['AlfredPRs'].append(
                                 {"pr_number": pr_number,
                                  "originalpr_url": values["url"],
-                                 "prreviewer_url": "No Alred PR Replay",
-                                 "PR_replay_Status": "No Base Code Directory",
+                                 "prreviewer_url": "No PRcoach Replay",
+                                 "PR_replay_Status": "No Base Code Directory Present",
                                  "Commit_files": []
                                  }
                             )
@@ -212,14 +215,9 @@ class AlfredReviewGeneration:
                         continue
                     if context_window_error:
                         # If there is a context window error close both base and changed branch
-                        results['AlfredPRs'][-1]["PR_replay_Status"] = "Failed At Alfred review Due to Context Window Error"
+                        results['AlfredPRs'][-1][
+                            "PR_replay_Status"] = "Failed At Alfred review Due to Context Window Error"
                         results['AlfredPRs'][-1]["Commit_files"] = []
-                        self.closeBranch("Pr_Base_{}".format(pr_number))
-                        self.closeBranch(f"PR_changed_{pr_number}")
-                    # Close the base branch
-                    elif no_commit_directory:
-                        results['AlfredPRs'][-1]["PR_replay_Status"] = "Some commit files are missing"
-                        results['AlfredPRs'][-1]["Commit_files"] = no_commit_directory
                         self.closeBranch("Pr_Base_{}".format(pr_number))
                         self.closeBranch(f"PR_changed_{pr_number}")
 
@@ -228,7 +226,7 @@ class AlfredReviewGeneration:
                         results['AlfredPRs'][-1]["PR_replay_Status"] = "Success"
                         results['AlfredPRs'][-1]["Commit_files"] = []
                         self.closeBranch("Pr_Base_{}".format(pr_number))
-
+                        self.closeBranch(f"PR_changed_{pr_number}")
             return results
         except Exception as e:
             if pr_number:
@@ -250,7 +248,7 @@ def main(config_file, **kwargs):
         sys.exit(1)
     obj = AlfredReviewGeneration(config_file)
     alfred_pr_replay = obj.generateAlfredReview()
-    json.dump(alfred_pr_replay, open(f"pr_replay_{datetime.now().strftime("%d-%b-%Y")}.json", "w"))
+    json.dump(alfred_pr_replay, open(f"alfred_cisco_eti_pr_replay_{datetime.now().strftime("%d-%b-%Y")}.json", "w"))
 
 
 if __name__ == '__main__':
