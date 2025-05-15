@@ -41,7 +41,7 @@ The Multi-Agent PR Reviewer provides GitHub integration and a set of agents capa
 
 - **Agent 3: Terraform Code Review (option: remote)**  
   Examines Terraform code for common issues, such as syntax errors, security flaws, and poor structural design.     
-  [https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agen](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
+  [https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
 
 - **Agent 4a: Cross-reference Reviewer**   
   Checks cross-references to ensure validity and resolve conflicts.

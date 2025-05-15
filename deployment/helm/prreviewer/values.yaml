@@ -1,13 +1,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-appName: prcoach
-namespace: prcoach-dev
+appName: prreviewer
+namespace: prreviewer-dev
 appVersion: v1
 replicaCount: 1
 
 image:
-  repository: ghcr.io/cisco-outshift-ai-agents/prcoach
+  repository: ghcr.io/cisco-outshift-ai-agents/prreviewer
   tag: latest
   pullPolicy: Always
   pullSecret:
