@@ -4,7 +4,7 @@ This eval/ subdirectory contains a tool designed to **evaluate the performance o
 
 ### How It Works
 
-1. **Repository History Replay:** The tool extracts the historical pull requests (PRs) from a reference repository and replays every commit within each PR.
+1. **Repository History Replay:** The tool extracts the historical pull requests (PRs) from a reference repository and replays the base commit and final merge commit within each PR.
 2. **Automated Review:** For each replayed PR, the Multi-Agent PR Reviewer provides an automated review.
 3. **Quality Assessment:** A Large Language Model (LLM) acts as an independent judge to evaluate the quality of the reviews provided by the Multi-Agent system.
 4. **Report Generation:** The results are summarized into a report, giving a performance rating for the PR reviewer.
