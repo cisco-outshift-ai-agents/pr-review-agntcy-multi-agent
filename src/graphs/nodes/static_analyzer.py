@@ -166,7 +166,7 @@ class StaticAnalyzer:
                         "",
                         "tflint output:",
                         f"{staticanalyzerinput.tflint_output_stderr}",
-                        f"{staticanalyzerinput.tf_validate_out_stdout}",
+                        f"{staticanalyzerinput.tflint_output_stdout}",
                     )
                 }
             )

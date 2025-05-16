@@ -26,7 +26,6 @@ class ReviewComment(BaseModel):
     comment: str = Field(description = "Your review comment for the change - this is where you describe the issues you found")
     
 
-
 class IssueComment(BaseModel):
     body: str
     conditions: Optional[List[str]] = None
@@ -61,10 +60,10 @@ class StaticAnalyzerInput(BaseModel):
 
 class StaticAnalyzerOutputIssues(BaseModel):
 
-    file_name: str = Field(description="This is the filename which has terraform linter issues")
-    full_issue_description: str = Field(description="This is the full description of terraform linter issue")
+    file_name: str = Field(description="This is the filename which has terraform issues")
+    full_issue_description: str = Field(description="This is the full description of terraform issue")
 
 
 class StaticAnalyzerOutputList(BaseModel):
 
-    issues: List[StaticAnalyzerOutputIssues] = Field(description="List of terraform linter issues found")
+    issues: List[StaticAnalyzerOutputIssues] = Field(description="List of terraform issues found")
