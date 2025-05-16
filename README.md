@@ -100,6 +100,26 @@ This project is designed to be a starting point for developers who want to exper
    Adjust the sequence of agents or introduce conditional logic to the workflow. For example:
    - Run specific agents only when certain files are modified.
    - Chain new agents into the existing workflow.
+  
+4. **Points of Interest in the Code**
+   - Files that are reviewed:
+      - restriction to only review terraform files: [./src/graphs/nodes/fetch_pr.py#L18](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/src/graphs/nodes/fetch_pr.py#L18)
+   - Agent Workflow Definition: 
+      - overall workflow: [./src/graphs/code_review_graph.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/code_review_graph.py)
+      - what the chat assistant responds to: [./src/graphs/nodes/review_chat_assistant.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/nodes/review_chat_assistant.py)
+   - Agent Prompts: 
+      - (Remote) Static Analyzer: [tf-code-analyzer-agntcy-agent/app/graph/prompt_template.py](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent/blob/main/app/graph/prompt_template.py) 
+      - (Remote) Code Review: [tf-code-reviewer-agntcy-agent/app/utils/chain.py](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent/blob/main/app/utils/chain.py)
+      - Cross-reference + reflection: [./src/graphs/chains/cross_reference.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/chains/cross_reference.py)
+      and [./src/graphs/nodes/cross_reference_reflection.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/nodes/cross_reference_reflection.py)
+      - Title & Description Review: [./src/graphs/chains/title_description_review.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/chains/title_description_review.py)
+      - Chat assistant: [./src/graphs/chains/review_chat_assistant.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/chains/review_chat_assistant.py)
+    - Data flow (what PR contents are sent to each agent): `GitHubPRState` is a central data structure that represents the state of the pull request as it moves through the reviewer workflow, see [.src/graphs/states.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/states.py)
+      - (Remote) Static Analyzer: [tf-code-reviewer-agntcy-agent/models/models.py#L48](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent/blob/main/app/models/models.py#L48)
+      - (Remote) Code Review: [tf-code-reviewer-agntcy-agent/app/utils/chain.py#L37](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent/blob/main/app/utils/chain.py#L37)
+      - Cross reference:  <CHECK INPUTS> [./src/graphs/nodes/cross_reference_reflection.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/nodes/cross_reference_reflection.py)
+      - Title & Description Review: [./src/graphs/nodes/title_description_reviewer.py#L26](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/nodes/title_description_reviewer.py#L26) 
+  
 
 ## Installation
 
