@@ -103,7 +103,7 @@ This project is designed to be a starting point for developers who want to exper
   
 4. **Points of Interest in the Code**
    - Files that are reviewed:
-      - restriction to only review terraform files: [./src/graphs/nodes/fetch_pr.py#L18](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/src/graphs/nodes/fetch_pr.py#L18)
+      - restriction to only review terraform files: [./src/graphs/nodes/fetch_pr.py#L18](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/nodes/fetch_pr.py#L18)
    - Agent Workflow Definition: 
       - overall workflow: [./src/graphs/code_review_graph.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/code_review_graph.py)
       - what the chat assistant responds to: [./src/graphs/nodes/review_chat_assistant.py](https://github.com/cisco-outshift-ai-agents/pr-review-agntcy-multi-agent/blob/main/src/graphs/nodes/review_chat_assistant.py)
