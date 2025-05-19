@@ -23,10 +23,6 @@ config:
   logLevel: ""
   environment: ""
 
-# serviceaccount:
-#   annotations:
-#     eks.amazonaws.com/role-arn: REPLACE_WITH_ROLE_ARN
-
 agentMode: ""
 agpGatewayEndpoint: ""
 

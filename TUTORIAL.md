@@ -16,7 +16,6 @@ Ensure you have the following installed:
 - [AGNTCY Agent Gateway](https://github.com/agntcy/agp)
 - [Terraform Code Analyzer agent](https://github.com/cisco-outshift-ai-agents/tf-code-analyzer-agntcy-agent)
 - [Terraform Code Reviewer agent](https://github.com/cisco-outshift-ai-agents/tf-code-reviewer-agntcy-agent)
-  
 
 ## Setup Instructions
 
@@ -76,7 +75,7 @@ Head to https://smee.io/ and start a new channel
 
 #### A. Set Environment Variables: your GitHub App and OpenAI credentials
 Copy the example .env file and provide relevant values
-`cp .env.example .env`
+`user@computer:$ cp .env.example .env`
 
 Fill in with:
 ```
@@ -109,9 +108,8 @@ i. **Set Environment Variables for Agent Mode Configuration**
 
 To control which protocol the PR reviewer uses for remote agent interaction, set the following environment variable:
 
-      ```bash
-      export AGENT_MODE=acp
-      ```
+    user@computer:$ export AGENT_MODE=acp
+      
 
 Accepted values:
 * `local` – use embedded agents (default)
@@ -123,10 +121,8 @@ ii. **Additional configuration required for ACP mode**
 
 To use **ACP** mode, you must ensure the following variables are also exported in your environment (or defined in the `.env` file):
 
-    ```bash
-    export ACP_TF_CODE_ANALYZER_HOST=http://127.0.0.1:8133/api/v1
-    export ACP_TF_CODE_REVIEWER_HOST=http://127.0.0.1:8123/api/v1
-    ```
+    user@computer:$ export ACP_TF_CODE_ANALYZER_HOST=http://127.0.0.1:8133/api/v1
+    user@computer:$ export ACP_TF_CODE_REVIEWER_HOST=http://127.0.0.1:8123/api/v1
 
 When you get to the next step and start up the service plus remote agents, make sure the **Code Analyzer Agent** and **Code Reviewer Agent** are running locally on the specified ports, or adjust these URLs accordingly.
 
@@ -135,7 +131,7 @@ When you get to the next step and start up the service plus remote agents, make 
 
 Spin up the services using Docker Compose:
 
-`docker compose --env-file .env -f docker/docker-compose.yaml up --build`
+`user@computer:$ docker compose --env-file .env -f docker/docker-compose.yaml up --build`
 
 This starts up remote agent containers and the AGP Gateway container as needed, and exposes the default AGP port `46357`.
 
