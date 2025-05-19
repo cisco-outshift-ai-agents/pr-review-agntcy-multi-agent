@@ -100,6 +100,15 @@ class StaticAnalyzer:
             tofu_files = checkTofuFiles(output_folder)
             if tofu_files:
                 file_rename_map = convertFileExtension(output_folder, tofu_files)
+
+            run(
+                    ["terraform", "init", "-backend=false"],
+                    check=True,
+                    cwd=output_folder,
+                    capture_output=True,
+                    text=True,
+                )
+
             tf_validate_out = run(
                 ["terraform", "validate", "-no-color"],
                 cwd=output_folder,
