@@ -107,6 +107,22 @@ class StaticAnalyzer:
                 stderr=PIPE,
                 text=True,
             )
+            if tf_validate_out.returncode == 1 and "terraform init" in tf_validate_out.stderr:
+                # If the directory expects terraform init to run.
+                run(
+                    ["terraform", "init", "-backend=false"],
+                    check=True,
+                    cwd=output_folder,
+                    capture_output=True,
+                    text=True,
+                )
+                tf_validate_out = run(
+                    ["terraform", "validate", "-no-color"],
+                    cwd=output_folder,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    text=True,
+                )
             lint_stdout, lint_stderr = "", ""
             # If terraform validate passes, run tflint
             if tf_validate_out.returncode == 0:
