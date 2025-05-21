@@ -100,39 +100,25 @@ class StaticAnalyzer:
             tofu_files = checkTofuFiles(output_folder)
             if tofu_files:
                 file_rename_map = convertFileExtension(output_folder, tofu_files)
-            tf_validate_out = run(
-                ["terraform", "validate", "-no-color"],
+
+            tf_init_out = run(
+                ["terraform", "init", "-backend=false"],
                 cwd=output_folder,
                 stdout=PIPE,
                 stderr=PIPE,
                 text=True,
             )
-            if tf_validate_out.returncode == 1 and "terraform init" in tf_validate_out.stderr:
-                # If the directory expects terraform init to run.
-                run(
-                    ["terraform", "init", "-backend=false"],
-                    check=True,
-                    cwd=output_folder,
-                    capture_output=True,
-                    text=True,
-                )
+            tf_validate_stdout = ""
+            tf_validate_stderr = ""
+            lint_stdout = ""
+            lint_stderr = ""
+            if tf_init_out.returncode == 0:
+                # The tf_init established the providers and modules folder successfully
                 tf_validate_out = run(
                     ["terraform", "validate", "-no-color"],
                     cwd=output_folder,
                     stdout=PIPE,
                     stderr=PIPE,
-                    text=True,
-                )
-            lint_stdout, lint_stderr = "", ""
-            # If terraform validate passes, run tflint
-            if tf_validate_out.returncode == 0:
-                # Need tf init to download the necessary third party
-                # dependencies, otherwise most linters would fail
-                run(
-                    ["terraform", "init", "-backend=false"],
-                    check=True,
-                    cwd=output_folder,
-                    capture_output=True,
                     text=True,
                 )
                 tflint_out = run(
@@ -142,9 +128,10 @@ class StaticAnalyzer:
                     stderr=PIPE,
                     text=True,
                 )
+                tf_validate_stdout = tf_validate_out.stdout
+                tf_validate_stderr = tf_validate_out.stderr
                 lint_stdout = tflint_out.stdout
                 lint_stderr = tflint_out.stderr
-                # if some files are renamed modify the lint output with the old file name
         except CalledProcessError as e:
             log.error(f"Error while running static checks: {e.stderr}")
             return {}
@@ -158,28 +145,39 @@ class StaticAnalyzer:
         try:
             if file_rename_map:
                 # Replace all the modified file names in  tf_validate output, error, lint output
-                tf_validate_output = modifyresponse(file_rename_map, tf_validate_out.stdout)
-                tf_validate_error = modifyresponse(file_rename_map, tf_validate_out.stderr)
+                tf_init_output = modifyresponse(file_rename_map, tf_init_out.stdout)
+                tf_init_error = modifyresponse(file_rename_map, tf_init_out.stderr)
+                tf_validate_output = modifyresponse(file_rename_map, tf_validate_stdout)
+                tf_validate_error = modifyresponse(file_rename_map, tf_validate_stderr)
                 tf_lint_output = modifyresponse(file_rename_map, lint_stdout)
                 tf_lint_error = modifyresponse(file_rename_map, lint_stderr)
             else:
-                tf_validate_output = tf_validate_out.stdout
-                tf_validate_error = tf_validate_out.stderr
+                tf_init_output = tf_init_out.stdout
+                tf_init_error = tf_init_out.stderr
+                tf_validate_output = tf_validate_stdout
+                tf_validate_error = tf_validate_stderr
                 tf_lint_output = lint_stdout
                 tf_lint_error = lint_stderr
 
-            staticanalyzerinput = StaticAnalyzerInput(tf_validate_out_stderr=tf_validate_error,
-                                                  tf_validate_out_stdout=tf_validate_output,
-                                                  tflint_output_stderr=tf_lint_error,
-                                                  tflint_output_stdout=tf_lint_output)
+            staticanalyzerinput = StaticAnalyzerInput(
+                tf_init_stdout=tf_init_output,
+                tf_init_stderr=tf_init_error,
+                tf_validate_out_stderr=tf_validate_error,
+                tf_validate_out_stdout=tf_validate_output,
+                tflint_output_stderr=tf_lint_error,
+                tflint_output_stdout=tf_lint_output)
 
             response: StaticAnalyzerOutputList = self._context.chain.invoke(
                 {
                     "linter_outputs": wrap_prompt(
+                        "terraform init output:",
+                        f"{staticanalyzerinput.tf_init_stderr}",
+                        f"{staticanalyzerinput.tf_init_stdout} \n\n",
+
                         "terraform validate output:",
                         f"{staticanalyzerinput.tf_validate_out_stderr}",
-                        f"{staticanalyzerinput.tf_validate_out_stdout}",
-                        "",
+                        f"{staticanalyzerinput.tf_validate_out_stdout}\n\n",
+
                         "tflint output:",
                         f"{staticanalyzerinput.tflint_output_stderr}",
                         f"{staticanalyzerinput.tflint_output_stdout}",
