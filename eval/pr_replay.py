@@ -179,7 +179,7 @@ class AlfredReviewGeneration:
                                         print(
                                             f'Alfred review failed because of error {alfred_review_result[1].title}')
                                         context_window_error = True
-                                        self.closeBranch("Pr_Base_{}".format(pr_number))
+                                        self.closeBranch("Pr_base_{}".format(pr_number))
                                         break
                                     else:
                                         print("Alfred failed at the API endpoint")
@@ -194,7 +194,7 @@ class AlfredReviewGeneration:
                                      "Commit_files": []
                                      }
                                 )
-                                self.closeBranch("Pr_Base_{}".format(pr_number))
+                                self.closeBranch("Pr_base_{}".format(pr_number))
                                 self.closeBranch("PR_changed_{}".format(pr_number))
                                 continue
 
@@ -209,7 +209,7 @@ class AlfredReviewGeneration:
                                  "Commit_files": []
                                  }
                             )
-                            self.closeBranch("Pr_Base_{}".format(pr_number))
+                            self.closeBranch("Pr_base_{}".format(pr_number))
                             continue
                     else:
                         continue
@@ -218,20 +218,20 @@ class AlfredReviewGeneration:
                         results['AlfredPRs'][-1][
                             "PR_replay_Status"] = "Failed At Alfred review Due to Context Window Error"
                         results['AlfredPRs'][-1]["Commit_files"] = []
-                        self.closeBranch("Pr_Base_{}".format(pr_number))
+                        self.closeBranch("Pr_base_{}".format(pr_number))
                         self.closeBranch(f"PR_changed_{pr_number}")
 
                     else:
                         # If all the commits are successfully updated
                         results['AlfredPRs'][-1]["PR_replay_Status"] = "Success"
                         results['AlfredPRs'][-1]["Commit_files"] = []
-                        self.closeBranch("Pr_Base_{}".format(pr_number))
+                        self.closeBranch("Pr_base_{}".format(pr_number))
                         self.closeBranch(f"PR_changed_{pr_number}")
             return results
         except Exception as e:
             if pr_number:
                 print(f"The PR Replay run stopped for pr_number {pr_number} due to Error", e)
-                self.closeBranch("Pr_Base_{}".format(pr_number))
+                self.closeBranch("Pr_base_{}".format(pr_number))
                 self.closeBranch(f"PR_changed_{pr_number}")
                 return results
             else:
