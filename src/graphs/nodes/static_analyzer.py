@@ -110,8 +110,8 @@ class StaticAnalyzer:
             )
             tf_validate_stdout = ""
             tf_validate_stderr = ""
-            lint_stdout = ""
-            lint_stderr = ""
+            tf_lint_stdout = ""
+            tf_lint_stderr = ""
             if tf_init_out.returncode == 0:
                 # The tf_init established the providers and modules folder successfully
                 tf_validate_out = run(
@@ -130,8 +130,8 @@ class StaticAnalyzer:
                 )
                 tf_validate_stdout = tf_validate_out.stdout
                 tf_validate_stderr = tf_validate_out.stderr
-                lint_stdout = tflint_out.stdout
-                lint_stderr = tflint_out.stderr
+                tf_lint_stdout = tflint_out.stdout
+                tf_lint_stderr = tflint_out.stderr
         except CalledProcessError as e:
             log.error(f"Error while running static checks: {e.stderr}")
             return {}
@@ -149,15 +149,15 @@ class StaticAnalyzer:
                 tf_init_error = modifyresponse(file_rename_map, tf_init_out.stderr)
                 tf_validate_output = modifyresponse(file_rename_map, tf_validate_stdout)
                 tf_validate_error = modifyresponse(file_rename_map, tf_validate_stderr)
-                tf_lint_output = modifyresponse(file_rename_map, lint_stdout)
-                tf_lint_error = modifyresponse(file_rename_map, lint_stderr)
+                tf_lint_output = modifyresponse(file_rename_map, tf_lint_stdout)
+                tf_lint_error = modifyresponse(file_rename_map, tf_lint_stderr)
             else:
                 tf_init_output = tf_init_out.stdout
                 tf_init_error = tf_init_out.stderr
                 tf_validate_output = tf_validate_stdout
                 tf_validate_error = tf_validate_stderr
-                tf_lint_output = lint_stdout
-                tf_lint_error = lint_stderr
+                tf_lint_output = tf_lint_stdout
+                tf_lint_error = tf_lint_stderr
 
             staticanalyzerinput = StaticAnalyzerInput(
                 tf_init_stdout=tf_init_output,
