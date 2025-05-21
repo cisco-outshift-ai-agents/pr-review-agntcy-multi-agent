@@ -32,7 +32,7 @@ def create_static_analyzer_chain(model: BaseChatModel) -> RunnableSerializable[d
                                         Your are an experienced software engineer who's task is to organize Terraform related linter outputs.
                                         Remove ONLY the line numbers but keep everything else, don't remove any detail from the issue message.
                                         Remove the warnings, only keep the errors in the final list.
-                                        """)
+                                    """)
 
     user_message_content = wrap_prompt("""
                                    Input Format:
