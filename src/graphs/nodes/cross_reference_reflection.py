@@ -151,6 +151,9 @@ class CrossReferenceReflector:
         res = self.context.chain(translated).invoke({})
         return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
+# Currently we are only using static analyzer output for producing cross reference issues and not utlizing other inputs like git_diff, base_codebase, head_codebase 
+# as they seem to not produce accurate results.
+
 
 def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str, static_analyzer_response: List[str]) -> str:
 
