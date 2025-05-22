@@ -24,8 +24,9 @@ from github.GitTree import GitTree
 from github.GitBlob import GitBlob
 from github.GitTreeElement import GitTreeElement
 from langchain_core.messages import HumanMessage, AIMessage
-from utils.models import IssueComment
+from utils.models import IssueComment, StaticAnalyzerOutputList
 from pydantic import BaseModel, Field
+from typing import List
 
 
 class File:
@@ -75,7 +76,12 @@ class CrossReferenceInitializer:
         codebase = self._codebase(base_files)
         head_codebase = self._codebase(head_files)
         git_diff = self.context.github.get_git_diff()
-        user_prompt = _create_user_prompt(git_diff, codebase, head_codebase)
+
+        static_analyzer_response = []
+        if isinstance(state['static_analyzer_output'], StaticAnalyzerOutputList):
+            static_analyzer_response = [f"{res.file_name}: {res.full_issue_description}" for res in
+                                        state['static_analyzer_output'].issues]
+        user_prompt = _create_user_prompt(git_diff, codebase, head_codebase, static_analyzer_response)
         return {"messages": [HumanMessage(content=user_prompt)]}
 
     def _get_files_from_sha(self, sha: str) -> list[File]:
@@ -145,9 +151,14 @@ class CrossReferenceReflector:
         res = self.context.chain(translated).invoke({})
         return {"messages": [HumanMessage(content=res.cross_reference_reflector_output)]}
 
+# Currently we are only using static analyzer output for producing cross reference issues and not utilizing other inputs like git_diff, base_codebase, head_codebase 
+# as they seem to not produce accurate results.
 
-def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str) -> str:
+
+def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str, static_analyzer_response: List[str]) -> str:
+
     user_prompt = """
+
         # git diff
         ```
         {git_diff}
@@ -163,16 +174,24 @@ def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str) -
         {base_codebase}
         ```
 
-        Analyze the Terraform code for cross-reference issues by comparing the base and head codebases. Return ONLY a list of issues in this exact format:
+        # static analyzer response:
+        ```
+        {static_analyzer_response}
+        ```
+
+        Analyze the Terraform code for cross-reference issues by using the static_analyzer_response which is a List of strings. \
+        Each string in the static_analyzer_response List is of the format: "file_name: full_issue_description" where file_name consists of the file name that has issues \
+        and full_issue_description has the full description of the issue in that specific filename. \
+        Return ONLY a list of issues in this exact format:
 
         ### Summary of Cross-Reference Problems
 
-        - **`<resource_or_variable>`**: Used in `<file_path>` but not defined
-        - **`<variable>`**: Defined in `<file_path>` but not used
+        - **`<resource_or_variable>`**: Used in `<file_path>` but not defined: `<explanation>`
+        - **`<variable>`**: Defined in `<file_path>` but not used: `<explanation>`
 
         Rules:
         1. Only include actual cross-reference problems
-        2. Do not include any other sections or explanations
+        2. Please give an explanation in the above `<explanation>` section on why it is an issue.
         3. If no issues found, return only "### Summary of Cross-Reference Problems\n\nNo cross-reference issues found."
         4. Each issue must be a single line starting with a hyphen
         5. Use the exact format shown above
@@ -186,11 +205,13 @@ def _create_user_prompt(git_diff: str, base_codebase: str, head_codebase: str) -
         - Variables defined in terraform.tfvars but missing from .tf files
         - Variables defined in either .tf or terraform.tfvars (or both) but not referenced in any other files or resources
         """
+
     # Now fill in values
     filled_prompt = user_prompt.format(
         git_diff=git_diff,
         head_codebase=head_codebase,
-        base_codebase=base_codebase
+        base_codebase=base_codebase,
+        static_analyzer_response=static_analyzer_response
     )
     return filled_prompt
 
