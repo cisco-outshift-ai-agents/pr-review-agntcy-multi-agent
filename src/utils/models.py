@@ -52,8 +52,8 @@ class ContextFile(BaseModel):
 
 class StaticAnalyzerInput(BaseModel):
 
-    tf_init_stderr: str = Field(description="This is the stderr output for running terraform init --backend=false")
-    tf_init_stdout: str = Field(description="This is the stdout output for running terraform init --backend=false")
+    tf_init_stderr: str = Field(description="This is the stderr output after running terraform init --backend=false")
+    tf_init_stdout: str = Field(description="This is the stdout output after running terraform init --backend=false")
     tf_validate_out_stderr: str = Field(description="This is the stderr output after running terraform validate -no-color")
     tf_validate_out_stdout: str = Field(description="This is the stdout output after running terraform validate -no-color")
     tflint_output_stderr: str = Field(description="This is the stderr output after running tflint --format=compact --recursive")
