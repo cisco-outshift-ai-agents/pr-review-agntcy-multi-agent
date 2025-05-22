@@ -81,8 +81,6 @@ class CrossReferenceInitializer:
         if isinstance(state['static_analyzer_output'], StaticAnalyzerOutputList):
             static_analyzer_response = [f"{res.file_name}: {res.full_issue_description}" for res in
                                         state['static_analyzer_output'].issues]
-        print("___________________-")
-        print(static_analyzer_response)
         user_prompt = _create_user_prompt(git_diff, codebase, head_codebase, static_analyzer_response)
         return {"messages": [HumanMessage(content=user_prompt)]}
 
